@@ -433,6 +433,20 @@ html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px so
 #cmdList button.cur{background:rgba(255,210,63,.12);color:var(--accent)}
 #cmdList .none{padding:14px 12px;color:var(--muted);font-size:13px}
 .cmdnote{margin:10px 2px 0 !important}
+/* 素材 grid (tool panel, inspector and drawer) */
+.matsearch{padding:4px 14px 8px}
+.matsearch input{width:100%;height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);font:inherit;font-size:14px;outline:none}
+.matsearch input:focus{border-color:var(--accent)}
+.matcats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 14px 8px}
+html.desk .matcats{flex-wrap:wrap;overflow-x:visible}
+.matcats .chip{flex:0 0 auto}
+.matgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(52px*var(--u)),1fr));gap:6px;padding:2px 14px 12px}
+.mat{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--chrome2);border:1px solid var(--line);overflow:hidden;transition:transform .15s var(--spring),border-color .15s}
+.mat:hover{border-color:var(--accent)}
+.mat:active{transform:scale(.92)}
+.mat.emo{font-size:calc(26px*var(--u));font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.mat img{width:84%;height:84%;object-fit:contain}
+.mat.date{grid-column:span 2;aspect-ratio:auto;min-height:calc(52px*var(--u));padding:0 8px;font-size:13px;color:#fff;background:linear-gradient(135deg,#6b5a8a,#3a4a6b)}
 /* templates drawer */
 .tplwrap .hint{padding:2px 14px 8px}
 .tplcats{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
@@ -442,7 +456,10 @@ html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px so
 .tpl:active{transform:scale(.97)}
 .tim{display:block;width:100%;border-radius:9px;overflow:hidden;background:#0d0f13}
 .tim img{display:block;width:100%;height:100%;object-fit:cover}
-.tnm{font-size:12.5px;font-weight:700;padding:0 2px 2px}
+.tnm{display:flex;flex-direction:column;font-size:12.5px;font-weight:700;padding:0 2px 2px}
+.tnm small{font-weight:500;font-size:10.5px;color:var(--muted)}
+#tplBody .tplwrap .hint,#tplBody .tplcats,#tplBody .tplgrid{padding-left:0;padding-right:0}
+#tplBody .tplgrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 /* inspector: the photo card shown with nothing selected */
 .pcard{margin:2px 12px 6px;padding:12px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line)}
 .pch{display:flex;flex-direction:column;gap:2px;font-weight:800;font-size:calc(14px*var(--u));margin-bottom:10px}
@@ -535,6 +552,8 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
   <div class="wrap" id="nbSizes"></div>
   <h3>背景色</h3>
   <div class="wrap" id="nbColors"></div>
+  <h3>背景の柄</h3>
+  <div class="wrap" id="nbPats"></div>
   <div class="actions" style="padding:14px 0 0"><button class="btn" data-nb="blank">白紙で作成</button></div>
   <p class="note">新しく開くと、今の編集内容は置き換わります。編集中の内容はこの端末に自動で下書き保存されます。</p>
 </div>
@@ -572,7 +591,8 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
     <li><b>⋯ ボタン</b>　選んだ物の横に出ます。前面へ・背面へ・複製・ロック・削除はここから。パソコンでは物の右クリックでも同じメニューが開きます。</li>
     <li><b>パソコン</b>　左のサイドバー（☰で開閉）に、みんなの作品・アップロード・フィルター・背景削除・調整・設定があります。その右が編集ツール、選んだツールや物の設定は右側のパネルに出ます。写真はドラッグ＆ドロップでも貼れます。</li>
     <li><b>ピタッと整列</b>　ドラッグ中は写真の中心・端やほかの物に吸着し、ピンクの線が出ます（Altを押しながらだと自由に動かせます）。</li>
-    <li><b>番号スタンプ</b>　①②③…と自動で番号が進むので、説明図づくりに便利です。</li>
+    <li><b>素材</b>　「素材」ツール（パソコンは左のサイドバーにも）から、絵文字スタンプ・マスキングテープ・キラキラ・手書き矢印・ラベル・推し活・フレーム・今日の日付・背景の柄を置けます。①②③…と番号が進む番号スタンプは説明図づくりに便利です。</li>
+    <li><b>テンプレート</b>　写真の上にデザインをまとめて重ねます。「コラージュ」は写真枠の入った新しいキャンバスで作り、枠をダブルクリック（ダブルタップ）するか写真をドロップして入れます。</li>
     <li><b>フィルター</b>　エモ・レトロ・モノクロなど30種類以上。「強さ」で効き具合を調整でき、「調整」と重ねて使えます。</li>
     <li><b>背景削除</b>　AIで自動、または消したい色をタップ。AIは「標準」（内蔵・商用可）、「高精度」（初回のみ約115MBをダウンロード・商用可）、「高精度RMBG」（約44MB・非商用のみ）から選べ、どれも写真は端末の外に送られません。消しすぎた所は「ブラシで戻す」で直せます。貼った写真にも使えます。</li>
     <li><b>書体</b>　文字や付箋を選んで「書体」から約50種類。手持ちの .ttf / .otf も読み込めます。</li>
@@ -601,6 +621,12 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
     </dl></div>
   </div>
   <div class="actions" style="padding:8px 0 0"><button class="btn primary" data-ex="close">閉じる</button></div>
+</div>
+
+<div class="sheet" id="sheetTpl" hidden>
+  <div class="grab"></div>
+  <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">テンプレート</h2><button class="chip" data-ex="close">閉じる</button></div>
+  <div id="tplBody"></div>
 </div>
 
 <div class="sheet light" id="sheetCmd" hidden>
@@ -656,6 +682,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
 
 <input type="file" id="fileOpen" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileAdd" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
+<input type="file" id="fileSlot" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileFont" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" class="vh" tabindex="-1" aria-hidden="true">
 
 <script>
@@ -722,10 +749,11 @@ const FONTS = [
 const FONT_MAP = Object.fromEntries(FONTS.map(f => [f[0], f]));
 const customFonts = [];            // [{name, blob}]
 const famStack = f => `"${f}","Hiragino Sans","Noto Sans JP",sans-serif`;
-const NOTE_SHAPES = [['square', '□ 付箋'], ['rounded', '▢ 角丸'], ['circle', '○ 丸'], ['heart', '♡ ハート'], ['speech', '💬 吹き出し'], ['cloud', '☁ 雲'], ['tag', '🏷 タグ'], ['torn', '✂ ノート']];
+const NOTE_SHAPES = [['square', '□ 付箋'], ['rounded', '▢ 角丸'], ['circle', '○ 丸'], ['heart', '♡ ハート'], ['speech', '💬 吹き出し'], ['cloud', '☁ 雲'], ['tag', '🏷 タグ'], ['torn', '✂ ノート'],
+  ['ribbon', '🎀 リボン'], ['label', '▭ ラベル'], ['sticker', '◎ 丸シール'], ['think', '💭 考え中']];
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const STAMPS = ['❤️', '⭐', '✨', '👍', '😀', '😂', '😍', '🥰', '😎', '🤔', '😭', '😱', '🎉', '🔥', '💯', '✅', '❌', '⭕', '⚠️', '❓', '❗', '👉', '👆', '👇', '📌', '📍', '💡', '💬', '🌸', '🍀', '☀️', '🌙', '⚡', '🎂', '🐱', '🐶', '🍰', '☕', '🎁', '🏷️'];
-const TYPE_NAMES = { image: '写真', text: '文字', note: '付箋', stroke: '手描き', shape: '図形', stamp: 'スタンプ', mosaic: 'モザイク' };
+const TYPE_NAMES = { image: '写真', text: '文字', note: '付箋', stroke: '手描き', shape: '図形', stamp: 'スタンプ', mosaic: 'モザイク', deco: 'デコ' };
 const ADJ_KEYS = ['bri', 'con', 'sat', 'warm', 'tint', 'fade', 'vig', 'sepia', 'grain', 'glow', 'leak', 'split'];
 const DEFAULT_ADJ = { bri: 0, con: 0, sat: 0, warm: 0, tint: 0, fade: 0, vig: 0, sepia: 0, grain: 0, glow: 0, leak: 0, split: 0, preset: 'none', amt: 100 };
 const FILTER_CATS = [['all', 'すべて'], ['basic', 'ベーシック'], ['emo', 'エモ'], ['retro', 'レトロ'], ['mono', 'モノクロ'], ['cine', 'シネマ']];
@@ -765,6 +793,265 @@ const FILTERS = {
   forest: ['森', 'cine', { tint: -15, sat: 5, split: 25, sh: '#1f4a2c', hi: '#ffe7a8', warm: -5 }],
   cyber: ['サイバー', 'cine', { con: 20, tint: 25, warm: -30, split: 55, sh: '#3a1a7a', hi: '#3ef0ff', glow: 25 }]
 };
+/* ==== deco library ==== (drawn stickers: tapes, sparkles, hand-drawn lines, labels, 推し活, frames + background patterns)
+   DECO[kind] = {name, cat, w, h (fractions of the photo's short side) | full, color, color2?, draw(ctx, o)} — draw() works in
+   object-local coordinates centred on (0,0) within o.w × o.h; deterministic via o.seed. */
+//DECO-LIB-START
+/* deco.js: decorative stickers (デコ素材) and background patterns. Canvas 2D only, no images, no network.
+   Exposes DECO_CATS,DECO,BG_PATTERNS,drawBgPattern; every helper stays private inside the IIFE. */
+const { DECO_CATS,DECO,BG_PATTERNS,drawBgPattern } = (() => {
+'use strict';
+const PI = Math.PI, TAU = PI*2, sin = Math.sin, cos = Math.cos, MN = Math.min, MX = Math.max, RND = Math.round, FL = Math.floor;
+
+/* ---- helpers ---- */
+// seeded PRNG (mulberry32): same seed, same wobble
+const rng = s => { s = (s | 0) || 1; return () => { s = s+0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15,1 | s); t = t+Math.imul(t ^ t >>> 7,61 | t) ^ t; return ((t ^ t >>> 14) >>> 0)/4294967296; }; };
+// smooth deterministic noise in [-1, 1] over t in [0, 1]
+const nz = r => { const a = r()*TAU, b = r()*TAU, f = 1+r()*1.2; return t => .6*sin(t*TAU*f+a)+.4*sin(t*TAU*f*2.3+b); };
+const rgb = h => { const n = parseInt(h.slice(1,7),16); return [n >> 16 & 255,n >> 8 & 255,n & 255]; };
+const mix = (a,b,t) => { const x = rgb(a), y = rgb(b); return 'rgb('+x.map((v,i) => RND(v+(y[i]-v)*t)).join(',')+')'; };
+const dark = (c,t) => mix(c,'#000000',t), lite = (c,t) => mix(c,'#ffffff',t);
+const rgba = (c,a) => 'rgba('+rgb(c).join(',')+','+a+')';
+// device px per local unit: shadow blur/offset ignore the transform, so scale them by hand
+const kpx = ctx => { const t = ctx.getTransform(); return Math.hypot(t.a,t.b) || 1; };
+const shd = (ctx,m, a = .28, b = .07, oy = .025,col) => { const k = kpx(ctx); ctx.shadowColor = col || 'rgba(0,0,0,'+a+')'; ctx.shadowBlur = m*b*k; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = m*oy*k; };
+const noShd = ctx => { ctx.shadowColor = 'rgba(0,0,0,0)'; ctx.shadowBlur = ctx.shadowOffsetY = 0; };
+const poly = (ctx,p,close) => { ctx.moveTo(p[0][0],p[0][1]); for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0],p[i][1]); if (close) ctx.closePath(); };
+// smooth curve through points (quadratic midpoints)
+const smooth = (ctx,p) => { ctx.moveTo(p[0][0],p[0][1]); for (let i = 1; i < p.length-1; i++) ctx.quadraticCurveTo(p[i][0],p[i][1],(p[i][0]+p[i+1][0])/2,(p[i][1]+p[i+1][1])/2); const l = p[p.length-1]; ctx.lineTo(l[0],l[1]); };
+const rr = (ctx,x,y,w,h,r) => { r = MN(r,w/2,h/2); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); };
+const circ = (ctx,x,y,r) => { ctx.moveTo(x+r,y); ctx.arc(x,y,r,0,TAU); };
+const lgrad = (ctx,y0,y1,stops) => { const g = ctx.createLinearGradient(0,y0,0,y1); stops.forEach((c,i) => g.addColorStop(i/(stops.length-1),c)); return g; };
+// heart fitting the box cx±rx, cy±ry
+const HP = [[-.15,-.95,-1,-.95,-1,-.32],[-1,.2,-.42,.55,0,.92],[.42,.55,1,.2,1,-.32],[1,-.95,.15,-.95,0,-.5]];
+const heartP = (ctx,cx,cy,rx,ry) => { const X = x => cx+x*rx, Y = y => cy+(y-.045)*ry/.875; ctx.moveTo(X(0),Y(-.5)); for (const c of HP) ctx.bezierCurveTo(X(c[0]),Y(c[1]),X(c[2]),Y(c[3]),X(c[4]),Y(c[5])); ctx.closePath(); };
+// 4-point sparkle with concave sides
+const kiraP = (ctx,cx,cy,r, c = .15) => { ctx.moveTo(cx,cy-r); for (let i = 0; i < 4; i++) { const a = -PI/2+i*PI/2, b = a+PI/2, q = a+PI/4; ctx.quadraticCurveTo(cx+cos(q)*r*c,cy+sin(q)*r*c,cx+cos(b)*r,cy+sin(b)*r); } ctx.closePath(); };
+const starPts = (cx,cy,r,ri, n = 5) => { const p = []; for (let i = 0; i < n*2; i++) { const a = -PI/2+i*PI/n, q = i & 1 ? ri : r; p.push([cx+cos(a)*q,cy+sin(a)*q]); } return p; };
+// filled sticker shape: soft shadow+outline (ow outside the shape), then fill
+const stk = (ctx,m,path,fill,ow, oc = '#fff') => { ctx.beginPath(); path(); ctx.lineJoin = ctx.lineCap = 'round'; shd(ctx,m); ctx.strokeStyle = oc; ctx.lineWidth = ow*2; ctx.stroke(); noShd(ctx); ctx.fillStyle = fill; ctx.fill(); };
+// stroked line: white halo+shadow, then colour (halo reaches .85*lw outside the centre line)
+const lin = (ctx,m,path,col,lw) => { ctx.lineCap = ctx.lineJoin = 'round'; ctx.beginPath(); path(); shd(ctx,m,.22,.05,.015); ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineWidth = lw*1.7; ctx.stroke(); noShd(ctx); ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.stroke(); };
+const radial = (ctx,x,y,r,c) => { const g = ctx.createRadialGradient(x-r*.3,y-r*.35,0,x,y,r*1.1); g.addColorStop(0,lite(c,.55)); g.addColorStop(.6,c); g.addColorStop(1,dark(c,.08)); return g; };
+const gloss = (ctx,x,y,rx,ry, a = .55) => { ctx.save(); ctx.globalAlpha *= a; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(x,y,rx,ry,-.6,0,TAU); ctx.fill(); ctx.restore(); };
+
+/* ---- patterns: fill the rect -w..w × -h..h (half extents), cell c, anchored at the origin ---- */
+const each = (w,h,c,f, pad = 1) => { for (let j = FL(-h/c)-pad; j*c < h+c*pad; j++) for (let i = FL(-w/c)-pad; i*c < w+c*pad; i++) f(i,j); };
+const PAT = {
+  solid(ctx,w,h,c,a) { ctx.fillStyle = a; ctx.fillRect(-w,-h,2*w,2*h); },
+  stripe(ctx,w,h,c,a,b) { PAT.solid(ctx,w,h,c,a); ctx.fillStyle = b; ctx.beginPath(); const s = c/2, x0 = FL(-w/c)*c-c; for (let x = x0; x < w+2*h+c; x += c) poly(ctx,[[x,-h],[x+s,-h],[x+s-2*h,h],[x-2*h,h]],1); ctx.fill(); },
+  dot(ctx,w,h,c,a,b) { PAT.solid(ctx,w,h,c,a); ctx.fillStyle = b; ctx.beginPath(); each(w,h,c,(i,j) => circ(ctx,i*c+(j & 1 ? c/2 : 0),j*c,c*.2)); ctx.fill(); },
+  gingham(ctx,w,h,c,a,b) { PAT.solid(ctx,w,h,c,b); ctx.fillStyle = rgba(a,.5); for (let i = FL(-w/c)-1; i*c < w+c; i++) ctx.fillRect(i*c-c/4,-h,c/2,2*h); for (let j = FL(-h/c)-1; j*c < h+c; j++) ctx.fillRect(-w,j*c-c/4,2*w,c/2); },
+  check(ctx,w,h,c,a,b) { PAT.solid(ctx,w,h,c,a); const s = c*2; ctx.fillStyle = rgba(b,.42); for (let i = FL(-w/s)-1; i*s < w+s; i++) ctx.fillRect(i*s-c*.45,-h,c*.9,2*h); for (let j = FL(-h/s)-1; j*s < h+s; j++) ctx.fillRect(-w,j*s-c*.45,2*w,c*.9); ctx.fillStyle = 'rgba(0,0,0,.1)'; for (let i = FL(-w/s)-1; i*s < w+s; i++) ctx.fillRect(i*s+c*.97,-h,c*.07,2*h); for (let j = FL(-h/s)-1; j*s < h+s; j++) ctx.fillRect(-w,j*s+c*.97,2*w,c*.07); },
+  ichimatsu(ctx,w,h,c,a,b) { PAT.solid(ctx,w,h,c,a); ctx.fillStyle = b; each(w,h,c,(i,j) => { if ((i+j) & 1) ctx.fillRect(i*c,j*c,c,c); }); },
+  heart(ctx,w,h,c,a,b) { PAT.solid(ctx,w,h,c,a); ctx.fillStyle = b; ctx.beginPath(); const s = c*1.15; each(w,h,s,(i,j) => heartP(ctx,i*s+(j & 1 ? s/2 : 0),j*s,s*.25,s*.23)); ctx.fill(); },
+  asanoha(ctx,w,h,c,a,b) { // triangle lattice+spokes to each centroid = hemp-leaf
+    PAT.solid(ctx,w,h,c,a); const s = c*1.5, hh = s*Math.sqrt(3)/2, V = (i,j) => [i*s+j*s/2,j*hh];
+    ctx.beginPath(); const L = (p,q) => { ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); };
+    const tri = (A,B,C) => { const G = [(A[0]+B[0]+C[0])/3,(A[1]+B[1]+C[1])/3]; L(A,B); L(B,C); L(C,A); L(A,G); L(B,G); L(C,G); };
+    for (let j = FL(-h/hh)-1; j*hh < h+hh; j++) for (let i = FL((-w-j*s/2)/s)-1; i*s+j*s/2 < w+s; i++) { tri(V(i,j),V(i+1,j),V(i,j+1)); tri(V(i+1,j),V(i+1,j+1),V(i,j+1)); }
+    ctx.strokeStyle = b; ctx.lineWidth = c*.07; ctx.lineCap = 'round'; ctx.stroke(); },
+  grid(ctx,w,h,c,a,b) { PAT.solid(ctx,w,h,c,a); ctx.strokeStyle = rgba(b,.8); for (const major of [0,1]) { ctx.beginPath(); ctx.lineWidth = c*(major ? .09 : .04); for (let i = FL(-w/c)-1; i*c < w+c; i++) if (!(i % 4) == major) { ctx.moveTo(i*c,-h); ctx.lineTo(i*c,h); } for (let j = FL(-h/c)-1; j*c < h+c; j++) if (!(j % 4) == major) { ctx.moveTo(-w,j*c); ctx.lineTo(w,j*c); } ctx.stroke(); } },
+  grad(ctx,w,h,c,a,b) { ctx.fillStyle = lgrad(ctx,-h,h,[a,b]); ctx.fillRect(-w,-h,2*w,2*h); },
+};
+
+/* ---- tape ---- */
+const tapePts = (o,r) => { const w = o.w/2, h = o.h/2, a = o.h*.08, n = 6, L = [], R = [];
+  for (let k = 0; k <= n; k++) { const y = -h+2*h*k/n, t = (k & 1 ? a : 0)+r()*a*.45; L.push([-w+t,y]); }
+  for (let k = n; k >= 0; k--) { const y = -h+2*h*k/n, t = (k & 1 ? a : 0)+r()*a*.45; R.push([w-t,y]); }
+  return L.concat(R); };
+const tape = pat => (ctx,o,c1,c2,r) => {
+  const m = MN(o.w,o.h), w = o.w/2, h = o.h/2, p = tapePts(o,r);
+  ctx.globalAlpha *= .84; ctx.beginPath(); poly(ctx,p,1); shd(ctx,m,.2,.25,.06); ctx.fillStyle = c1; ctx.fill(); noShd(ctx); ctx.clip();
+  PAT[pat](ctx,w,h,o.h*.35,c1,c2);
+  // sheen+faint fibres for a paper feel
+  ctx.fillStyle = lgrad(ctx,-h,h,['rgba(255,255,255,.22)','rgba(255,255,255,0)','rgba(0,0,0,.06)']); ctx.fillRect(-w,-h,2*w,2*h);
+  ctx.beginPath(); for (let i = 0; i < 6; i++) { const y = -h+o.h*(.1+r()*.8); ctx.moveTo(-w,y); ctx.lineTo(w,y+(r()-.5)*o.h*.1); }
+  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = o.h*.015; ctx.stroke();
+  ctx.beginPath(); poly(ctx,p,1); ctx.strokeStyle = 'rgba(0,0,0,.14)'; ctx.lineWidth = m*.04; ctx.stroke(); };
+
+/* ---- sparkle ---- */
+const kira1 = (ctx,m,x,y,r,c,ow) => { stk(ctx,m,() => kiraP(ctx,x,y,r),radial(ctx,x,y,r*.7,c),ow); ctx.beginPath(); kiraP(ctx,x,y,r*.3); ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fill(); };
+const drawKira = (ctx,o,c1) => { const m = MN(o.w,o.h), ow = m*.035; kira1(ctx,m,0,0,m/2-ow*1.3,c1,ow); };
+const drawKira3 = (ctx,o,c1) => { const m = MN(o.w,o.h), ow = m*.025; for (const [x,y,s] of [[-.17,.12,.29],[.27,-.24,.2],[.3,.29,.12]]) kira1(ctx,m,x*m,y*m,s*m,c1,ow); };
+const drawHeart = (ctx,o,c1) => { const m = MN(o.w,o.h), ow = m*.04, rx = o.w/2-ow*1.3, ry = o.h/2-ow*1.3;
+  stk(ctx,m,() => heartP(ctx,0,0,rx,ry),radial(ctx,0,0,MX(rx,ry),c1),ow); gloss(ctx,-rx*.48,-ry*.42,rx*.17,ry*.09); };
+const drawHeartLine = (ctx,o,c1) => { const m = MN(o.w,o.h), lw = m*.09, i = lw*.95; lin(ctx,m,() => heartP(ctx,0,0,o.w/2-i,o.h/2-i),c1,lw); };
+const drawStar = (ctx,o,c1) => { const m = MN(o.w,o.h), ow = m*.035, rw = m*.08, r = m/2-rw/2-ow*1.2, cy = r*.095, p = starPts(0,cy,r,r*.5);
+  ctx.lineJoin = 'round'; ctx.beginPath(); poly(ctx,p,1); shd(ctx,m); ctx.strokeStyle = '#fff'; ctx.lineWidth = rw+ow*2; ctx.stroke(); noShd(ctx);
+  ctx.fillStyle = ctx.strokeStyle = radial(ctx,0,cy,r*.8,c1); ctx.lineWidth = rw; ctx.fill(); ctx.stroke(); gloss(ctx,-r*.25,-r*.2+cy,r*.12,r*.07); };
+const drawStarLine = (ctx,o,c1) => { const m = MN(o.w,o.h), lw = m*.075, r = m/2-lw*.95; lin(ctx,m,() => poly(ctx,starPts(0,r*.095,r,r*.48),1),c1,lw); };
+const drawOnpu = (ctx,o,c1) => { const m = MN(o.w,o.h), ow = m*.035, sw = m*.065, u = m;
+  const x1 = -.26*u, x2 = .23*u, s1 = x1+.14*u, s2 = x2+.14*u, t1 = -.3*u, t2 = -.4*u, bt = .13*u;
+  stk(ctx,m,() => { ctx.ellipse(x1,.3*u,.165*u,.115*u,-.4,0,TAU); ctx.moveTo(x2+.165*u,.21*u); ctx.ellipse(x2,.21*u,.165*u,.115*u,-.4,0,TAU);
+    ctx.rect(s1-sw,t1,sw,.54*u); ctx.rect(s2-sw,t2,sw,.55*u); poly(ctx,[[s1-sw,t1],[s2,t2],[s2,t2+bt],[s1-sw,t1+bt]],1); },radial(ctx,0,0,u*.5,c1),ow); };
+const drawShine = (ctx,o,c1) => { const m = MN(o.w,o.h), lw = m*.055, r = m/2-lw*.95;
+  lin(ctx,m,() => { for (let i = 0; i < 16; i++) { const a = i*TAU/16,[p,q] = i & 1 ? [.55,.8] : [.36,1]; ctx.moveTo(cos(a)*r*p,sin(a)*r*p); ctx.lineTo(cos(a)*r*q,sin(a)*r*q); } },c1,lw);
+  kira1(ctx,m,0,0,r*.24,c1,m*.015); };
+const drawBubble = (ctx,o,c1) => { const m = MN(o.w,o.h);
+  for (const [x,y,s] of [[-.17,.09,.29],[.25,-.2,.19],[.27,.27,.13],[-.3,-.33,.1]]) { const X = x*m, Y = y*m, R = s*m;
+    ctx.beginPath(); circ(ctx,X,Y,R); shd(ctx,m,.2,.05,.015); const g = ctx.createRadialGradient(X-R*.3,Y-R*.3,0,X,Y,R); g.addColorStop(0,rgba(c1,.45)); g.addColorStop(1,rgba(c1,.9)); ctx.fillStyle = g; ctx.fill(); noShd(ctx); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = R*.14; ctx.stroke();
+    ctx.beginPath(); ctx.arc(X,Y,R*.62,PI*1.1,PI*1.45); ctx.lineCap = 'round'; ctx.lineWidth = R*.14; ctx.stroke(); } };
+
+/* ---- hand-drawn lines ---- */
+const bez = (a,c,b,t) => [(1-t)*(1-t)*a[0]+2*t*(1-t)*c[0]+t*t*b[0],(1-t)*(1-t)*a[1]+2*t*(1-t)*c[1]+t*t*b[1]];
+const drawArrow = (ctx,o,c1,c2,r) => { const m = MN(o.w,o.h), lw = m*.1, pd = lw*.9+m*.04, W = o.w/2-pd, H = o.h/2-pd, n = nz(r);
+  const S = [-W,H*.55], C = [-W*.1,-H*1.1], E = [W,-H*.15], p = [];
+  for (let i = 0; i <= 24; i++) { const t = i/24, q = bez(S,C,E,t), d = m*.03*n(t)*sin(PI*t); p.push([q[0],q[1]+d]); }
+  const a = Math.atan2(E[1]-C[1],E[0]-C[0])+PI, L = MN(H*.95,W*.32);
+  lin(ctx,m,() => { smooth(ctx,p); poly(ctx,[[E[0]+cos(a-.55)*L,E[1]+sin(a-.55)*L],E,[E[0]+cos(a+.5)*L*.9,E[1]+sin(a+.5)*L*.9]]); },c1,lw); };
+const drawCircle = (ctx,o,c1,c2,r) => { const m = MN(o.w,o.h), lw = m*.07, pd = lw*.9, rx = (o.w/2-pd)/1.035, ry = (o.h/2-pd)/1.035, n = nz(r), a0 = -2.3-r()*.4, p = [];
+  for (let i = 0; i <= 64; i++) { const t = i/64, a = a0+t*(TAU+.5), f = 1-.07*t+.03*n(t); p.push([cos(a)*rx*f,sin(a)*ry*f]); }
+  lin(ctx,m,() => smooth(ctx,p),c1,lw); };
+const drawUnder = (ctx,o,c1,c2,r) => { const lw = o.h*.3, pd = lw*.9, W = o.w/2-pd, A = o.h/2-pd, n = nz(r), p = [];
+  for (let i = 0; i <= 16; i++) { const t = i/16; p.push([-W+2*W*t,A*(.45*(1-2*t)-.35*sin(PI*t)+.2*n(t))]); }
+  lin(ctx,o.h,() => smooth(ctx,p),c1,lw); };
+const drawWave = (ctx,o,c1,c2,r) => { const lw = o.h*.22, pd = lw*.9, W = o.w/2-pd, A = o.h/2-pd, N = MX(1,RND(o.w/(o.h*2.2))), n = nz(r), p = [], K = N*12;
+  for (let i = 0; i <= K; i++) { const t = i/K; p.push([-W+2*W*t,A*sin(t*N*TAU)*(.9+.1*n(t))]); }
+  lin(ctx,o.h,() => smooth(ctx,p),c1,lw); };
+const drawSwirl = (ctx,o,c1,c2,r) => { const m = MN(o.w,o.h), lw = m*.07, pd = lw*.9, rx = (o.w/2-pd)/1.04, ry = (o.h/2-pd)/1.04, n = nz(r), a0 = r()*TAU, p = [];
+  for (let i = 0; i <= 90; i++) { const t = i/90, a = a0+t*2.6*TAU, f = Math.pow(t,.9)*(1+.04*n(t)); p.push([cos(a)*rx*f,sin(a)*ry*f]); }
+  lin(ctx,m,() => smooth(ctx,p),c1,lw); };
+const jit = (o,r,p,s) => p.map(([x,y]) => [x*(o.w/2-s)+(r()-.5)*s*.3,y*(o.h/2-s)+(r()-.5)*s*.3]);
+const drawCheck = (ctx,o,c1,c2,r) => { const m = MN(o.w,o.h), lw = m*.13, p = jit(o,r,[[-.88,-.05],[-.58,.32],[-.3,.78],[.2,.05],[.88,-.82]],lw);
+  lin(ctx,m,() => smooth(ctx,p),c1,lw); };
+const drawCross = (ctx,o,c1,c2,r) => { const m = MN(o.w,o.h), lw = m*.12, a = jit(o,r,[[-.82,-.8],[.05,-.05],[.82,.82]],lw), b = jit(o,r,[[.8,-.84],[0,.04],[-.84,.8]],lw);
+  lin(ctx,m,() => { smooth(ctx,a); smooth(ctx,b); },c1,lw); };
+const drawDots = (ctx,o,c1) => { const R = o.h/2/1.45, sp = R*3.3, n = MX(1,FL((o.w-2.9*R)/sp)+1), x0 = -(n-1)*sp/2;
+  ctx.beginPath(); for (let i = 0; i < n; i++) circ(ctx,x0+i*sp,0,R*1.35); shd(ctx,o.h,.2,.08,.03); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fill(); noShd(ctx);
+  ctx.beginPath(); for (let i = 0; i < n; i++) circ(ctx,x0+i*sp,0,R); ctx.fillStyle = c1; ctx.fill(); };
+
+/* ---- labels ---- */
+const drawRibbon = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2, p = m*.07, bt = -Y+p, bb = Y*.36, tt = -Y*.3, tb = Y-p, bx = X*.76, ix = X*.6, nd = MN(X*.08,m*.35);
+  shd(ctx,m,.25,.1,.03);
+  for (const s of [-1,1]) { ctx.beginPath(); poly(ctx,[[s*ix,tt],[s*(X-p),tt],[s*(X-p-nd),(tt+tb)/2],[s*(X-p),tb],[s*ix,tb]],1); ctx.fillStyle = dark(c1,.15); ctx.fill(); }
+  noShd(ctx); ctx.fillStyle = dark(c1,.4);
+  for (const s of [-1,1]) { ctx.beginPath(); poly(ctx,[[s*bx,bb],[s*ix,tb],[s*ix,bb]],1); ctx.fill(); }
+  ctx.beginPath(); ctx.rect(-bx,bt,2*bx,bb-bt); shd(ctx,m,.22,.08,.02); ctx.fillStyle = lgrad(ctx,bt,bb,[lite(c1,.2),c1,dark(c1,.06)]); ctx.fill(); noShd(ctx);
+  const q = (bb-bt)*.14; ctx.beginPath(); ctx.rect(-bx+q,bt+q,2*(bx-q),bb-bt-2*q); ctx.setLineDash([m*.07,m*.05]); ctx.strokeStyle = rgba(c2,.85); ctx.lineWidth = m*.025; ctx.stroke(); ctx.setLineDash([]); };
+const drawBadge = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), R = m/2-m*.06, p = [];
+  for (let i = 0; i < 180; i++) { const a = i*TAU/180; p.push([cos(a)*R*(.93+.07*cos(18*a)),sin(a)*R*(.93+.07*cos(18*a))]); }
+  ctx.beginPath(); poly(ctx,p,1); shd(ctx,m); ctx.fillStyle = radial(ctx,0,0,R,c1); ctx.fill(); noShd(ctx); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = m*.02; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,0,R*.72,0,TAU); ctx.setLineDash([m*.045,m*.03]); ctx.strokeStyle = c2; ctx.lineWidth = m*.022; ctx.stroke(); ctx.setLineDash([]); };
+const drawRound = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), R = m/2-m*.07;
+  ctx.beginPath(); circ(ctx,0,0,R); shd(ctx,m,.3,.08,.025); ctx.fillStyle = c2; ctx.fill(); noShd(ctx);
+  ctx.beginPath(); circ(ctx,0,0,R*.85); ctx.fillStyle = radial(ctx,0,0,R*.85,c1); ctx.fill();
+  ctx.beginPath(); ctx.arc(0,0,R*.66,PI*1.08,PI*1.42); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineCap = 'round'; ctx.lineWidth = R*.1; ctx.stroke(); };
+const drawFlag = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), X = o.w/2, p = m*.08, top = -o.h/2+p, sag = o.h*.18, W = X-p, Y = x => top+sag*(1-(x/W)*(x/W));
+  const fh = o.h-2*p-sag, n = MX(3,RND(2*W/(fh*.95))), sp = 2*W/n, fw = sp*.84;
+  ctx.beginPath(); for (let i = 0; i <= 40; i++) { const x = -W+2*W*i/40; i ? ctx.lineTo(x,Y(x)) : ctx.moveTo(x,Y(x)); } ctx.strokeStyle = 'rgba(80,60,60,.75)'; ctx.lineWidth = m*.025; ctx.lineCap = 'round'; ctx.stroke();
+  for (let i = 0; i < n; i++) { const x = -W+sp*(i+.5), a = x-fw/2, b = x+fw/2;
+    stk(ctx,m,() => poly(ctx,[[a,Y(a)],[b,Y(b)],[x,Y(x)+fh*.96]],1),i & 1 ? c2 : c1,m*.025); } };
+
+/* ---- oshi ---- */
+const drawOshiHeart = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), ow = m*.05, rx = o.w*.44-ow, ry = o.h*.44-ow, cx = -o.w*.05, cy = o.h*.05;
+  stk(ctx,m,() => heartP(ctx,cx,cy,rx,ry),radial(ctx,cx,cy,MX(rx,ry),c1),ow); gloss(ctx,cx-rx*.48,cy-ry*.42,rx*.17,ry*.09,.6);
+  stk(ctx,m,() => kiraP(ctx,o.w*.3,-o.h*.3,m*.16),c2,m*.02,dark(c1,.1)); };
+const drawPenlight = (ctx,o,c1,c2) => { const X = o.w/2, Y = o.h/2, m = MN(o.w,o.h), k = kpx(ctx), ty = -Y+X*.55, hy = Y*.22;
+  ctx.beginPath(); rr(ctx,-X*.5,ty,X,hy-ty+X*.2,X*.5);
+  ctx.shadowColor = c1; ctx.shadowBlur = m*1.1*k; ctx.fillStyle = lite(c1,.2); ctx.fill(); ctx.shadowBlur = m*.45*k; ctx.fill(); noShd(ctx);
+  const g = ctx.createLinearGradient(-X*.5,0,X*.5,0); g.addColorStop(0,c1); g.addColorStop(.5,lite(c1,.85)); g.addColorStop(1,c1); ctx.fillStyle = g; ctx.fill();
+  ctx.beginPath(); rr(ctx,-X*.62,hy,X*1.24,Y-m*.06-hy,X*.25); shd(ctx,m,.3,.3,.1);
+  const h = ctx.createLinearGradient(-X*.62,0,X*.62,0); h.addColorStop(0,dark(c2,.2)); h.addColorStop(.35,lite(c2,.3)); h.addColorStop(1,dark(c2,.3)); ctx.fillStyle = h; ctx.fill(); noShd(ctx);
+  ctx.beginPath(); circ(ctx,0,hy+(Y-hy)*.3,X*.2); ctx.fillStyle = c1; ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(-X*.62,hy,X*1.24,m*.08); };
+const drawCrown = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2, ow = m*.035, br = m*.075, p = m*.05, W = X-br-ow-m*.02, B = Y-p-ow, bt = Y*.3;
+  const pk = [[-W,-Y*.25],[0,-Y*.6],[W,-Y*.25]], body = () => { poly(ctx,[[-W,B],pk[0],[-W*.5,Y*.05],pk[1],[W*.5,Y*.05],pk[2],[W,B]],1); for (const [x,y] of pk) circ(ctx,x,y,br); };
+  stk(ctx,m,body,lgrad(ctx,-Y,Y,[lite(c1,.45),c1,dark(c1,.12)]),ow);
+  ctx.beginPath(); body(); ctx.strokeStyle = dark(c1,.3); ctx.lineWidth = m*.015; ctx.stroke();
+  ctx.fillStyle = dark(c1,.14); ctx.fillRect(-W,bt,2*W,B-bt); const jy = (bt+B)/2, jr = (B-bt)*.28;
+  ctx.beginPath(); for (const x of [-W*.55,0,W*.55]) circ(ctx,x,jy,x ? jr*.8 : jr); ctx.fillStyle = radial(ctx,0,jy,jr,c2); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = m*.012; ctx.stroke(); };
+const drawUchiwa = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2, p = m*.06, R = MN(X-p,o.h*.36), cy = -Y+p+R, hw = R*.17;
+  ctx.beginPath(); rr(ctx,-hw/2,cy+R*.7,hw,Y-p-cy-R*.7,hw*.45); shd(ctx,m,.3,.08,.02); ctx.fillStyle = lgrad(ctx,cy,Y,[c2,dark(c2,.12)]); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,cy,R,R*.96,0,0,TAU); ctx.fill(); noShd(ctx);
+  ctx.beginPath(); ctx.ellipse(0,cy,R*.9,R*.86,0,0,TAU); ctx.fillStyle = c1; ctx.fill(); ctx.save(); ctx.clip();
+  ctx.beginPath(); for (let i = 0; i < 15; i++) { const a = PI+.1+i*(PI-.2)/14; ctx.moveTo(0,cy+R*.75); ctx.lineTo(cos(a)*R,cy+R*.75+sin(a)*R*1.8); }
+  ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = R*.02; ctx.stroke(); ctx.fillStyle = lgrad(ctx,cy-R,cy+R,['rgba(255,255,255,.25)','rgba(255,255,255,0)','rgba(0,0,0,.08)']); ctx.fillRect(-R,cy-R,2*R,2*R); ctx.restore(); };
+
+/* ---- frames (box = whole photo): band shape filled evenodd so the middle stays clear ---- */
+// fill band, then cast a soft shadow from it onto the uncovered area only
+const band = (ctx,o,path,fill, a = .32) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2;
+  ctx.beginPath(); path(); ctx.fillStyle = fill; ctx.fill('evenodd');
+  ctx.save(); ctx.beginPath(); path(); ctx.rect(-X*4,-Y*4,o.w*4,o.h*4); ctx.clip('evenodd'); // everything not covered by the band
+  ctx.beginPath(); path(); shd(ctx,m,a,.025,.006); ctx.fill('evenodd'); ctx.restore(); };
+const drawPolaroid = (ctx,o,c1) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2, b = m*.055, bb = m*.2;
+  band(ctx,o,() => { ctx.rect(-X,-Y,o.w,o.h); ctx.rect(-X+b,-Y+b,o.w-2*b,o.h-b-bb); },c1);
+  ctx.beginPath(); ctx.rect(-X,-Y,o.w,o.h); ctx.rect(-X+b,-Y+b,o.w-2*b,o.h-b-bb); ctx.fillStyle = lgrad(ctx,-Y,Y,['rgba(0,0,0,0)','rgba(0,0,0,.05)']); ctx.fill('evenodd'); };
+const drawFilm = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2, bh = m*.12, hw = bh*.3, hh = bh*.4, sp = hw*2.1, n = FL(o.w/sp);
+  band(ctx,o,() => { ctx.rect(-X,-Y,o.w,o.h); ctx.rect(-X,-Y+bh,o.w,o.h-2*bh); },c1,.5);
+  ctx.beginPath(); for (let i = 0; i < n; i++) { const x = -n*sp/2+(i+.5)*sp-hw/2; for (const y of [-Y+(bh-hh)/2,Y-(bh+hh)/2]) rr(ctx,x,y,hw,hh,hw*.25); }
+  ctx.fillStyle = c2; ctx.fill(); };
+const drawLace = (ctx,o,c1,c2,r) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2, b = m*.035, rs0 = m*.028, pts = [], holes = [];
+  // walk the inset rect clockwise; each side gets inward semicircle scallops and holes
+  const sides = [[[-X+b,-Y+b],[1,0],[0,1],o.w-2*b],[[X-b,-Y+b],[0,1],[-1,0],o.h-2*b],[[X-b,Y-b],[-1,0],[0,-1],o.w-2*b],[[-X+b,Y-b],[0,-1],[1,0],o.h-2*b]];
+  const e = rs0*1.15; // corner gap so neighbouring sides' scallops never overlap
+  for (const [P,d,nn,L0] of sides) { const L = L0-2*e, n = MX(1,RND(L/(2*rs0))), rs = L/(2*n); pts.push(P);
+    for (let i = 0; i < n; i++) { for (let j = 0; j <= 10; j++) { const a = PI*j/10, al = e+(2*i+1)*rs-rs*cos(a), inw = rs*sin(a); pts.push([P[0]+d[0]*al+nn[0]*inw,P[1]+d[1]*al+nn[1]*inw]); }
+      const al = e+(2*i+1)*rs; holes.push([P[0]+d[0]*al+nn[0]*rs*.38,P[1]+d[1]*al+nn[1]*rs*.38,rs*.2],[P[0]+d[0]*al-nn[0]*b*.5,P[1]+d[1]*al-nn[1]*b*.5,b*.16]); } }
+  const path = () => { ctx.rect(-X,-Y,o.w,o.h); poly(ctx,pts,1); for (const [x,y,q] of holes) circ(ctx,x,y,q); };
+  band(ctx,o,path,c1,.38); };
+const drawPunch = (ctx,o,c1,c2) => { const m = MN(o.w,o.h), X = o.w/2, Y = o.h/2, r = m*.026, sp = m*.11, n = MX(1,FL((o.h-m*.12)/sp)+1), x = -X+m*.07, y0 = -(n-1)*sp/2;
+  ctx.beginPath(); for (let i = 0; i < n; i++) { circ(ctx,x,y0+i*sp,r*1.8); circ(ctx,x,y0+i*sp,r*1.05); } shd(ctx,m,.25,.012,.004); ctx.fillStyle = rgba(c2,.9); ctx.fill('evenodd'); noShd(ctx);
+  for (let i = 0; i < n; i++) { const y = y0+i*sp; ctx.save(); ctx.beginPath(); circ(ctx,x,y,r); ctx.fillStyle = rgba(c1,.88); ctx.fill(); ctx.clip();
+    ctx.beginPath(); circ(ctx,x,y,r*1.6); circ(ctx,x,y+r*.25,r); shd(ctx,r,.9,.6,.3); ctx.fillStyle = '#000'; ctx.fill('evenodd'); ctx.restore();
+    ctx.beginPath(); ctx.arc(x,y,r,PI*.2,PI*.8); ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = r*.12; ctx.stroke(); } };
+const drawDotted = (ctx,o,c1) => { const m = MN(o.w,o.h), i = m*.045, lw = m*.012;
+  ctx.beginPath(); rr(ctx,-o.w/2+i,-o.h/2+i,o.w-2*i,o.h-2*i,m*.05); ctx.setLineDash([lw*2.4,lw*2]); ctx.lineCap = 'round'; ctx.lineWidth = lw; ctx.strokeStyle = c1; shd(ctx,m,.35,.012,.003); ctx.stroke(); ctx.setLineDash([]); };
+const drawNeon = (ctx,o,c1) => { const m = MN(o.w,o.h), i = m*.06, lw = m*.014, k = kpx(ctx);
+  ctx.beginPath(); rr(ctx,-o.w/2+i,-o.h/2+i,o.w-2*i,o.h-2*i,m*.06); ctx.strokeStyle = c1; ctx.lineWidth = lw; ctx.shadowColor = c1;
+  ctx.shadowBlur = m*.05*k; ctx.stroke(); ctx.shadowBlur = m*.018*k; ctx.stroke(); noShd(ctx); ctx.strokeStyle = lite(c1,.7); ctx.lineWidth = lw*.4; ctx.stroke(); };
+
+/* ---- registry ---- */
+const DECO = {};
+// K(id, name, cat, w, h, color, color2, fn); w = 0 marks a full-photo frame
+const K = (id,name,cat,w,h,color,color2,fn) => { const s = { name,cat,color,color2 };
+  if (w) { s.w = w; s.h = h; } else s.full = true;
+  s.draw = (ctx,o) => { ctx.save(); try { fn(ctx,o,o.color || color,o.color2 || color2 || color,rng(o.seed == null ? 1 : o.seed)); } finally { ctx.restore(); ctx.beginPath(); } };
+  DECO[id] = s; };
+const T = [['solid','無地','#FFC9D6','#FFFFFF'],['stripe','ストライプ','#FFB3C7','#FFFFFF'],['dot','ドット','#9FD8F5','#FFFFFF'],['gingham','ギンガム','#FF8FB1','#FFFFFF'],
+  ['check','チェック','#A8D8B9','#FFFFFF'],['asanoha','麻の葉','#B9A7E8','#FFFFFF'],['ichimatsu','市松','#F7C873','#FFF6E0'],['heart','ハート柄','#FFD6E0','#FF6F9C']];
+for (const [p,n,a,b] of T) K('tape-'+p,n,'tape',.42,.09,a,b,tape(p));
+K('kira','キラッ','sparkle',.14,.14,'#FFE66D',null,drawKira);
+K('kira3','キラキラ','sparkle',.16,.16,'#FFE66D',null,drawKira3);
+K('heart','ハート','sparkle',.14,.14,'#FF5C8A',null,drawHeart);
+K('heart-line','ハート(線)','sparkle',.14,.14,'#FF5C8A',null,drawHeartLine);
+K('star','星','sparkle',.14,.14,'#FFD23F',null,drawStar);
+K('star-line','星(線)','sparkle',.14,.14,'#FFD23F',null,drawStarLine);
+K('onpu','音符','sparkle',.14,.14,'#7A6CFF',null,drawOnpu);
+K('shine','ピカッ','sparkle',.16,.16,'#FFE66D',null,drawShine);
+K('bubble','ぽこぽこ丸','sparkle',.14,.14,'#8FD3FF',null,drawBubble);
+K('hand-arrow','手書き矢印','line',.36,.18,'#FF3B30',null,drawArrow);
+K('hand-circle','手書き丸囲み','line',.4,.26,'#FF3B30',null,drawCircle);
+K('hand-underline','手書き下線','line',.4,.05,'#FF3B30',null,drawUnder);
+K('wave-line','波線','line',.4,.06,'#2F80ED',null,drawWave);
+K('swirl','ぐるぐる','line',.16,.16,'#111111',null,drawSwirl);
+K('check','チェック','line',.12,.12,'#FF3B30',null,drawCheck);
+K('cross','バツ','line',.12,.12,'#2F80ED',null,drawCross);
+K('dots-line','点線','line',.4,.03,'#111111',null,drawDots);
+K('ribbon','リボン帯','label',.5,.12,'#FF6F9C','#FFFFFF',drawRibbon);
+K('badge','バッジ','label',.18,.18,'#FFB13B','#FFFFFF',drawBadge);
+K('round-sticker','丸シール','label',.14,.14,'#FF7A9C','#FFFFFF',drawRound);
+K('flag','旗ガーランド','label',.6,.12,'#FF7AA8','#FFE66D',drawFlag);
+K('oshi-heart','メンカラハート','oshi',.16,.16,'#FF4F9A','#FFFFFF',drawOshiHeart);
+K('penlight','ペンライト','oshi',.06,.3,'#4FC3FF','#2B2B3A',drawPenlight);
+K('crown','王冠','oshi',.16,.12,'#FFC83D','#FF4F9A',drawCrown);
+K('uchiwa','うちわ','oshi',.24,.3,'#FF7AB8','#FFFFFF',drawUchiwa);
+K('frame-polaroid','ポラロイド','frame',0,0,'#FFFFFF',null,drawPolaroid);
+K('frame-film','フィルム','frame',0,0,'#111111','#EDE8DA',drawFilm);
+K('frame-lace','レース','frame',0,0,'#FFFFFF',null,drawLace);
+K('frame-punch','パンチ穴','frame',0,0,'#1E1E24','#FFFFFF',drawPunch);
+K('frame-dotted','点線枠','frame',0,0,'#FFFFFF',null,drawDotted);
+K('frame-neon','ネオン枠','frame',0,0,'#FF4FD8',null,drawNeon);
+
+const DECO_CATS = [['tape','マステ'],['sparkle','キラキラ'],['line','手書き線'],['label','ラベル'],['oshi','推し活'],['frame','フレーム']];
+const BG_PATTERNS = [['dot','ドット'],['gingham','ギンガム'],['grid','方眼'],['stripe','ストライプ'],['grad','グラデーション']];
+// color = main tint, color2 = accent (dots/lines) or gradient end
+function drawBgPattern(ctx,kind,W,H,color,color2) {
+  const a = color || '#FFD6E0', b = color2 || '#FFFFFF', f = PAT[kind] || PAT.solid;
+  ctx.save(); try { ctx.beginPath(); ctx.rect(0,0,W,H); ctx.clip(); ctx.translate(W/2,H/2); f(ctx,W/2,H/2,MN(W,H)/24,a,b); } finally { ctx.restore(); ctx.beginPath(); } }
+return { DECO_CATS,DECO,BG_PATTERNS,drawBgPattern };
+})();
+//DECO-LIB-END
 const PREVIEW_MAX = 2560;
 
 const I = d => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -795,7 +1082,7 @@ const ICON = {
 };
 const TOOLS = [
   ['select', '選択'], ['photo', '写真', 1], ['text', '文字', 1], ['pen', 'ペン'], ['shape', '図形'], ['note', '付箋', 1],
-  ['stamp', 'スタンプ'], ['filter', 'フィルター'], ['adjust', '調整'], ['cutout', '背景削除'], ['mosaic', 'モザイク'], ['crop', '切り抜き']
+  ['stamp', '素材'], ['filter', 'フィルター'], ['adjust', '調整'], ['cutout', '背景削除'], ['mosaic', 'モザイク'], ['crop', '切り抜き']
 ];
 /* PC layout (html.desk): tools on top, a left sidebar holds these tools (DESK_HIDE drops them from the top strip) */
 const SIDE_TOOLS = new Set(['filter', 'adjust', 'cutout']), DESK_HIDE = new Set(['photo', 'filter', 'adjust', 'cutout']);
@@ -853,7 +1140,7 @@ function setPath(obj, path, v) { const k = path.split('.'); let o = obj; while (
    ============================================================ */
 const hist = { past: [], future: [] };
 let lastSnap = null;
-const snapshot = () => JSON.stringify({ w: doc.w, h: doc.h, baseId: doc.baseId, baseOrig: doc.baseOrig || null, bg: doc.bg || null, adjust: doc.adjust, objects: doc.objects });
+const snapshot = () => JSON.stringify({ w: doc.w, h: doc.h, baseId: doc.baseId, baseOrig: doc.baseOrig || null, bg: doc.bg || null, bgPat: doc.bgPat || null, adjust: doc.adjust, objects: doc.objects });
 function commit() {
   if (!doc) return;
   const s = snapshot();
@@ -893,7 +1180,7 @@ function gcBitmaps() {
   const px = () => { let t = 0; for (const e of bitmaps.values()) t += e.canvas.width * e.canvas.height; return t; };
   while (px() > 90e6 && hist.past.length) { hist.past.shift(); sweep(); }
 }
-function normDoc(d) { d.adjust = { ...DEFAULT_ADJ, ...(d.adjust || {}) }; d.bg = d.bg || null; d.baseOrig = d.baseOrig || null; return d; }
+function normDoc(d) { d.adjust = { ...DEFAULT_ADJ, ...(d.adjust || {}) }; d.bg = d.bg || null; d.bgPat = d.bgPat || null; d.baseOrig = d.baseOrig || null; return d; }
 
 /* ============================================================
    view
@@ -1020,7 +1307,8 @@ function wrapText(ctx, text, maxW) {
 const NOTE_BOX = {
   square: [0.1, 0.16, 0.9, 0.94, 0], rounded: [0.1, 0.14, 0.9, 0.9, 0], torn: [0.1, 0.16, 0.9, 0.94, 0],
   circle: [0.2, 0.22, 0.8, 0.78, 1], heart: [0.2, 0.2, 0.8, 0.66, 1], speech: [0.1, 0.1, 0.9, 0.72, 0],
-  cloud: [0.22, 0.26, 0.78, 0.74, 1], tag: [0.27, 0.16, 0.92, 0.84, 0]
+  cloud: [0.22, 0.26, 0.78, 0.74, 1], tag: [0.27, 0.16, 0.92, 0.84, 0],
+  ribbon: [0.16, 0.2, 0.84, 0.8, 1], label: [0.12, 0.2, 0.88, 0.8, 1], sticker: [0.2, 0.22, 0.8, 0.78, 1], think: [0.18, 0.18, 0.82, 0.66, 1]
 };
 function layoutNote(o) {
   const shape = o.shape || 'square', fam = o.font || 'Klee One';
@@ -1053,7 +1341,7 @@ function ptsBox(pts, pad) {
 }
 function localBox(o) {
   switch (o.type) {
-    case 'image': case 'note': return { x: -o.w / 2, y: -o.h / 2, w: o.w, h: o.h };
+    case 'image': case 'note': case 'deco': return { x: -o.w / 2, y: -o.h / 2, w: o.w, h: o.h };
     case 'text': { const L = layoutText(o), p = o.size * 0.35; return { x: -L.w / 2 - p, y: -L.h / 2 - p * 0.5, w: L.w + p * 2, h: L.h + p }; }
     case 'stamp': { const s = o.size * 0.6; return { x: -s, y: -s, w: s * 2, h: s * 2 }; }
     case 'stroke': return ptsBox(o.pts, o.width / 2);
@@ -1235,6 +1523,7 @@ function renderDoc(canvas, scale, opt = {}) {
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   const bg = doc.bg || opt.flatten;
   if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); }
+  if (doc.bgPat) { ctx.save(); try { drawBgPattern(ctx, doc.bgPat.kind, W, H, doc.bgPat.color, doc.bgPat.color2); } catch (e) { } ctx.restore(); }   // shows through transparent photo areas
   const f = opt.fast ? 0.5 : 1;
   ctx.drawImage(getBase(Math.round(W * f), Math.round(H * f), opt.cache), 0, 0, W, H);
   for (const o of doc.objects) if (!o.hidden) drawObject(ctx, o, scale);   // hidden: turned off in the layers list
@@ -1251,6 +1540,7 @@ function drawObject(ctx, o, scale) {
     case 'text': drawText(ctx, o, k); break;
     case 'note': drawNote(ctx, o, k); break;
     case 'stamp': drawStamp(ctx, o); break;
+    case 'deco': { const d = DECO[o.kind]; if (d) { ctx.save(); d.draw(ctx, o); ctx.restore(); } break; }   // unknown kinds (older / newer drafts) draw nothing
     case 'stroke':
       ctx.strokeStyle = o.color; ctx.lineWidth = o.width; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       if (o.mode === 'hl') { ctx.globalAlpha = o.op * 0.42; ctx.globalCompositeOperation = 'multiply'; ctx.lineCap = 'butt'; }
@@ -1259,7 +1549,26 @@ function drawObject(ctx, o, scale) {
   }
   ctx.restore();
 }
+/* photo slot (collage templates): the picture covers the slot, zoom o.fz (≥1) and pan o.fx / o.fy (-1…1 of the overflow);
+   an empty slot draws a placeholder (filled by double-click, the panel button or dropping a file on it) */
+function drawSlot(ctx, o, k) {
+  const w = o.w, h = o.h, x = -w / 2, y = -h / 2, r = (o.rad || 0) / 100 * Math.min(w, h) / 2, bm = o.bmp && bitmaps.get(o.bmp), m = Math.min(w, h);
+  if (o.shadow) { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = m * 0.05 * k; ctx.shadowOffsetY = m * 0.02 * k; ctx.fillStyle = '#000'; rrect(ctx, x, y, w, h, r); ctx.fill(); ctx.restore(); }
+  ctx.save(); rrect(ctx, x, y, w, h, r); ctx.clip();
+  if (bm) {
+    const iw = bm.canvas.width, ih = bm.canvas.height, s = Math.max(w / iw, h / ih) * Math.max(1, o.fz || 1), dw = iw * s, dh = ih * s;
+    ctx.drawImage(bm.canvas, -dw / 2 - (o.fx || 0) * (dw - w) / 2, -dh / 2 - (o.fy || 0) * (dh - h) / 2, dw, dh);
+  } else {
+    ctx.fillStyle = '#E9E5DE'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#B9B2A6'; ctx.lineWidth = m * 0.012; ctx.setLineDash([m * 0.04, m * 0.03]); rrect(ctx, x + m * 0.04, y + m * 0.04, w - m * 0.08, h - m * 0.08, Math.max(0, r - m * 0.04)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#9C9488'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const f = `700 ${m * 0.12}px ${famStack('Noto Sans JP')}`; ensureFont(f, '＋写真', 'Noto Sans JP'); ctx.font = f; ctx.fillText('＋ 写真', 0, 0);
+  }
+  ctx.restore();
+  if (o.border && o.border !== 'none') { ctx.save(); ctx.lineWidth = m * 0.05; ctx.strokeStyle = o.border; rrect(ctx, x, y, w, h, r); ctx.stroke(); ctx.restore(); }
+}
 function drawImageObj(ctx, o, k) {
+  if (o.slot) return drawSlot(ctx, o, k);
   const bm = bitmaps.get(o.bmp); if (!bm) return;
   const w = o.w, h = o.h, x = -w / 2, y = -h / 2, r = (o.rad || 0) / 100 * Math.min(w, h) / 2;
   const framed = r > 0 || (o.border && o.border !== 'none');
@@ -1346,6 +1655,25 @@ function notePath(ctx, o) {
       ctx.moveTo(x + w * 0.2, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w * 0.2, y + h); ctx.lineTo(x, 0); ctx.closePath();
       ctx.moveTo(x + w * 0.16 + m * 0.05, 0); ctx.arc(x + w * 0.16, 0, m * 0.05, 0, Math.PI * 2, true);
       return 'evenodd';
+    case 'ribbon': {   // banner with notched ends
+      const n = Math.min(w * 0.1, h * 0.5);
+      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w - n, 0); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x + n, 0); ctx.closePath();
+      return 'nonzero';
+    }
+    case 'label': {   // ticket label: rounded rect with half-circle notches on the short sides
+      const r = Math.min(h * 0.18, w * 0.08);
+      rrectPath(ctx, x, y, w, h, m * 0.08);
+      ctx.moveTo(x + r, 0); ctx.arc(x, 0, r, 0, Math.PI * 2, true);
+      ctx.moveTo(x + w + r, 0); ctx.arc(x + w, 0, r, 0, Math.PI * 2, true);
+      return 'evenodd';
+    }
+    case 'sticker': ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2); return 'nonzero';
+    case 'think': {   // thought bubble: cloud-ish oval + two trailing dots
+      ctx.ellipse(0, -h * 0.08, w / 2, h * 0.38, 0, 0, Math.PI * 2);
+      ctx.moveTo(-w * 0.22 + h * 0.07, h * 0.38); ctx.arc(-w * 0.22, h * 0.38, h * 0.07, 0, Math.PI * 2);
+      ctx.moveTo(-w * 0.32 + h * 0.04, h * 0.47); ctx.arc(-w * 0.32, h * 0.47, h * 0.04, 0, Math.PI * 2);
+      return 'nonzero';
+    }
     case 'torn': {
       const N = 16, d = h * 0.035;
       ctx.moveTo(x, y + d);
@@ -1382,6 +1710,11 @@ function drawNote(ctx, o, k) {
   }
   ctx.restore();
   if (shape === 'tag') { ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = m * 0.012; ctx.beginPath(); ctx.arc(x + w * 0.16, 0, m * 0.05, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+  if (shape === 'sticker') {   // white die-cut border + a soft highlight, like a round sticker
+    ctx.save(); ctx.lineWidth = m * 0.07; ctx.strokeStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(0, 0, w / 2 - m * 0.035, h / 2 - m * 0.035, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha *= 0.35; ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(-w * 0.16, -h * 0.2, w * 0.16, h * 0.08, -0.5, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
+  if (shape === 'label') { ctx.save(); ctx.setLineDash([m * 0.05, m * 0.04]); ctx.lineWidth = m * 0.015; ctx.strokeStyle = 'rgba(0,0,0,.22)'; rrect(ctx, x + m * 0.07, y + m * 0.07, w - m * 0.14, h - m * 0.14, m * 0.05); ctx.stroke(); ctx.restore(); }
   // tape / pin on top
   const deco = o.deco || 'tape', topY = shape === 'heart' ? y + h * 0.12 : shape === 'cloud' ? y + h * 0.14 : y;
   if (deco === 'tape') {
@@ -1984,7 +2317,7 @@ function endSingle(p, cancelled) {
       break;
     case 'move':
       if (G.moved) { const o = selObj(); if (o && !o.locked) commit(); }
-      else if (!cancelled && isDoubleTap(p, G.id)) { const o = selObj(); if (o) startInlineEdit(o); }
+      else if (!cancelled && isDoubleTap(p, G.id)) { const o = selObj(); if (o && o.slot && !o.locked) pickSlot(o.id); else if (o) startInlineEdit(o); }
       break;
     case 'scale': case 'rotate': rememberSize(); commit(); break;
     case 'cutbrush': commit(); break;
@@ -2006,7 +2339,7 @@ function endSingle(p, cancelled) {
 let aiBusy = false, aiMsg = '';
 function cutTarget() {
   if (S.cut.target !== 'base') {
-    const o = doc.objects.find(x => x.id === S.cut.target && x.type === 'image');
+    const o = doc.objects.find(x => x.id === S.cut.target && x.type === 'image' && x.bmp);
     if (o) return { o };
     S.cut.target = 'base';
   }
@@ -2298,6 +2631,111 @@ function addNum() {
   const c = viewCenter(), j = jitter();
   pushObj({ ...baseObj('stamp', c.x + j.x, c.y + j.y), kind: 'num', n: nextNum(), color: S.num.color, size: MIN() * 0.08 });
 }
+/* ==== 素材 (materials) ==== one catalogue shared by the 素材 tool panel (phones + PC inspector) and the PC 素材 drawer.
+   Item keys: 'e:<emoji>' stamp, 'd:<deco kind>' drawn sticker (DECO), 't:<n>' date text (DATE_FMTS). Recent picks in UI.recentMat. */
+const EMOJI_SETS = {
+  season: ['☀️', '⛅', '☁️', '☂️', '⛄', '❄️', '🌈', '⚡', '🌸', '🌷', '🌻', '🍉', '🎐', '🍁', '🍂', '🎃', '👻', '🎄', '🎅', '🎍', '🎎', '🎏', '🎋', '🎆', '🎓', '🎒'],
+  food: ['🍰', '🍩', '🍪', '🍓', '🍑', '🍋', '🍒', '🍜', '🍣', '🍙', '🍔', '🍕', '🍳', '☕', '🧋', '🍺', '🥂'],
+  animal: ['🐱', '🐶', '🐰', '🐻', '🐼', '🐥', '🦊', '🐸', '🐳', '🦄', '🐾'],
+  oshi: ['👑', '🎤', '💖', '💜', '💙', '💚', '💛', '🧡', '❤️', '🤍', '🖤', '🌟', '🎀', '💐']
+};
+const DATE_FMTS = [
+  ['2026.11.13 ドット', d => `${d.y}.${d.m}.${d.d}`, { font: 'DotGothic16', color: '#FF9500', shadow: true, bold: false }],
+  ['フィルム日付', d => `'${String(d.y).slice(2)} ${d.m} ${d.d}`, { font: 'DotGothic16', color: '#FF7A1A', shadow: true, bold: false }],
+  ['2026/11/13 (金)', d => `${d.y}/${d.m}/${d.d} (${d.wj})`, { font: 'Zen Kaku Gothic New', color: '#FFFFFF', outline: '#111111' }],
+  ['NOV 13 2026', d => `${d.mon} ${d.d} ${d.y}`, { font: 'Bebas Neue', color: '#FFFFFF', shadow: true, bold: false }],
+  ['11月13日', d => `${+d.m}月${+d.d}日`, { font: 'Klee One', color: '#2A2724', bg: '#FFFFFF', bold: false }],
+  ['Fri. 13 Nov.', d => `${d.we}. ${+d.d} ${d.mon.charAt(0) + d.mon.slice(1).toLowerCase()}.`, { font: 'Caveat', color: '#FFFFFF', shadow: true, bold: false }]
+];
+function dateParts() {
+  const t = new Date(), p = n => String(n).padStart(2, '0');
+  return { y: t.getFullYear(), m: p(t.getMonth() + 1), d: p(t.getDate()), wj: '日月火水木金土'[t.getDay()], we: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][t.getDay()],
+    mon: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][t.getMonth()] };
+}
+function addDateStamp(i) {
+  const f = DATE_FMTS[i]; if (!f) return;
+  const c = viewCenter(), j = jitter(), s = f[2];
+  familyCSS(s.font);
+  pushObj({ ...baseObj('text', c.x + j.x, c.y + j.y), text: f[1](dateParts()), font: s.font, bold: s.bold !== false, italic: false, underline: false, size: Math.round(MIN() * 0.06),
+    color: s.color, outline: s.outline || 'none', bg: s.bg || 'none', align: 'center', vert: false, shadow: !!s.shadow });
+}
+function addDeco(kind) {
+  const d = DECO[kind]; if (!d) return;
+  const M = MIN(), c = viewCenter(), j = jitter(), seed = 1 + Math.floor(Math.random() * 9999);
+  const o = d.full ? { ...baseObj('deco', doc.w / 2, doc.h / 2), w: doc.w, h: doc.h } : { ...baseObj('deco', c.x + j.x, c.y + j.y), w: M * d.w, h: M * d.h };
+  pushObj({ ...o, kind, color: d.color, ...(d.color2 != null ? { color2: d.color2 } : {}), seed });
+}
+let matCat = 'emoji';
+function matCats() {
+  return [['recent', '最近'], ['emoji', 'スタンプ'], ['season', '季節・天気'], ['food', '食べ物'], ['animal', '動物'], ...DECO_CATS, ['date', '日付'], ['bg', '背景']];
+}
+function matItems(cat) {
+  if (cat === 'recent') return UI.recentMat;
+  if (cat === 'emoji') return STAMPS.map(e => 'e:' + e);
+  if (cat === 'date') return DATE_FMTS.map((_, i) => 't:' + i);
+  const deco = Object.entries(DECO).filter(([, d]) => d.cat === cat).map(([id]) => 'd:' + id);
+  return [...deco, ...(EMOJI_SETS[cat] || []).map(e => 'e:' + e)];
+}
+const decoThumbs = new Map();
+function decoThumb(kind) {
+  let u = decoThumbs.get(kind); if (u) return u;
+  const d = DECO[kind]; if (!d) return '';
+  const S2 = 96, c = mk(S2, S2), g = c.getContext('2d');
+  const w = d.full ? 400 : d.w * 400, h = d.full ? 300 : d.h * 400, k = S2 * 0.82 / Math.max(w, h);
+  g.translate(S2 / 2, S2 / 2); g.scale(k, k);
+  try { d.draw(g, { w, h, color: d.color, color2: d.color2, seed: 7 }); } catch (e) { }
+  u = c.toDataURL(); decoThumbs.set(kind, u); return u;
+}
+function matButton(key) {
+  const t = key.slice(0, 1), v = key.slice(2), a = `data-act="cmd" data-k="matAdd" data-v="${J(key)}"`;
+  if (t === 'e') return `<button class="mat emo" ${a} aria-label="スタンプ ${esc(v)}">${esc(v)}</button>`;
+  if (t === 'd') { const d = DECO[v]; return d ? `<button class="mat" ${a} title="${esc(d.name)}" aria-label="${esc(d.name)}"><img src="${decoThumb(v)}" alt=""></button>` : ''; }
+  if (t === 't') { const f = DATE_FMTS[+v]; return f ? `<button class="mat date" ${a} aria-label="日付 ${esc(f[0])}"><span style="font-family:${esc(famStack(f[2].font))}">${esc(f[1](dateParts()))}</span></button>` : ''; }
+  return '';
+}
+function addMat(key) {
+  const t = key.slice(0, 1), v = key.slice(2);
+  if (t === 'e') addStamp(v); else if (t === 'd') addDeco(v); else if (t === 't') addDateStamp(+v); else return;
+  UI.recentMat = [key, ...UI.recentMat.filter(k => k !== key)].slice(0, 16); saveUI();
+}
+function bgPanelHtml() {
+  const p = doc.bgPat;
+  let h = row('柄', `<button class="chip${!p ? ' on' : ''}" data-act="cmd" data-k="bgPat" data-v="null">なし</button>` + BG_PATTERNS.map(([k, l]) => `<button class="chip${p && p.kind === k ? ' on' : ''}" data-act="cmd" data-k="bgPat" data-v="${J(k)}">${l}</button>`).join(''), true);
+  if (p) h += row('色', swatches('cmd', 'bgPat1', p.color, ['#FFD6E5', '#FFE66D', '#A8D8FF', '#B8EBA0', '#D9C7FF', '#FFFFFF', '#2B2E36'])) + row('色2', swatches('cmd', 'bgPat2', p.color2, ['#FFFFFF', '#FFF4E0', '#FFB3C7', '#A8D8FF', '#111111']));
+  return h + hint('背景の柄は、写真の透明な部分（白紙で作ったときや、背景を消した所）に出ます。');
+}
+function matHtml(search) {
+  const cats = matCats();
+  if (!cats.some(c => c[0] === matCat)) matCat = 'emoji';
+  let h = search ? `<div class="matsearch"><input type="search" class="matq" placeholder="素材を検索（例：テープ、ハート、矢印）" aria-label="素材を検索" value="${esc(matQ)}"></div>` : '';
+  h += `<div class="matcats">${cats.map(([k, l]) => `<button class="chip${matCat === k ? ' on' : ''}" data-act="cmd" data-k="matCat" data-v="${J(k)}" aria-pressed="${matCat === k}">${l}</button>`).join('')}</div>`;
+  if (search && matQ.trim()) {
+    const q = kana(matQ.trim());
+    const hits = [...Object.entries(DECO).filter(([id, d]) => kana(d.name + ' ' + id + ' ' + (DECO_CATS.find(c => c[0] === d.cat) || ['', ''])[1]).includes(q)).map(([id]) => 'd:' + id),
+      ...DATE_FMTS.map((f, i) => [f, i]).filter(([f]) => kana('日付 ひづけ date ' + f[0]).includes(q)).map(([, i]) => 't:' + i)];
+    return h + (hits.length ? `<div class="matgrid">${hits.map(matButton).join('')}</div>` : hint('見つかりませんでした。'));
+  }
+  if (matCat === 'bg') return h + bgPanelHtml();
+  if (matCat === 'emoji') h += row('番号', cmdBtn('num', `番号を追加（次は ${nextNum()}）`) + swatches('s', 'num.color', S.num.color, ['#FF3B30', '#007AFF', '#111111', '#34C759', '#FF9500']));
+  const items = matItems(matCat);
+  return h + (items.length ? `<div class="matgrid">${items.map(matButton).join('')}</div>` : hint(matCat === 'recent' ? 'まだありません。素材を使うとここに並びます。' : ''));
+}
+let matQ = '';
+function renderMaterial() { sidePanel.innerHTML = matHtml(true); }
+/* collage slots: put a photo into slot `id` (file picker, double-click or a file dropped on the slot) */
+let slotTarget = null;
+function pickSlot(id) { slotTarget = id; $('#fileSlot').value = ''; $('#fileSlot').click(); }
+$('#fileSlot').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f && slotTarget) fillSlot(slotTarget, f); });
+async function fillSlot(id, file) {
+  try {
+    toast('読み込み中…');
+    const { canvas, resized } = await fileToCanvas(file, 2048);
+    const o = doc && doc.objects.find(x => x.id === id); if (!o) return;
+    o.bmp = regBitmap(canvas, resized ? null : file); o.fz = 1; o.fx = 0; o.fy = 0;
+    selId = o.id; multi = []; invalidate(); commit(); refreshPanel(); requestDraw();
+    toast('写真を入れました。右の「拡大」「左右」「上下」で見せ方を調整できます', 3200);
+  } catch (err) { toast(imgErr(file)); }
+}
 async function addPhoto(file) {
   try {
     toast('読み込み中…');
@@ -2427,7 +2865,8 @@ function openObjMenu() {
   const it = (k, ic, l, cls = '') => `<button role="menuitem" class="${cls}" data-act="cmd" data-k="${k}"><span class="mi" aria-hidden="true">${ic}</span>${l}</button>`;
   let h = '';
   if (!o.locked && (o.type === 'text' || o.type === 'note')) h += it('edit', '✎', o.type === 'text' ? '文字を編集' : '付箋を編集');
-  if (!o.locked && o.type === 'image') h += it('cutThis', '✂', '背景を削除');
+  if (!o.locked && o.type === 'image' && o.slot) h += it('slotPick', '📷', o.bmp ? '写真を差し替え' : '写真を入れる');
+  else if (!o.locked && o.type === 'image') h += it('cutThis', '✂', '背景を削除');
   if (h) h += '<hr>';
   h += it('front', '⤒', '前面へ') + it('back', '⤓', '背面へ') + it('dup', '⧉', '複製') + it('lock', o.locked ? '🔓' : '🔒', o.locked ? 'ロック解除' : 'ロック') + '<hr>' + it('del', '🗑', '削除', 'danger');
   objMenu.innerHTML = h; objMenu.hidden = false; objMore.setAttribute('aria-expanded', 'true'); placeObjMenu();
@@ -2493,6 +2932,16 @@ function runCmd(k, v, final) {
       invalidate(); commit(); refreshPanel(); toast(`${n}個を削除しました`);
     } break;
     case 'mClear': multi = []; refreshPanel(); requestDraw(); break;
+    case 'decoSeed': if (o) { o.seed = (o.seed || 1) + 1 + Math.floor(Math.random() * 97); invalidate(); commit(); } break;
+    case 'decoFit': if (o) { o.x = doc.w / 2; o.y = doc.h / 2; o.w = doc.w; o.h = doc.h; o.sc = 1; o.rot = 0; invalidate(); commit(); refreshPanel(); } break;
+    case 'deco': addDeco(v); break;
+    case 'dateStamp': addDateStamp(v); break;
+    case 'bgPat': doc.bgPat = v ? { kind: v, color: (doc.bgPat && doc.bgPat.color) || '#FFD6E5', color2: (doc.bgPat && doc.bgPat.color2) || '#FFFFFF' } : null; invalidate(); commit(); refreshPanel(); if (v) toast('背景の柄は、写真の透明な部分（白紙や背景を消した所）に表示されます', 3600); break;
+    case 'bgPat1': case 'bgPat2': if (doc.bgPat) { doc.bgPat = { ...doc.bgPat, [k === 'bgPat1' ? 'color' : 'color2']: v }; invalidate(); if (final !== false) { commit(); if (sideView === 'material') renderMaterial(); else refreshPanel(); } } break;
+    case 'matAdd': addMat(v); if (sideView === 'material' && matCat === 'recent') renderMaterial(); break;
+    case 'matCat': matCat = v; refreshPanel(); if (sideView === 'material') renderMaterial(); break;
+    case 'slotPick': if (o && o.slot) pickSlot(o.id); break;
+    case 'slotFit': if (o && o.slot) { o.fz = 1; o.fx = 0; o.fy = 0; invalidate(); commit(); refreshPanel(); } break;
     case 'align': { const ms = multiObjs(); alignObjs(ms.length ? ms : o ? [o] : [], v); } break;
     case 'numInc': if (o) { o.n = Math.max(1, o.n + v); invalidate(); commit(); refreshPanel(); } break;
     case 'stamp': addStamp(v); break;
@@ -2525,7 +2974,7 @@ function runCmd(k, v, final) {
   }
 }
 function doAct(a, k, v, final) {
-  if (final && (a === 'o' || a === 's') && typeof v === 'string' && /color$|^bg$|outline|border/i.test(k)) rememberColor(v);
+  if (final && (a === 'o' || a === 's') && typeof v === 'string' && /color2?$|^bg$|outline|border/i.test(k)) rememberColor(v);
   if (a === 'cmd') return runCmd(k, v, final);
   if (a === 's') {
     setPath(S, k, v); saveToolsSoon();
@@ -2829,7 +3278,11 @@ function objPanel(o) {
       h += row('文字色', swatches('o', 'tcolor', o.tcolor || '#2A2724', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#1F8A4C', '#8B5CF6']));
       break;
     case 'image':
-      h += row('加工', cmdBtn('cutThis', '✂ 背景を削除'));
+      if (o.slot) {   // collage slot: fill / replace the photo and frame it
+        h += row('写真', cmdBtn('slotPick', o.bmp ? '🔄 写真を差し替え' : '＋ 写真を入れる', undefined, o.bmp ? '' : 'on') + (o.bmp ? cmdBtn('slotFit', '枠に合わせ直す') : ''), true);
+        if (o.bmp) h += slider('o:fz', '拡大', 100, 300, (o.fz || 1) * 100, 0.01) + slider('o:fx', '左右', -100, 100, (o.fx || 0) * 100, 0.01) + slider('o:fy', '上下', -100, 100, (o.fy || 0) * 100, 0.01);
+        h += hint('枠をダブルクリック（ダブルタップ）するか、写真ファイルを枠にドロップしても入れられます。');
+      } else h += row('加工', cmdBtn('cutThis', '✂ 背景を削除'));
       h += row('枠', chips('o', 'border', [['none', 'なし'], ['#FFFFFF', '白'], ['#111111', '黒']], o.border));
       h += row('影', chips('o', 'shadow', [[false, 'なし'], [true, 'あり']], o.shadow));
       h += slider('o:rad', '角丸', 0, 100, o.rad);
@@ -2846,6 +3299,14 @@ function objPanel(o) {
     case 'stamp':
       if (o.kind === 'num') { h += row('番号', cmdBtn('numInc', '−', -1) + `<span style="min-width:2ch;text-align:center;font-variant-numeric:tabular-nums">${o.n}</span>` + cmdBtn('numInc', '＋', 1)); h += row('色', swatches('o', 'color', o.color)); }
       break;
+    case 'deco': {
+      const d = DECO[o.kind];
+      h += row('色', swatches('o', 'color', o.color));
+      if (d && d.color2 != null) h += row('色2', swatches('o', 'color2', o.color2 || d.color2));
+      if (d && d.cat === 'line') h += row('形', cmdBtn('decoSeed', '🎲 描き直す'));
+      if (d && d.full) h += row('大きさ', cmdBtn('decoFit', '写真全体に合わせる'));
+      break;
+    }
     case 'mosaic':
       h += row('効果', chips('o', 'mode', [['pixel', 'モザイク'], ['blur', 'ぼかし'], ['black', '黒塗り']], o.mode));
       if (o.mode !== 'black') h += slider('o:str', '強さ', 5, 100, o.str);
@@ -2890,8 +3351,10 @@ function alignObjs(ms, how) {
 }
 /* ==== layers ==== (PC inspector, select tool) top of the stack first; click selects (Shift/Ctrl adds), 👁 hides,
    🔒 locks, drag a row to restack. `hidden` objects are skipped by renderDoc / pick / marquee / guides. */
-const LAYER_IC = { image: '🖼', text: 'T', note: '🗒', stroke: '✎', shape: '◇', stamp: '★', mosaic: '▦' };
+const LAYER_IC = { image: '🖼', text: 'T', note: '🗒', stroke: '✎', shape: '◇', stamp: '★', mosaic: '▦', deco: '✿' };
 function layerName(o) {
+  if (o.type === 'deco') return DECO[o.kind] ? DECO[o.kind].name : 'デコ';
+  if (o.type === 'image' && o.slot) return o.bmp ? '写真枠' : '写真枠（空）';
   if (o.type === 'text' || o.type === 'note') { const t = (o.text || '').replace(/\s+/g, ' ').trim(); if (t) return [...t].slice(0, 16).join(''); }
   if (o.type === 'stamp') return o.kind === 'num' ? `番号 ${o.n}` : `スタンプ ${o.ch || ''}`;
   if (o.type === 'shape') return { arrow: '矢印', line: '直線', rect: '四角', ellipse: '丸' }[o.kind] || '図形';
@@ -2987,10 +3450,7 @@ function refreshPanel() {
       if (S.shape.kind === 'rect' || S.shape.kind === 'ellipse') h += row('塗り', chips('s', 'shape.fill', [['none', '線のみ'], ['semi', '半透明'], ['solid', '塗りつぶし']], S.shape.fill));
       h += hint('写真の上をドラッグして描きます。');
       break;
-    case 'stamp':
-      h = row('番号', cmdBtn('num', `番号を追加（次は ${nextNum()}）`) + swatches('s', 'num.color', S.num.color, ['#FF3B30', '#007AFF', '#111111', '#34C759', '#FF9500']));
-      h += `<div class="stamps">${STAMPS.map(s => `<button data-act="cmd" data-k="stamp" data-v="${J(s)}" aria-label="スタンプ ${s}">${s}</button>`).join('')}</div>`;
-      break;
+    case 'stamp': h = matHtml(false); break;   // the 素材 tool: emoji stamps, drawn stickers, date stamps, backgrounds
     case 'mosaic':
       h = row('範囲', chips('s', 'mosaic.shape', [['brush', 'ブラシでなぞる'], ['rect', '四角で囲む']], S.mosaic.shape));
       h += row('効果', chips('s', 'mosaic.mode', [['pixel', 'モザイク'], ['blur', 'ぼかし'], ['black', '黒塗り']], S.mosaic.mode));
@@ -3024,7 +3484,7 @@ function refreshPanel() {
       break;
     }
     case 'cutout': {
-      const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image');
+      const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
       if (imgs.length) h += row('対象', chips('s', 'cut.target', [['base', '土台の写真'], ...imgs.map((o, i) => [o.id, '貼った写真' + (i + 1)])], S.cut.target));
       h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : '✨ AIで自動で背景を消す'}</button>`;
       h += row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
@@ -3100,7 +3560,7 @@ function onSlider(t, final) {
 const toolsEl = $('#tools');
 /* ==== UI settings ==== per device (localStorage), never part of doc / undo history */
 const UI_KEY = 'petaphoto.ui', TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t[0], t]));
-const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [] };
+const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [], recentMat: [] };
 function loadUI() {
   let v = null; try { v = JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { }
   const u = { ...UI_DEF, ...(v && typeof v === 'object' ? v : {}) }, ids = UI_DEF.order;
@@ -3113,6 +3573,7 @@ function loadUI() {
   if (!AI_MODELS[u.aiModel]) u.aiModel = 'u2';
   u.nick = typeof u.nick === 'string' ? u.nick.slice(0, 20) : '';
   u.recent = (Array.isArray(u.recent) ? u.recent : []).filter(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).slice(0, 8);
+  u.recentMat = (Array.isArray(u.recentMat) ? u.recentMat : []).filter(k => typeof k === 'string' && /^[edt]:./.test(k)).slice(0, 16);
   return u;
 }
 const UI = loadUI();
@@ -3187,13 +3648,13 @@ function setTool(t) {
 
 /* ==== sidebar (PC) ==== icon rail + drawer. フィルター・調整・背景削除 are ordinary tools whose panel renders into the drawer. */
 const sideEl = $('#side'), railEl = $('#rail'), drawer = $('#drawer'), zoomPct = $('#zoomPct');
-const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', 'アップロード', ICON.upload], ['template', 'テンプレート', ICON.template], ['filter', 'フィルター', ICON.filter],
+const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', 'アップロード', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp], ['filter', 'フィルター', ICON.filter],
   ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ['settings', '設定', ICON.gear]];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
   const cur = deskOn ? sideView : (SIDE_TOOLS.has(tool) ? tool : null);
-  railEl.innerHTML = SIDE_ITEMS.filter(([id]) => deskOn || id !== 'template').map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
+  railEl.innerHTML = SIDE_ITEMS.map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
 }
 /* phone: ☰ opens the rail as a modal slide-in menu (not saved; UI.side is the PC setting) */
 let sideMob = false;
@@ -3253,7 +3714,8 @@ function renderSide() {
   if (sideView) $('#drawerTitle').textContent = SIDE_NAME[sideView];
   drawer.classList.toggle('hasSheet', !!DRAWER_SHEETS[sideView]);
   if (deskOn && DRAWER_SHEETS[sideView]) dockSheet(sideView); else undockSheets();
-  if (sideView === 'template') renderTemplates();
+  if (sideView === 'template') renderTemplates(sidePanel);
+  if (sideView === 'material') renderMaterial();
   if (sideView === 'upload') sidePanel.innerHTML = `<div class="stack">
     <button class="bigbtn primary" data-up="open"><span>写真を開いて編集<small>今の編集内容と置き換わります</small></span></button>
     <button class="bigbtn" data-up="add"><span>写真を貼り付ける<small>今の画像の上に重ねます</small></span></button>
@@ -3270,6 +3732,8 @@ railEl.addEventListener('click', e => {
     if (id === 'gallery') openGallery();
     else if (id === 'settings') openUISheet();
     else if (id === 'upload') { renderNB(); openSheet('#sheetNew'); }
+    else if (id === 'template') openTplSheet();
+    else if (id === 'material') setTool('stamp');
     else if (SIDE_TOOLS.has(id)) setTool(id);
     return;
   }
@@ -3284,7 +3748,8 @@ railEl.addEventListener('click', e => {
    Applying adds them as one undo step and selects them as a group. Coordinates: x/y as fractions of the photo,
    sizes as fractions of its short side (MIN). Only today's object types (text / note / stamp / shape). */
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; };
-const TPL_CATS = [['all', 'すべて'], ['sns', 'SNS'], ['oshi', '推し活'], ['life', '日記・記録'], ['howto', '説明図']];
+const TPL_CATS = [['all', 'すべて'], ['collage', 'コラージュ'], ['season', '季節'], ['sns', 'SNS'], ['oshi', '推し活'], ['life', '日記・記録'], ['howto', '説明図']];
+const monthEn = () => ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'][new Date().getMonth()] + ' ' + new Date().getFullYear();
 const TEMPLATES = [
   { id: 'oshi-bd', name: '推し活 誕生日', cat: 'oshi', items: () => [
     { t: 'text', x: .5, y: .13, text: 'HAPPY BIRTHDAY', font: 'Dancing Script', size: .12, shadow: true },
@@ -3318,6 +3783,48 @@ const TEMPLATES = [
   { id: 'film', name: 'フィルム風日記', cat: 'life', preset: 'film', amt: 80, items: () => [
     { t: 'text', x: .82, y: .92, text: todayStr().replace(/^20/, "'"), font: 'DotGothic16', size: .055, color: '#FF9500', bold: false, shadow: true },
     { t: 'text', x: .14, y: .08, text: 'film diary', font: 'Caveat', size: .06, bold: false, shadow: true }] },
+  /* collage: a new canvas with photo slots (canvas = [W, H]); applying replaces the current work after a confirmation */
+  { id: 'koma4', name: '4コマ・フォトブース', cat: 'collage', canvas: [1080, 1920], bg: '#111111', items: () => [
+    ...[0, 1, 2, 3].map(i => ({ t: 'slot', x: .5, y: .155 + i * .22, w: .86, h: .205, rad: 6 })),
+    { t: 'text', x: .5, y: .955, text: 'PETA PHOTO  ' + todayStr(), font: 'Bebas Neue', size: .05, bold: false }] },
+  { id: 'beforeafter', name: 'Before / After', cat: 'collage', canvas: [1600, 1000], bg: '#FFFFFF', items: () => [
+    { t: 'slot', x: .255, y: .55, w: .47, h: .78, rad: 4 }, { t: 'slot', x: .745, y: .55, w: .47, h: .78, rad: 4 },
+    { t: 'text', x: .255, y: .085, text: 'BEFORE', font: 'Bebas Neue', size: .09, color: '#111111', bold: false },
+    { t: 'text', x: .745, y: .085, text: 'AFTER', font: 'Bebas Neue', size: .09, color: '#FF3B30', bold: false },
+    { t: 'arrow', x1: .47, y1: .085, x2: .53, y2: .085, color: '#111111', width: .012 }] },
+  { id: 'polaroid', name: 'ポラロイド風', cat: 'collage', canvas: [1080, 1350], bg: '#F4EFE6', bgPat: { kind: 'dot', color: '#E3D9C6', color2: '#F4EFE6' }, items: () => [
+    { t: 'note', x: .5, y: .49, w: .84, h: 1.02, shape: 'square', color: '#FFFFFF', deco: 'tape', rot: -.03 },
+    { t: 'slot', x: .5, y: .43, w: .74, h: .62, rot: -.03 },
+    { t: 'text', x: .5, y: .85, text: 'memories', font: 'Caveat', size: .08, color: '#2A2724', bold: false, rot: -.03 }] },
+  { id: 'calendar', name: '月のまとめ（9枚）', cat: 'collage', canvas: [1080, 1350], bg: '#FFFFFF', items: () => [
+    { t: 'text', x: .5, y: .075, text: monthEn(), font: 'Bebas Neue', size: .09, color: '#111111', bold: false },
+    ...[0, 1, 2].flatMap(r => [0, 1, 2].map(c => ({ t: 'slot', x: .18 + c * .32, y: .3 + r * .255, w: .3, h: .235, rad: 5 })))] },
+  { id: 'duo', name: '2枚並べ（縦）', cat: 'collage', canvas: [1080, 1350], bg: '#FFF4F8', bgPat: { kind: 'gingham', color: '#FFD6E5', color2: '#FFF4F8' }, items: () => [
+    { t: 'slot', x: .5, y: .29, w: .84, h: .4, rad: 10, border: '#FFFFFF', shadow: true }, { t: 'slot', x: .5, y: .73, w: .84, h: .4, rad: 10, border: '#FFFFFF', shadow: true },
+    { t: 'deco', kind: 'tape-stripe', x: .2, y: .1, rot: -.3 }, { t: 'deco', kind: 'tape-dot', x: .82, y: .54, rot: .25 }] },
+  /* seasonal (laid over the current photo) */
+  { id: 'grad', name: '卒業・入学', cat: 'season', items: () => [
+    { t: 'deco', kind: 'ribbon', x: .5, y: .12, s: 1.3, color: '#FF8FB8', color2: '#E05A8A' },
+    { t: 'text', x: .5, y: .115, text: '祝 卒業', font: 'Yuji Syuku', size: .08, color: '#FFFFFF' },
+    { t: 'stamp', x: .1, y: .86, ch: '🌸', size: .1 }, { t: 'stamp', x: .88, y: .8, ch: '🌸', size: .08 }, { t: 'stamp', x: .86, y: .3, ch: '🎓', size: .1 },
+    { t: 'text', x: .5, y: .93, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
+  { id: 'halloween', name: 'ハロウィン', cat: 'season', items: () => [
+    { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.5, color: '#FF7A1A', color2: '#6B3FA0' },
+    { t: 'text', x: .5, y: .2, text: 'Happy Halloween', font: 'Rampart One', size: .1, color: '#FF7A1A', outline: '#2B1B3A' },
+    { t: 'stamp', x: .12, y: .84, ch: '🎃', size: .13 }, { t: 'stamp', x: .88, y: .82, ch: '👻', size: .11 }] },
+  { id: 'xmas', name: 'クリスマス', cat: 'season', items: () => [
+    { t: 'text', x: .5, y: .14, text: 'Merry Christmas', font: 'Great Vibes', size: .13, shadow: true, bold: false },
+    { t: 'deco', kind: 'kira3', x: .86, y: .12, color: '#FFE66D' }, { t: 'deco', kind: 'kira', x: .12, y: .3, color: '#FFFFFF' },
+    { t: 'stamp', x: .12, y: .85, ch: '🎄', size: .13 }, { t: 'stamp', x: .88, y: .86, ch: '🎁', size: .1 }, { t: 'stamp', x: .7, y: .9, ch: '❄️', size: .06 }] },
+  { id: 'newyear', name: 'お正月', cat: 'season', items: () => [
+    { t: 'text', x: .86, y: .36, text: '謹賀新年', font: 'Yuji Syuku', size: .11, color: '#FFFFFF', outline: '#C8102E', vert: true },
+    { t: 'deco', kind: 'round-sticker', x: .14, y: .16, color: '#C8102E' },
+    { t: 'text', x: .14, y: .16, text: '賀', font: 'Yuji Syuku', size: .08, color: '#FFFFFF' },
+    { t: 'stamp', x: .12, y: .86, ch: '🎍', size: .13 }] },
+  { id: 'summer', name: '夏の思い出', cat: 'season', items: () => [
+    { t: 'text', x: .5, y: .13, text: '夏の思い出', font: 'Yomogi', size: .11, color: '#FFFFFF', outline: '#2B7FB8' },
+    { t: 'deco', kind: 'wave-line', x: .5, y: .22, s: 1.2, color: '#FFFFFF' },
+    { t: 'stamp', x: .12, y: .86, ch: '🍉', size: .11 }, { t: 'stamp', x: .88, y: .84, ch: '🎆', size: .12 }, { t: 'stamp', x: .86, y: .12, ch: '🎐', size: .09 }] },
   { id: 'howto', name: '説明図・手順', cat: 'howto', items: () => [
     { t: 'rect', x: .5, y: .45, w: .4, h: .3, color: '#FF3B30', width: .01 },
     { t: 'arrow', x1: .2, y1: .86, x2: .33, y2: .64, color: '#FF3B30', width: .014 },
@@ -3328,7 +3835,13 @@ function tplObj(s) {
   const M = MIN(), X = s.x * doc.w, Y = s.y * doc.h;
   switch (s.t) {
     case 'text': return { ...baseObj('text', X, Y), rot: s.rot || 0, text: s.text, font: s.font || 'Noto Sans JP', bold: s.bold !== false, italic: !!s.italic, underline: !!s.underline,
-      size: Math.round(M * s.size), color: s.color || '#FFFFFF', outline: s.outline || 'none', bg: s.bg || 'none', align: s.align || 'center', vert: false, shadow: !!s.shadow };
+      size: Math.round(M * s.size), color: s.color || '#FFFFFF', outline: s.outline || 'none', bg: s.bg || 'none', align: s.align || 'center', vert: !!s.vert, shadow: !!s.shadow };
+    case 'slot': return { ...baseObj('image', X, Y), rot: s.rot || 0, slot: true, bmp: null, w: s.w * doc.w, h: s.h * doc.h, border: s.border || 'none', rad: s.rad || 0, shadow: !!s.shadow, fz: 1, fx: 0, fy: 0 };
+    case 'deco': {
+      const d = DECO[s.kind]; if (!d) return null;   // the sticker library may not have this kind
+      const k = s.s || 1, base = d.full ? { w: doc.w, h: doc.h } : { w: M * d.w * k, h: M * d.h * k };
+      return { ...baseObj('deco', d.full ? doc.w / 2 : X, d.full ? doc.h / 2 : Y), rot: s.rot || 0, ...base, kind: s.kind, color: s.color || d.color, ...(d.color2 != null ? { color2: s.color2 || d.color2 } : {}), seed: 11 };
+    }
     case 'note': return { ...baseObj('note', X, Y), rot: s.rot || 0, text: s.text || '', color: s.color || '#FFE66D', shape: s.shape || 'square', deco: s.deco || 'tape',
       pattern: s.pattern || 'plain', tcolor: s.tcolor || '#2A2724', font: s.font || 'Klee One', w: M * s.w, h: M * s.h };
     case 'stamp': return { ...baseObj('stamp', X, Y), rot: s.rot || 0, kind: 'emoji', ch: s.ch, size: M * s.size };
@@ -3343,8 +3856,17 @@ function tplObj(s) {
   return null;
 }
 function tplBuild(t) { const base = nextNum() - 1; return t.items().map(s => tplObj(s.t === 'num' ? { ...s, n: s.n + base } : s)).filter(Boolean); }
-function applyTemplate(id) {
+function applyTemplate(id, sure) {
   const t = TEMPLATES.find(x => x.id === id); if (!t || !doc) return;
+  if (t.canvas) {   // collage: starts a new canvas, so confirm first (the old work is replaced; its draft goes with it)
+    if (!sure) { toastAct(`「${t.name}」は新しいキャンバスで作ります。今の作品は置き換わります（先に保存がおすすめ）`, '作る', () => applyTemplate(id, true)); return; }
+    newBlankDoc(t.canvas[0], t.canvas[1], t.bg, t.bgPat);
+    const objs = tplBuild(t);
+    objs.forEach(o => { if (o.font) familyCSS(o.font); });
+    doc.objects.push(...objs); invalidate(); commit(); refreshPanel(); scheduleSave();
+    toast('写真枠をダブルクリックするか、写真ファイルを枠にドロップして入れてください', 4200);
+    return;
+  }
   const objs = tplBuild(t);
   objs.forEach(o => { if (o.font) familyCSS(o.font); });
   doc.objects.push(...objs);
@@ -3358,26 +3880,38 @@ function applyTemplate(id) {
 const tplThumbs = new Map();
 let tplKey = '', tplCat = 'all', tplFontPass = false;
 function tplThumb(t) {
-  const c = mk(1, 1), sc = 240 / Math.max(doc.w, doc.h), o0 = doc.objects, a0 = doc.adjust;
+  const c = mk(1, 1);
+  if (t.canvas) {   // collage: render on a throwaway blank doc of the template's size
+    const d0 = doc, id = regBitmap(mk(t.canvas[0], t.canvas[1]), null, true);
+    try { doc = normDoc({ w: t.canvas[0], h: t.canvas[1], baseId: id, bg: t.bg, bgPat: t.bgPat || null, adjust: { ...DEFAULT_ADJ }, objects: [] }); doc.objects = tplBuild(t); renderDoc(c, 240 / Math.max(doc.w, doc.h), {}); }
+    finally { doc = d0; bitmaps.delete(id); }
+    return c.toDataURL('image/jpeg', 0.82);
+  }
+  const sc = 240 / Math.max(doc.w, doc.h), o0 = doc.objects, a0 = doc.adjust;
   try { doc.objects = o0.concat(tplBuild(t)); if (t.preset) doc.adjust = { ...a0, preset: t.preset, amt: t.amt || 100 }; renderDoc(c, sc, {}); }
   finally { doc.objects = o0; doc.adjust = a0; }
   return c.toDataURL('image/jpeg', 0.82);
 }
-function renderTemplates() {
+/* the template grid renders into the PC drawer (sidePanel) or, on phones, into #tplBody of the テンプレート sheet */
+let tplHost = sidePanel;
+const tplOpen = () => tplHost === sidePanel ? sideView === 'template' : !$('#sheetTpl').hidden;
+function renderTemplates(host) {
+  if (host) tplHost = host;
   const list = TEMPLATES.filter(t => tplCat === 'all' || t.cat === tplCat);
   TEMPLATES.forEach(t => t.items().forEach(s => { if (s.font) familyCSS(s.font); }));
-  sidePanel.innerHTML = `<div class="tplwrap">${hint('今の写真の上に、文字・付箋・スタンプをまとめて重ねます。あとから動かしたり書き換えたりできます。')}`
+  tplHost.innerHTML = `<div class="tplwrap">${hint('写真の上に、文字・付箋・スタンプ・デコをまとめて重ねます。「コラージュ」は写真枠の入った新しいキャンバスで作ります。')}`
     + `<div class="tplcats">${TPL_CATS.map(([k, l]) => `<button class="chip${tplCat === k ? ' on' : ''}" data-tplc="${k}" aria-pressed="${tplCat === k}">${l}</button>`).join('')}</div>`
-    + `<div class="tplgrid">${list.map(t => `<button class="tpl" data-tpl="${t.id}"><span class="tim" data-tim="${t.id}" style="aspect-ratio:${doc.w}/${doc.h}"></span><span class="tnm">${esc(t.name)}</span></button>`).join('')}</div></div>`;
+    + `<div class="tplgrid">${list.map(t => `<button class="tpl" data-tpl="${t.id}"><span class="tim" data-tim="${t.id}" style="aspect-ratio:${t.canvas ? t.canvas[0] + '/' + t.canvas[1] : doc.w + '/' + doc.h}"></span><span class="tnm">${esc(t.name)}${t.canvas ? '<small>新しいキャンバス</small>' : ''}</span></button>`).join('')}</div></div>`;
   fillTplThumbs();
-  if (!tplFontPass) { tplFontPass = true; setTimeout(() => { if (sideView === 'template') { tplThumbs.clear(); renderTemplates(); } }, 1800); }   // redo once the template fonts have loaded
+  if (!tplFontPass) { tplFontPass = true; setTimeout(() => { if (tplOpen()) { tplThumbs.clear(); renderTemplates(); } }, 1800); }   // redo once the template fonts have loaded
 }
+function openTplSheet() { renderTemplates($('#tplBody')); openSheet('#sheetTpl'); }
 function fillTplThumbs() {
   const key = doc.baseId + '|' + bmpRev + '|' + doc.w + 'x' + doc.h + '|' + JSON.stringify(doc.adjust) + '|' + doc.objects.length;
   if (key !== tplKey) { tplThumbs.clear(); tplKey = key; }
-  const todo = [...sidePanel.querySelectorAll('[data-tim]')];
+  const todo = [...tplHost.querySelectorAll('[data-tim]')];
   const step = () => {
-    if (sideView !== 'template') return;
+    if (!tplOpen()) return;
     const el = todo.shift(); if (!el) return;
     const t = TEMPLATES.find(x => x.id === el.dataset.tim);
     let u = tplThumbs.get(t.id); if (!u) { u = tplThumb(t); tplThumbs.set(t.id, u); }
@@ -3386,10 +3920,21 @@ function fillTplThumbs() {
   };
   step();
 }
+/* 素材 drawer search: re-render on input and put the caret back */
+sidePanel.addEventListener('input', e => {
+  if (!e.target.classList.contains('matq')) return;
+  matQ = e.target.value; renderMaterial();
+  const q = sidePanel.querySelector('.matq'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+});
 sidePanel.addEventListener('click', e => {
   const t = e.target.closest('[data-tpl]'), c = e.target.closest('[data-tplc]');
   if (t) applyTemplate(t.dataset.tpl);
-  else if (c) { tplCat = c.dataset.tplc; renderTemplates(); }
+  else if (c) { tplCat = c.dataset.tplc; renderTemplates(sidePanel); }
+});
+$('#sheetTpl').addEventListener('click', e => {
+  const t = e.target.closest('[data-tpl]'), c = e.target.closest('[data-tplc]');
+  if (t) { closeSheets(); applyTemplate(t.dataset.tpl); }
+  else if (c) { tplCat = c.dataset.tplc; renderTemplates($('#tplBody')); }
 });
 sidePanel.addEventListener('click', e => {
   const b = e.target.closest('[data-up]'); if (!b) return;
@@ -3489,7 +4034,7 @@ function pressTool(id) {
 }
 function cmdItems() {
   const it = [], add = (l, sub, keys, run) => it.push({ l, sub, k: kana([l, sub, ...keys].join(' ')), run });
-  const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'すたんぷ えもじ ばんごう', filter: 'ふぃるたー', adjust: 'ちょうせい あかるさ', cutout: 'はいけいさくじょ はいけい', mosaic: 'もざいく ぼかし', crop: 'きりぬき とりみんぐ かいてん' };
+  const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'そざい すたんぷ えもじ ばんごう でこ ますきんぐてーぷ ひづけ', filter: 'ふぃるたー', adjust: 'ちょうせい あかるさ', cutout: 'はいけいさくじょ はいけい', mosaic: 'もざいく ぼかし', crop: 'きりぬき とりみんぐ かいてん' };
   TOOLS.forEach(([id, l]) => add(l, 'ツール' + (TOOL_KEYS[id] ? '（' + TOOL_KEYS[id] + '）' : ''), [id, 'tool', YOMI[id] || ''], () => pressTool(id)));
   add('保存する', 'Ctrl+S', ['save', 'export', '書き出し', 'ダウンロード', 'jpeg', 'png', 'ほぞん かきだし'], () => $('#btnSave').click());
   add('写真を開いて編集', 'アップロード', ['open', 'upload', '読み込み', 'ファイル', 'ひらく よみこみ しゃしん'], () => $('#fileOpen').click());
@@ -3510,8 +4055,10 @@ function cmdItems() {
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
   Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], 'フィルター', ['filter', id, f[0]], () => { if (deskOn) setTool('filter'); runCmd('preset', id); }));
-  if (deskOn) {
-    add('テンプレート一覧', '写真に重ねるデザイン', ['template', 'てんぷれーと', 'デザイン'], () => openInDrawer('template'));
+  Object.entries(DECO).forEach(([id, d]) => add('素材：' + d.name, 'デコ素材', ['deco', 'でこ', 'そざい', id, (DECO_CATS.find(c => c[0] === d.cat) || ['', ''])[1]], () => addDeco(id)));
+  DATE_FMTS.forEach((f, i) => add('日付：' + f[0], '今日の日付を入れる', ['date', 'ひづけ', 'きょう'], () => addDateStamp(i)));
+  {
+    add('テンプレート一覧', '写真に重ねるデザイン・コラージュ', ['template', 'てんぷれーと', 'デザイン', 'こらーじゅ'], () => deskOn ? openInDrawer('template') : openTplSheet());
     TEMPLATES.forEach(t => add('テンプレート：' + t.name, 'テンプレート', ['template', 'てんぷれーと', t.id], () => applyTemplate(t.id)));
   }
   Object.entries(AI_LOOKS).forEach(([id, v]) => add('トレンド風：' + v[0], 'AIおまかせ', ['look', 'ai', id, v[0]], () => runCmd('aiLook', id)));
@@ -3524,7 +4071,7 @@ function renderCmd() {
   // names that contain the words come before matches found only in aliases / readings
   const rank = c => { const n = kana(c.l).replace(/^.*：/, ''); return words.every(w => n.startsWith(w)) ? 0 : words.every(w => kana(c.l).includes(w)) ? 1 : 2; };
   cmdHits = (words.length ? cmdAll.filter(c => words.every(w => c.k.includes(w))).map((c, i) => [rank(c), i, c]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(x => x[2])
-    : cmdAll.filter(c => !/^(フィルター|トレンド風|テンプレート)：/.test(c.l))).slice(0, 40);
+    : cmdAll.filter(c => !/^(フィルター|トレンド風|テンプレート|素材|日付)：/.test(c.l))).slice(0, 40);
   cmdCur = clamp(cmdCur, 0, Math.max(0, cmdHits.length - 1));
   $('#cmdList').innerHTML = cmdHits.length ? cmdHits.map((c, i) => `<button role="option" id="cmd${i}" aria-selected="${i === cmdCur}" class="${i === cmdCur ? 'cur' : ''}" data-ci="${i}" tabindex="-1">${esc(c.l)}<small>${esc(c.sub)}</small></button>`).join('')
     : '<p class="none">見つかりませんでした。別の言葉で探してみてください。</p>';
@@ -3553,7 +4100,15 @@ stage.addEventListener('drop', () => stage.classList.remove('drop'), true);
 stage.addEventListener('drop', e => {
   const fs = [...(e.dataTransfer ? e.dataTransfer.files : [])].filter(f => /^image\//.test(f.type) || /\.(hei[cf]|jpe?g|png|webp|gif)$/i.test(f.name));
   if (!fs.length || !doc) return;
-  e.preventDefault(); fs.slice(0, 5).forEach(f => addPhoto(f));
+  e.preventDefault();
+  // dropped on a collage slot: fill that slot (several files fill the empty slots in order)
+  const r = cv.getBoundingClientRect(), d = screenToDoc(e.clientX - r.left, e.clientY - r.top), hit = pick(d.x, d.y);
+  if (hit && hit.slot && !hit.locked) {
+    const slots = [hit, ...doc.objects.filter(o => o.slot && !o.bmp && o !== hit)];
+    fs.slice(0, slots.length).forEach((f, i) => fillSlot(slots[i].id, f));
+    return;
+  }
+  fs.slice(0, 5).forEach(f => addPhoto(f));
 });
 
 /* ============================================================
@@ -3724,7 +4279,8 @@ async function loadDraft() {
       else return false;
     }
     const n0 = d.doc.objects.length;
-    d.doc.objects = d.doc.objects.filter(o => o.type !== 'image' || bitmaps.has(o.bmp));
+    d.doc.objects.forEach(o => { if (o.type === 'image' && o.slot && o.bmp && !bitmaps.has(o.bmp)) o.bmp = null; });   // a slot that lost its photo becomes empty again
+    d.doc.objects = d.doc.objects.filter(o => o.type !== 'image' || o.slot || bitmaps.has(o.bmp));
     d.doc.objects.forEach(o => { if (o.orig && !bitmaps.has(o.orig)) delete o.orig; });
     if (d.doc.baseOrig && !bitmaps.has(d.doc.baseOrig)) d.doc.baseOrig = null;
     useDoc(d.doc);
@@ -3965,24 +4521,30 @@ document.addEventListener('click', e => {
   buzz(8);
 }, true);
 
-const NB = { size: '1080x1080', bg: '#FFFFFF' };
+const NB = { size: '1080x1080', bg: '#FFFFFF', pat: null };
+/* a blank canvas: a transparent base + doc.bg (+ doc.bgPat), so background patterns and colours stay editable */
+function newBlankDoc(w, h, bg, pat) {
+  useDoc({ w, h, baseId: regBitmap(mk(w, h), null, true), baseOrig: null, bg: bg || '#FFFFFF', bgPat: pat || null, adjust: { ...DEFAULT_ADJ }, objects: [] });
+}
 const NB_SIZES = [['1080x1080', '正方形'], ['1080x1350', '縦 4:5'], ['1080x1920', 'ストーリー'], ['1920x1080', '横長'], ['1240x1754', 'A4']];
 const NB_COLORS = ['#FFFFFF', '#F4EFE6', '#111111', '#FFE66D', '#FFB3C7', '#A8D8FF', '#B8EBA0'];
 function renderNB() {
   $('#nbSizes').innerHTML = NB_SIZES.map(([v, l]) => `<button class="chip${NB.size === v ? ' on' : ''}" data-nbs="${v}">${l}<span style="opacity:.6;font-size:11px;margin-left:6px">${v.replace('x', '×')}</span></button>`).join('');
   $('#nbColors').innerHTML = NB_COLORS.map(c => `<button class="swb${NB.bg === c ? ' on' : ''}" style="--c:${c}" data-nbc="${c}" aria-label="背景色 ${c}"></button>`).join('');
+  $('#nbPats').innerHTML = [['', 'なし'], ...BG_PATTERNS].map(([k, l]) => `<button class="chip${(NB.pat || '') === k ? ' on' : ''}" data-nbp="${k}">${l}</button>`).join('');
 }
 $('#sheetNew').addEventListener('click', e => {
   const s = e.target.closest('[data-nbs]'), c = e.target.closest('[data-nbc]'), a = e.target.closest('[data-nb]');
   if (s) { NB.size = s.dataset.nbs; renderNB(); }
   if (c) { NB.bg = c.dataset.nbc; renderNB(); }
+  const pb = e.target.closest('[data-nbp]'); if (pb) { NB.pat = pb.dataset.nbp || null; renderNB(); }
   if (!a) return;
   if (a.dataset.nb === 'open') $('#fileOpen').click();
   if (a.dataset.nb === 'sample') { closeSheets(); loadSample(); scheduleSave(); }
   if (a.dataset.nb === 'blank') {
-    const [w, h] = NB.size.split('x').map(Number), cc = mk(w, h), g = cc.getContext('2d');
-    g.fillStyle = NB.bg; g.fillRect(0, 0, w, h);
-    closeSheets(); setDoc(cc, null); scheduleSave(); toast('白紙を作成しました');
+    const [w, h] = NB.size.split('x').map(Number);
+    closeSheets(); newBlankDoc(w, h, NB.bg, NB.pat ? { kind: NB.pat, color: NB.bg === '#FFFFFF' ? '#FFD6E5' : NB.bg, color2: NB.bg === '#FFFFFF' ? '#FFFFFF' : '#FFFFFF' } : null);
+    scheduleSave(); toast('白紙を作成しました');
   }
 });
 
