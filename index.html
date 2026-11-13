@@ -433,6 +433,16 @@ html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px so
 #cmdList button.cur{background:rgba(255,210,63,.12);color:var(--accent)}
 #cmdList .none{padding:14px 12px;color:var(--muted);font-size:13px}
 .cmdnote{margin:10px 2px 0 !important}
+/* templates drawer */
+.tplwrap .hint{padding:2px 14px 8px}
+.tplcats{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+.tplgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
+.tpl{display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line);text-align:left;transition:border-color .15s,transform .15s var(--spring)}
+.tpl:hover{border-color:var(--accent)}
+.tpl:active{transform:scale(.97)}
+.tim{display:block;width:100%;border-radius:9px;overflow:hidden;background:#0d0f13}
+.tim img{display:block;width:100%;height:100%;object-fit:cover}
+.tnm{font-size:12.5px;font-weight:700;padding:0 2px 2px}
 /* inspector: the photo card shown with nothing selected */
 .pcard{margin:2px 12px 6px;padding:12px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line)}
 .pch{display:flex;flex-direction:column;gap:2px;font-weight:800;font-size:calc(14px*var(--u));margin-bottom:10px}
@@ -780,7 +790,8 @@ const ICON = {
   sort: I('<path d="M8 20V4M4.5 7.5 8 4l3.5 3.5M16 4v16M12.5 16.5 16 20l3.5-3.5"/>'),
   search: I('<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>'),
   gallery: I('<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>'),
-  upload: I('<path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>')
+  upload: I('<path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>'),
+  template: I('<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M3.5 9.5h17M10 9.5v11"/>')
 };
 const TOOLS = [
   ['select', '選択'], ['photo', '写真', 1], ['text', '文字', 1], ['pen', 'ペン'], ['shape', '図形'], ['note', '付箋', 1],
@@ -3176,13 +3187,13 @@ function setTool(t) {
 
 /* ==== sidebar (PC) ==== icon rail + drawer. フィルター・調整・背景削除 are ordinary tools whose panel renders into the drawer. */
 const sideEl = $('#side'), railEl = $('#rail'), drawer = $('#drawer'), zoomPct = $('#zoomPct');
-const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', 'アップロード', ICON.upload], ['filter', 'フィルター', ICON.filter],
+const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', 'アップロード', ICON.upload], ['template', 'テンプレート', ICON.template], ['filter', 'フィルター', ICON.filter],
   ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ['settings', '設定', ICON.gear]];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
   const cur = deskOn ? sideView : (SIDE_TOOLS.has(tool) ? tool : null);
-  railEl.innerHTML = SIDE_ITEMS.map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
+  railEl.innerHTML = SIDE_ITEMS.filter(([id]) => deskOn || id !== 'template').map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
 }
 /* phone: ☰ opens the rail as a modal slide-in menu (not saved; UI.side is the PC setting) */
 let sideMob = false;
@@ -3242,6 +3253,7 @@ function renderSide() {
   if (sideView) $('#drawerTitle').textContent = SIDE_NAME[sideView];
   drawer.classList.toggle('hasSheet', !!DRAWER_SHEETS[sideView]);
   if (deskOn && DRAWER_SHEETS[sideView]) dockSheet(sideView); else undockSheets();
+  if (sideView === 'template') renderTemplates();
   if (sideView === 'upload') sidePanel.innerHTML = `<div class="stack">
     <button class="bigbtn primary" data-up="open"><span>写真を開いて編集<small>今の編集内容と置き換わります</small></span></button>
     <button class="bigbtn" data-up="add"><span>写真を貼り付ける<small>今の画像の上に重ねます</small></span></button>
@@ -3267,6 +3279,117 @@ railEl.addEventListener('click', e => {
   if (SIDE_TOOLS.has(id)) { setTool(id); return; }
   if (SIDE_TOOLS.has(tool)) setTool('select');
   sideView = id; renderSide();
+});
+/* ==== templates ==== (PC drawer) ratio-positioned objects laid over the current photo, so any photo size works.
+   Applying adds them as one undo step and selects them as a group. Coordinates: x/y as fractions of the photo,
+   sizes as fractions of its short side (MIN). Only today's object types (text / note / stamp / shape). */
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; };
+const TPL_CATS = [['all', 'すべて'], ['sns', 'SNS'], ['oshi', '推し活'], ['life', '日記・記録'], ['howto', '説明図']];
+const TEMPLATES = [
+  { id: 'oshi-bd', name: '推し活 誕生日', cat: 'oshi', items: () => [
+    { t: 'text', x: .5, y: .13, text: 'HAPPY BIRTHDAY', font: 'Dancing Script', size: .12, shadow: true },
+    { t: 'text', x: .5, y: .235, text: todayStr(), font: 'Zen Maru Gothic', size: .045, shadow: true },
+    { t: 'note', x: .5, y: .82, w: .62, h: .22, shape: 'tag', color: '#FFB3C7', text: '◯◯くん 生誕祭', font: 'Zen Maru Gothic', deco: 'none', rot: -.03 },
+    { t: 'stamp', x: .13, y: .18, ch: '✨', size: .11 }, { t: 'stamp', x: .87, y: .64, ch: '🎂', size: .13 }, { t: 'stamp', x: .12, y: .7, ch: '💖', size: .1 }] },
+  { id: 'cafe', name: '韓国カフェ風', cat: 'sns', items: () => [
+    { t: 'rect', x: .5, y: .5, w: .9, h: .9, color: '#FFFFFF', width: .006 },
+    { t: 'text', x: .5, y: .12, text: 'cafe log', font: 'Caveat', size: .1, shadow: true },
+    { t: 'text', x: .5, y: .2, text: todayStr(), font: 'Zen Kaku Gothic New', size: .035, bold: false, shadow: true },
+    { t: 'stamp', x: .84, y: .86, ch: '☕', size: .09 }] },
+  { id: 'ryosan', name: '量産型ピンク', cat: 'sns', preset: 'dreamy', amt: 80, items: () => [
+    { t: 'note', x: .73, y: .78, w: .36, h: .32, shape: 'heart', color: '#FFB3C7', text: 'だいすき', font: 'Hachi Maru Pop', deco: 'none', rot: .06 },
+    { t: 'text', x: .3, y: .12, text: 'LOVE♡', font: 'M PLUS Rounded 1c', size: .09, color: '#FFFFFF', bg: '#FF8FB8' },
+    { t: 'stamp', x: .1, y: .3, ch: '✨', size: .09 }, { t: 'stamp', x: .88, y: .14, ch: '💖', size: .1 }, { t: 'stamp', x: .45, y: .9, ch: '✨', size: .07 }] },
+  { id: 'heisei', name: '平成プリ落書き', cat: 'sns', items: () => [
+    { t: 'text', x: .32, y: .83, text: 'ずっ友♡', font: 'Yusei Magic', size: .13, color: '#FF2D92', outline: '#FFFFFF', rot: -.12 },
+    { t: 'text', x: .78, y: .08, text: todayStr(), font: 'DotGothic16', size: .05, color: '#FFE66D', outline: '#FF2D92' },
+    { t: 'stamp', x: .1, y: .12, ch: '⭐', size: .1 }, { t: 'stamp', x: .88, y: .5, ch: '✨', size: .09 }, { t: 'stamp', x: .66, y: .9, ch: '✨', size: .07 }] },
+  { id: 'qbox', name: '質問箱風', cat: 'sns', items: () => [
+    { t: 'note', x: .5, y: .28, w: .72, h: .3, shape: 'rounded', color: '#FFFFFF', text: '質問に答えます！', font: 'M PLUS Rounded 1c', deco: 'none' },
+    { t: 'stamp', x: .84, y: .12, ch: '💬', size: .1 }] },
+  { id: 'trip', name: '旅行の記録', cat: 'life', items: () => [
+    { t: 'note', x: .26, y: .8, w: .42, h: .28, shape: 'torn', color: '#FFFFFF', text: '📍 行った場所\n' + todayStr(), font: 'Klee One', rot: -.05 },
+    { t: 'stamp', x: .86, y: .14, ch: '📍', size: .1 },
+    { t: 'arrow', x1: .5, y1: .78, x2: .64, y2: .6, color: '#FFFFFF', width: .012 }] },
+  { id: 'recipe', name: '料理レシピ', cat: 'life', items: () => [
+    { t: 'text', x: .5, y: .1, text: '今日のごはん', font: 'Shippori Mincho', size: .09, outline: '#111111' },
+    { t: 'note', x: .74, y: .74, w: .44, h: .4, shape: 'rounded', color: '#FFFFFF', pattern: 'lines', text: '材料\n・\n・\n・', font: 'Klee One', deco: 'pin' },
+    { t: 'stamp', x: .12, y: .86, ch: '🍳', size: .1 }] },
+  { id: 'film', name: 'フィルム風日記', cat: 'life', preset: 'film', amt: 80, items: () => [
+    { t: 'text', x: .82, y: .92, text: todayStr().replace(/^20/, "'"), font: 'DotGothic16', size: .055, color: '#FF9500', bold: false, shadow: true },
+    { t: 'text', x: .14, y: .08, text: 'film diary', font: 'Caveat', size: .06, bold: false, shadow: true }] },
+  { id: 'howto', name: '説明図・手順', cat: 'howto', items: () => [
+    { t: 'rect', x: .5, y: .45, w: .4, h: .3, color: '#FF3B30', width: .01 },
+    { t: 'arrow', x1: .2, y1: .86, x2: .33, y2: .64, color: '#FF3B30', width: .014 },
+    { t: 'num', x: .3, y: .3, n: 1 }, { t: 'num', x: .7, y: .62, n: 2 },
+    { t: 'note', x: .8, y: .17, w: .34, h: .22, shape: 'speech', color: '#FFE66D', text: 'ここを押す', font: 'M PLUS Rounded 1c', deco: 'none' }] }
+];
+function tplObj(s) {
+  const M = MIN(), X = s.x * doc.w, Y = s.y * doc.h;
+  switch (s.t) {
+    case 'text': return { ...baseObj('text', X, Y), rot: s.rot || 0, text: s.text, font: s.font || 'Noto Sans JP', bold: s.bold !== false, italic: !!s.italic, underline: !!s.underline,
+      size: Math.round(M * s.size), color: s.color || '#FFFFFF', outline: s.outline || 'none', bg: s.bg || 'none', align: s.align || 'center', vert: false, shadow: !!s.shadow };
+    case 'note': return { ...baseObj('note', X, Y), rot: s.rot || 0, text: s.text || '', color: s.color || '#FFE66D', shape: s.shape || 'square', deco: s.deco || 'tape',
+      pattern: s.pattern || 'plain', tcolor: s.tcolor || '#2A2724', font: s.font || 'Klee One', w: M * s.w, h: M * s.h };
+    case 'stamp': return { ...baseObj('stamp', X, Y), rot: s.rot || 0, kind: 'emoji', ch: s.ch, size: M * s.size };
+    case 'num': return { ...baseObj('stamp', X, Y), kind: 'num', n: s.n, color: s.color || '#FF3B30', size: M * (s.size || .08) };
+    case 'rect': return { ...baseObj('shape', X, Y), kind: 'rect', color: s.color, width: M * (s.width || .008), fill: s.fill || 'none', w: s.w * doc.w, h: s.h * doc.h };
+    case 'arrow': {
+      const a = [s.x1 * doc.w, s.y1 * doc.h], c = [s.x2 * doc.w, s.y2 * doc.h];
+      const o = { ...baseObj('shape', (a[0] + c[0]) / 2, (a[1] + c[1]) / 2), kind: 'arrow', color: s.color || '#FFFFFF', width: M * (s.width || .01), fill: 'none', w: 1, h: 1 };
+      o.p1 = [a[0] - o.x, a[1] - o.y]; o.p2 = [c[0] - o.x, c[1] - o.y]; return o;
+    }
+  }
+  return null;
+}
+function tplBuild(t) { const base = nextNum() - 1; return t.items().map(s => tplObj(s.t === 'num' ? { ...s, n: s.n + base } : s)).filter(Boolean); }
+function applyTemplate(id) {
+  const t = TEMPLATES.find(x => x.id === id); if (!t || !doc) return;
+  const objs = tplBuild(t);
+  objs.forEach(o => { if (o.font) familyCSS(o.font); });
+  doc.objects.push(...objs);
+  if (t.preset) { doc.adjust.preset = t.preset; doc.adjust.amt = t.amt || 100; }
+  if (tool !== 'select') setTool('select');
+  selId = null; multi = objs.length > 1 ? objs.map(o => o.id) : []; if (objs.length === 1) selId = objs[0].id;
+  invalidate(); commit(); refreshPanel(); requestDraw();
+  toast(`「${t.name}」を重ねました。文字はダブルクリックで書き換えられます（Ctrl+Z で取り消し）`, 3800);
+}
+/* thumbnails: the current photo + the template, rendered small and cached until the photo changes */
+const tplThumbs = new Map();
+let tplKey = '', tplCat = 'all', tplFontPass = false;
+function tplThumb(t) {
+  const c = mk(1, 1), sc = 240 / Math.max(doc.w, doc.h), o0 = doc.objects, a0 = doc.adjust;
+  try { doc.objects = o0.concat(tplBuild(t)); if (t.preset) doc.adjust = { ...a0, preset: t.preset, amt: t.amt || 100 }; renderDoc(c, sc, {}); }
+  finally { doc.objects = o0; doc.adjust = a0; }
+  return c.toDataURL('image/jpeg', 0.82);
+}
+function renderTemplates() {
+  const list = TEMPLATES.filter(t => tplCat === 'all' || t.cat === tplCat);
+  TEMPLATES.forEach(t => t.items().forEach(s => { if (s.font) familyCSS(s.font); }));
+  sidePanel.innerHTML = `<div class="tplwrap">${hint('今の写真の上に、文字・付箋・スタンプをまとめて重ねます。あとから動かしたり書き換えたりできます。')}`
+    + `<div class="tplcats">${TPL_CATS.map(([k, l]) => `<button class="chip${tplCat === k ? ' on' : ''}" data-tplc="${k}" aria-pressed="${tplCat === k}">${l}</button>`).join('')}</div>`
+    + `<div class="tplgrid">${list.map(t => `<button class="tpl" data-tpl="${t.id}"><span class="tim" data-tim="${t.id}" style="aspect-ratio:${doc.w}/${doc.h}"></span><span class="tnm">${esc(t.name)}</span></button>`).join('')}</div></div>`;
+  fillTplThumbs();
+  if (!tplFontPass) { tplFontPass = true; setTimeout(() => { if (sideView === 'template') { tplThumbs.clear(); renderTemplates(); } }, 1800); }   // redo once the template fonts have loaded
+}
+function fillTplThumbs() {
+  const key = doc.baseId + '|' + bmpRev + '|' + doc.w + 'x' + doc.h + '|' + JSON.stringify(doc.adjust) + '|' + doc.objects.length;
+  if (key !== tplKey) { tplThumbs.clear(); tplKey = key; }
+  const todo = [...sidePanel.querySelectorAll('[data-tim]')];
+  const step = () => {
+    if (sideView !== 'template') return;
+    const el = todo.shift(); if (!el) return;
+    const t = TEMPLATES.find(x => x.id === el.dataset.tim);
+    let u = tplThumbs.get(t.id); if (!u) { u = tplThumb(t); tplThumbs.set(t.id, u); }
+    if (el.isConnected) el.innerHTML = `<img src="${u}" alt="">`;
+    setTimeout(step, 0);
+  };
+  step();
+}
+sidePanel.addEventListener('click', e => {
+  const t = e.target.closest('[data-tpl]'), c = e.target.closest('[data-tplc]');
+  if (t) applyTemplate(t.dataset.tpl);
+  else if (c) { tplCat = c.dataset.tplc; renderTemplates(); }
 });
 sidePanel.addEventListener('click', e => {
   const b = e.target.closest('[data-up]'); if (!b) return;
@@ -3387,6 +3510,10 @@ function cmdItems() {
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
   Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], 'フィルター', ['filter', id, f[0]], () => { if (deskOn) setTool('filter'); runCmd('preset', id); }));
+  if (deskOn) {
+    add('テンプレート一覧', '写真に重ねるデザイン', ['template', 'てんぷれーと', 'デザイン'], () => openInDrawer('template'));
+    TEMPLATES.forEach(t => add('テンプレート：' + t.name, 'テンプレート', ['template', 'てんぷれーと', t.id], () => applyTemplate(t.id)));
+  }
   Object.entries(AI_LOOKS).forEach(([id, v]) => add('トレンド風：' + v[0], 'AIおまかせ', ['look', 'ai', id, v[0]], () => runCmd('aiLook', id)));
   return it;
 }
@@ -3397,7 +3524,7 @@ function renderCmd() {
   // names that contain the words come before matches found only in aliases / readings
   const rank = c => { const n = kana(c.l).replace(/^.*：/, ''); return words.every(w => n.startsWith(w)) ? 0 : words.every(w => kana(c.l).includes(w)) ? 1 : 2; };
   cmdHits = (words.length ? cmdAll.filter(c => words.every(w => c.k.includes(w))).map((c, i) => [rank(c), i, c]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(x => x[2])
-    : cmdAll.filter(c => !/^(フィルター|トレンド風)：/.test(c.l))).slice(0, 40);
+    : cmdAll.filter(c => !/^(フィルター|トレンド風|テンプレート)：/.test(c.l))).slice(0, 40);
   cmdCur = clamp(cmdCur, 0, Math.max(0, cmdHits.length - 1));
   $('#cmdList').innerHTML = cmdHits.length ? cmdHits.map((c, i) => `<button role="option" id="cmd${i}" aria-selected="${i === cmdCur}" class="${i === cmdCur ? 'cur' : ''}" data-ci="${i}" tabindex="-1">${esc(c.l)}<small>${esc(c.sub)}</small></button>`).join('')
     : '<p class="none">見つかりませんでした。別の言葉で探してみてください。</p>';
