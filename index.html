@@ -419,6 +419,8 @@ html.desk #cv{cursor:default}
 html.desk #cv.ovr{cursor:move}
 html.desk #cv.pan{cursor:grabbing}
 html.desk #cv.grab{cursor:grab}
+html.desk #cv.hscale{cursor:nwse-resize}
+html.desk #cv.hrot{cursor:alias}
 /* クイック検索 (Ctrl+K or /) */
 #sheetCmd{padding-top:12px}
 html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px solid var(--line);max-height:70vh;animation:pop .22s var(--spring)}
@@ -431,6 +433,29 @@ html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px so
 #cmdList button.cur{background:rgba(255,210,63,.12);color:var(--accent)}
 #cmdList .none{padding:14px 12px;color:var(--muted);font-size:13px}
 .cmdnote{margin:10px 2px 0 !important}
+/* inspector: the photo card shown with nothing selected */
+.pcard{margin:2px 12px 6px;padding:12px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line)}
+.pch{display:flex;flex-direction:column;gap:2px;font-weight:800;font-size:calc(14px*var(--u));margin-bottom:10px}
+.pch small{font-weight:500;font-size:calc(11.5px*var(--u));color:var(--muted)}
+.pcb{display:flex;flex-wrap:wrap;gap:6px}
+/* shortcut table in 使い方 */
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 18px}
+.keys h4{margin:6px 0 4px;font-size:12px;color:var(--accent);letter-spacing:.06em}
+.keys dl{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;margin:0;align-items:center;font-size:12.5px}
+.keys dt{white-space:nowrap;color:var(--muted)}
+.keys dd{margin:0}
+kbd{display:inline-block;min-width:1.6em;padding:1px 6px;border-radius:6px;border:1px solid var(--line);border-bottom-width:2px;background:var(--chrome2);color:var(--fg);font:600 11.5px/1.5 ui-monospace,Consolas,monospace;text-align:center}
+html:not(.desk) #sheetHelp .keys,html:not(.desk) #sheetHelp .keysh{display:none}
+html.desk #sheetHelp{max-width:760px}
+/* PC: the shortcut table comes first (that is what ? is pressed for) */
+html.desk #sheetHelp:not([hidden]){display:flex;flex-direction:column}
+html.desk #sheetHelp .keysh{order:1;margin-top:4px}
+html.desk #sheetHelp .keys{order:2}
+html.desk #sheetHelp .help{order:3;margin-top:14px}
+html.desk #sheetHelp .actions{order:4}
+/* PC: sheets are centred dialogs, not phone-style bottom sheets (the 書体 picker stays at the bottom so the text stays visible) */
+html.desk .sheet:not(.indrawer):not(.light){top:7vh;bottom:auto;max-height:86vh;border-radius:20px;border-bottom:1px solid var(--line);padding-bottom:20px;animation:pop .26s var(--spring);box-shadow:var(--hi),0 30px 60px -20px rgba(0,0,0,.9)}
+html.desk .sheet:not(.indrawer):not(.light) .grab{display:none}
 /* 集中モード: sidebar + inspector folded */
 html.desk.focus #side,html.desk.focus #insp{display:none}
 #zoomBox [aria-pressed="true"]{color:var(--accent)}
@@ -536,7 +561,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
     <li><b>ダブルタップ</b>　文字・付箋をその場で編集（外をタップかEscで確定）。何もない所なら全体表示に戻ります。</li>
     <li><b>⋯ ボタン</b>　選んだ物の横に出ます。前面へ・背面へ・複製・ロック・削除はここから。パソコンでは物の右クリックでも同じメニューが開きます。</li>
     <li><b>パソコン</b>　左のサイドバー（☰で開閉）に、みんなの作品・アップロード・フィルター・背景削除・調整・設定があります。その右が編集ツール、選んだツールや物の設定は右側のパネルに出ます。写真はドラッグ＆ドロップでも貼れます。</li>
-    <li><b>ショートカット</b>　V 選択・T 文字・P ペン・R 図形・N 付箋・K スタンプ・M モザイク・C 切り抜き。矢印キーで少しずつ移動（Shiftで大きく）、Ctrl+D 複製、Ctrl+A すべて選択、Delete 削除、Ctrl+Z 元に戻す、Shift＋ドラッグで範囲選択。Space＋ドラッグで画面を移動、Ctrl+0 全体表示、Ctrl+1 等倍、Shift+2 選んだ物に合わせて拡大、Ctrl+＝／Ctrl+− で拡大縮小、Ctrl+V で画像を貼り付け、Ctrl+］／Ctrl+［ で前面・背面へ、\ を押している間は調整前の写真と比較、Ctrl+\ で集中モード（パネルを畳む）、Ctrl+S で保存、Ctrl+K か / でクイック検索（機能やフィルターを名前で探して実行）、? でこの一覧。ドラッグ中は写真の中心・端やほかの物にピタッと揃います（Altを押すと自由に動かせます）。</li>
+    <li><b>ピタッと整列</b>　ドラッグ中は写真の中心・端やほかの物に吸着し、ピンクの線が出ます（Altを押しながらだと自由に動かせます）。</li>
     <li><b>番号スタンプ</b>　①②③…と自動で番号が進むので、説明図づくりに便利です。</li>
     <li><b>フィルター</b>　エモ・レトロ・モノクロなど30種類以上。「強さ」で効き具合を調整でき、「調整」と重ねて使えます。</li>
     <li><b>背景削除</b>　AIで自動、または消したい色をタップ。AIは「標準」（内蔵・商用可）、「高精度」（初回のみ約115MBをダウンロード・商用可）、「高精度RMBG」（約44MB・非商用のみ）から選べ、どれも写真は端末の外に送られません。消しすぎた所は「ブラシで戻す」で直せます。貼った写真にも使えます。</li>
@@ -544,6 +569,27 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
     <li><b>自動保存</b>　編集内容はこの端末に下書き保存され、次に開いたときに続きから始まります。付箋や文字の色・形などは前回の設定のまま次も使えます。</li>
     <li><b>カスタマイズ</b>　ツール列の端の「並び替え」か、ツールボタンの長押しで、ツールの並び順と表示を変えられます。表示サイズや演出はサイドバー（☰）の「設定」から。</li>
   </ul>
+  <h3 class="keysh">キーボードショートカット（パソコン）</h3>
+  <div class="keys">
+    <div><h4>ツール</h4><dl>
+      <dt><kbd>V</kbd></dt><dd>選択</dd><dt><kbd>T</kbd></dt><dd>文字</dd><dt><kbd>P</kbd></dt><dd>ペン</dd><dt><kbd>R</kbd></dt><dd>図形</dd>
+      <dt><kbd>N</kbd></dt><dd>付箋</dd><dt><kbd>K</kbd></dt><dd>スタンプ</dd><dt><kbd>M</kbd></dt><dd>モザイク</dd><dt><kbd>C</kbd></dt><dd>切り抜き</dd>
+    </dl></div>
+    <div><h4>編集</h4><dl>
+      <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></dt><dd>元に戻す / やり直し</dd><dt><kbd>Ctrl</kbd>+<kbd>D</kbd></dt><dd>複製</dd>
+      <dt><kbd>Delete</kbd></dt><dd>削除</dd><dt><kbd>Ctrl</kbd>+<kbd>A</kbd></dt><dd>すべて選択</dd>
+      <dt><kbd>Ctrl</kbd>+<kbd>]</kbd> / <kbd>[</kbd></dt><dd>前面へ / 背面へ</dd><dt><kbd>←↑↓→</kbd></dt><dd>少し動かす（<kbd>Shift</kbd>で大きく）</dd>
+      <dt><kbd>Shift</kbd>+ドラッグ</dt><dd>囲んで選ぶ</dd><dt><kbd>Ctrl</kbd>+<kbd>V</kbd></dt><dd>画像を貼り付け</dd><dt>右クリック</dt><dd>操作メニュー</dd>
+    </dl></div>
+    <div><h4>表示</h4><dl>
+      <dt><kbd>Space</kbd>+ドラッグ</dt><dd>画面を動かす</dd><dt><kbd>Ctrl</kbd>+<kbd>0</kbd></dt><dd>全体を表示</dd><dt><kbd>Ctrl</kbd>+<kbd>1</kbd></dt><dd>等倍</dd>
+      <dt><kbd>Shift</kbd>+<kbd>2</kbd></dt><dd>選んだ物に合わせる</dd><dt><kbd>Ctrl</kbd>+<kbd>+</kbd> / <kbd>−</kbd></dt><dd>拡大 / 縮小</dd>
+      <dt><kbd>\</kbd>（押している間）</dt><dd>調整前と比べる</dd><dt><kbd>Ctrl</kbd>+<kbd>\</kbd></dt><dd>集中モード</dd>
+    </dl></div>
+    <div><h4>その他</h4><dl>
+      <dt><kbd>Ctrl</kbd>+<kbd>K</kbd> / <kbd>/</kbd></dt><dd>クイック検索</dd><dt><kbd>Ctrl</kbd>+<kbd>S</kbd></dt><dd>保存</dd><dt><kbd>?</kbd></dt><dd>この使い方</dd><dt><kbd>Esc</kbd></dt><dd>閉じる・選択解除</dd>
+    </dl></div>
+  </div>
   <div class="actions" style="padding:8px 0 0"><button class="btn primary" data-ex="close">閉じる</button></div>
 </div>
 
@@ -1685,7 +1731,9 @@ cv.addEventListener('pointermove', e => {
   if (!deskOn || e.pointerType !== 'mouse' || pointers.size) return;
   const p = pt(e), d = screenToDoc(p.x, p.y), o = tool === 'select' ? selObj() : null;
   const ms = tool === 'select' ? multiObjs() : [], b = ms.length ? multiBox(ms) : null, hov = tool === 'select' ? pick(d.x, d.y) : null;
-  cv.classList.toggle('ovr', tool === 'select' && !!((o && !o.locked && hitHandle(o, p)) || hov || (b && d.x >= b.x0 && d.x <= b.x1 && d.y >= b.y0 && d.y <= b.y1)));
+  const hh = tool === 'select' && o && !o.locked ? hitHandle(o, p) : null;   // resize / rotate handles get their own cursors
+  cv.classList.toggle('hscale', hh === 'scale'); cv.classList.toggle('hrot', hh === 'rot');
+  cv.classList.toggle('ovr', tool === 'select' && !hh && !!(hov || (b && d.x >= b.x0 && d.x <= b.x1 && d.y >= b.y0 && d.y <= b.y1)));
   const hid = hov && hov.id !== selId && !multi.includes(hov.id) ? hov.id : null;   // hover outline (Figma style)
   if (hid !== hoverId) { hoverId = hid; requestDraw(); }
 });
@@ -2873,6 +2921,13 @@ panel.addEventListener('drop', e => {
   const [o] = a.splice(from, 1); a.splice(to, 0, o);   // takes the target's place in the stack
   invalidate(); commit(); refreshPanel();
 });
+/* PC inspector with nothing selected: the photo itself (size + shortcuts to the photo-wide tools) */
+function photoCard() {
+  const fl = doc.adjust.preset && doc.adjust.preset !== 'none' ? `フィルター: ${FILTERS[doc.adjust.preset] ? FILTERS[doc.adjust.preset][0] : ''}` : 'フィルターなし';
+  return `<div class="pcard"><div class="pch">写真<small>${doc.w} × ${doc.h} px・${esc(fl)}</small></div><div class="pcb">`
+    + [['filter', 'フィルター'], ['adjust', '調整'], ['cutout', '背景削除'], ['crop', '切り抜き・回転']].map(([t, l]) => `<button class="chip" data-gotool="${t}">${l}</button>`).join('') + '</div></div>';
+}
+panel.addEventListener('click', e => { const b = e.target.closest('[data-gotool]'); if (b) setTool(b.dataset.gotool); });
 function multiPanel(ms) {
   return `<div class="objhead"><span class="badge">${ms.length}個を選択中</span></div>`
     + row('操作', cmdBtn('mFront', '前面へ') + cmdBtn('mBack', '背面へ') + cmdBtn('mDup', '⧉ 複製') + cmdBtn('mDel', '🗑 削除') + cmdBtn('mClear', '選択を解除'), true)
@@ -2904,7 +2959,7 @@ function refreshPanel() {
       const o = selObj(), ms = multiObjs();
       if (o) h = objPanel(o);
       else if (ms.length) h = multiPanel(ms);
-      else h = row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, '⬚ 囲んで選ぶ']], S.marq))
+      else h = (deskOn ? photoCard() : '') + row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, '⬚ 囲んで選ぶ']], S.marq))
         + hint(S.marq ? '何もない所を<b>ドラッグして四角で囲む</b>と、まとめて選択できます。画面の移動は2本指で。'
           : '<b>タップで選択</b>、ドラッグで移動。角の●で拡大縮小、上の●で回転できます。<br>何もない所をドラッグ・2本指ピンチで画面を移動・拡大。' + (deskOn ? '<br>Shift＋ドラッグで範囲選択。Ctrl/Cmd＋A ですべて選択。' : ''));
       if (deskOn) h += layersPanel();
