@@ -342,12 +342,13 @@ html:not(.desk) #side.mob .ritem.on{color:var(--accent)}
 html.desk .topbar{order:-2}
 html.desk .dock{order:-1;display:flex;flex-direction:column;border-top:0;border-bottom:1px solid var(--line);box-shadow:var(--hi),0 8px 20px -14px rgba(60,70,50,.25);padding-bottom:0}
 /* PC: the edit tools are a vertical column on the left, between the sidebar and the stage (placeTools moves #tools into #work) */
-html.desk #work>.tools{flex:0 0 auto;flex-direction:column;width:calc(76px*var(--u));overflow-x:hidden;overflow-y:auto;border-top:0;border-right:1px solid var(--line);padding:8px 5px;background:var(--chrome);box-sizing:border-box}
-html.desk #work>.tools .tool{width:100%;min-height:calc(58px*var(--u));height:auto}
-html.desk #work>.tools .tool::after{top:50%;left:2px;width:3px;height:18px;transform:translateY(-50%) scaleY(0)}
-html.desk #work>.tools .tool.on::after{transform:translateY(-50%) scaleY(1)}
-html.desk #work>.tools .tool.tedit{margin:8px 0 0}
-html.desk #work>.tools .tool.tedit::before{left:20%;right:20%;top:-5px;bottom:auto;width:auto;height:1px}
+#work>.tools{flex:0 0 auto;flex-direction:column;width:calc(76px*var(--u));overflow-x:hidden;overflow-y:auto;border-top:0;border-right:1px solid var(--line);padding:8px 5px;background:var(--chrome);box-sizing:border-box}
+#work>.tools .tool{width:100%;min-height:calc(58px*var(--u));height:auto}
+#work>.tools.fl,#work>.tools.fr{-webkit-mask-image:none;mask-image:none}
+#work>.tools .tool::after{top:50%;left:2px;width:3px;height:18px;transform:translateY(-50%) scaleY(0)}
+#work>.tools .tool.on::after{transform:translateY(-50%) scaleY(1)}
+#work>.tools .tool.tedit{margin:8px 0 0}
+#work>.tools .tool.tedit::before{left:20%;right:20%;top:-5px;bottom:auto;width:auto;height:1px}
 html.desk .tools.fl,html.desk .tools.fr{-webkit-mask-image:none;mask-image:none}
 /* PC: the tool / object settings live in a fixed right-hand inspector (like Figma / Canva), so the stage never changes size
    when the panel content does. placeTools() moves #panel from the dock into #insp; the dock is then empty and hidden. */
@@ -360,6 +361,11 @@ html.desk #panel{flex:1;min-height:0;max-height:none;overflow-y:auto;padding:0 0
 html.desk #panel .row{flex-direction:column;align-items:stretch;gap:6px;padding:8px 16px;min-height:0}
 html.desk #panel .rl{flex-basis:auto}
 html.desk #panel .rc{flex-wrap:wrap;overflow-x:visible;padding:0}
+/* the left drawer (フィルター・背景削除・調整) is narrow too: stack label over controls and wrap the chips */
+html.desk #sidePanel .row{flex-direction:column;align-items:stretch;gap:6px;padding:7px 14px;min-height:0}
+html.desk #sidePanel .rl{flex-basis:auto}
+html.desk #sidePanel .rc{flex-wrap:wrap;overflow-x:visible;padding:0}
+html.desk #sidePanel .actions{padding-left:14px;padding-right:14px}
 html.desk #panel .objhead{padding:2px 16px 4px}
 html.desk #panel .objhead .badge{display:none}
 html.desk #panel .hint{padding-left:16px;padding-right:16px}
@@ -452,6 +458,30 @@ html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px so
 html.desk #panel .legend{padding:6px 16px 10px}
 .legend span{display:flex;align-items:center;gap:7px;min-height:34px;padding:0 10px;border-radius:10px;background:var(--chrome2);font-size:calc(12px*var(--u));color:var(--fg)}
 .legend i{font-style:normal;font-size:15px;width:18px;text-align:center}
+/* phone: bottom panel with 3 heights (小・中・大) chosen with the grab handle; 小 leaves just the tools */
+#pgrab{display:flex;align-items:center;justify-content:center;height:16px;touch-action:none;cursor:grab}
+#pgrab span{width:42px;height:5px;border-radius:3px;background:var(--line)}
+html.desk #pgrab{display:none}
+html:not(.desk) #panel{transition:max-height .28s cubic-bezier(.2,.8,.2,1),min-height .28s,padding .28s}
+html:not(.desk) .dock[data-ph="s"] #panel{max-height:0;min-height:0;padding-top:0;padding-bottom:0;overflow:hidden}
+html:not(.desk) .dock[data-ph="l"] #panel{max-height:64vh}
+html:not(.desk)[data-hand="left"] .topbar{flex-direction:row-reverse}
+.setlab{font-size:12px;color:var(--muted);margin:10px 0 6px}
+/* first-visit welcome */
+.wlead{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.6}
+.wsteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.wsteps li{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 6px 12px;border-radius:16px;background:var(--chrome2);border:1px solid var(--line);text-align:center}
+.wsteps .wn{position:absolute;top:6px;left:8px;font-size:11px;font-weight:800;color:var(--accent)}
+.wsteps .wi{font-size:28px;line-height:1.2}
+.wsteps b{font-size:13.5px}
+.wsteps small{font-size:11px;color:var(--muted)}
+html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--line);background:var(--chrome2);color:var(--muted)}
+/* phone: rarely used settings fold under もっと見る / 詳細 */
+.more{margin:2px 0 4px}
+.more>summary{list-style:none;display:flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;color:var(--accent);font-weight:700;font-size:calc(12.5px*var(--u));cursor:pointer}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::after{content:'▾';transition:transform .2s}
+.more[open]>summary::after{transform:rotate(180deg)}
 /* icon chips (方向・揃え・影) and the "none" colour dot */
 .chip.ichip{min-width:calc(44px*var(--u));padding:0 10px;justify-content:center}
 .chip.ichip svg{width:20px;height:20px}
@@ -476,6 +506,11 @@ html.desk .matcats{flex-wrap:wrap;overflow-x:visible}
 .mat:active{transform:scale(.92)}
 .mat.emo{font-size:calc(26px*var(--u));font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .mat img{width:84%;height:84%;object-fit:contain}
+.mat.wide{grid-column:span 2;aspect-ratio:auto;flex-direction:column;gap:2px;padding:6px 4px 4px;background:#FFFFFF}
+.mat.wide img{width:auto;height:calc(64px*var(--u))}
+.mat.wide span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.chartta{width:100%;min-height:120px;resize:vertical;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#FFFFFF;color:var(--fg);font:13px/1.6 var(--ui);outline:none;-webkit-user-select:text;user-select:text}
+.chartta:focus{border-color:var(--accent)}
 .mat.date{grid-column:span 2;aspect-ratio:auto;min-height:calc(52px*var(--u));padding:0 8px;font-size:13px;color:#fff;background:linear-gradient(135deg,#6b5a8a,#3a4a6b)}
 /* templates drawer */
 .tplwrap .hint{padding:2px 14px 8px}
@@ -562,6 +597,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
     <aside id="insp" aria-labelledby="inspTitle"><div class="ihead"><span id="inspTitle">設定</span><small id="inspSub"></small></div></aside>
   </div>
   <section class="dock">
+    <div id="pgrab" role="button" tabindex="0" aria-label="パネルの高さを切り替え（上下にドラッグ）"><span></span></div>
     <div id="panel"></div>
     <nav class="tools" id="tools" aria-label="ツール"></nav>
   </section>
@@ -655,6 +691,19 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
   
 </div>
 
+<div class="sheet" id="sheetWelcome" hidden>
+  <div class="grab"></div>
+  <h2>ようこそ、Lufora へ</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
+  <p class="wlead">Creativity grows naturally. ― 写真に、文字や素材を貼ってかわいく仕上げよう。</p>
+  <ol class="wsteps">
+    <li><span class="wn">1</span><span class="wi">🖼️</span><b>写真をえらぶ</b><small>「開く」から</small></li>
+    <li><span class="wn">2</span><span class="wi">✨</span><b>デコる</b><small>文字・素材・テンプレート</small></li>
+    <li><span class="wn">3</span><span class="wi">💾</span><b>保存する</b><small>右上の「保存」</small></li>
+  </ol>
+  <div class="actions" style="padding:14px 0 0"><button class="btn" data-wl="tpl">テンプレートを見る</button><button class="btn primary" data-wl="open">写真をえらぶ</button></div>
+  <p class="note" style="text-align:center">いまはサンプル写真で試せます。使い方は「？」からいつでも。</p>
+</div>
+
 <div class="sheet" id="sheetTpl" hidden>
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">テンプレート</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
@@ -693,6 +742,8 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">設定</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
   <h3 style="margin-top:8px">表示サイズ</h3>
   <div class="wrap" id="uiSize"></div>
+  <h3>操作</h3>
+  <div id="uiOps"></div>
   <h3>演出</h3>
   <div id="uiFx"></div>
   <h3>AI背景削除</h3>
@@ -785,7 +836,7 @@ const NOTE_SHAPES = [['square', '□ 付箋'], ['rounded', '▢ 角丸'], ['circ
   ['ribbon', '🎀 リボン'], ['label', '▭ ラベル'], ['sticker', '◎ 丸シール'], ['think', '💭 考え中']];
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const STAMPS = ['❤️', '⭐', '✨', '👍', '😀', '😂', '😍', '🥰', '😎', '🤔', '😭', '😱', '🎉', '🔥', '💯', '✅', '❌', '⭕', '⚠️', '❓', '❗', '👉', '👆', '👇', '📌', '📍', '💡', '💬', '🌸', '🍀', '☀️', '🌙', '⚡', '🎂', '🐱', '🐶', '🍰', '☕', '🎁', '🏷️'];
-const TYPE_NAMES = { image: '写真', text: '文字', note: '付箋', stroke: '手描き', shape: '図形', stamp: 'スタンプ', mosaic: 'モザイク', deco: 'デコ' };
+const TYPE_NAMES = { image: '写真', text: '文字', note: '付箋', stroke: '手描き', shape: '図形', stamp: 'スタンプ', mosaic: 'モザイク', deco: 'デコ', chart: '表・グラフ' };
 const ADJ_KEYS = ['bri', 'con', 'sat', 'warm', 'tint', 'fade', 'vig', 'sepia', 'grain', 'glow', 'leak', 'split'];
 const DEFAULT_ADJ = { bri: 0, con: 0, sat: 0, warm: 0, tint: 0, fade: 0, vig: 0, sepia: 0, grain: 0, glow: 0, leak: 0, split: 0, preset: 'none', amt: 100 };
 const FILTER_CATS = [['all', 'すべて'], ['basic', 'ベーシック'], ['emo', 'エモ'], ['retro', 'レトロ'], ['mono', 'モノクロ'], ['cine', 'シネマ']];
@@ -1084,6 +1135,1025 @@ function drawBgPattern(ctx,kind,W,H,color,color2) {
 return { DECO_CATS,DECO,BG_PATTERNS,drawBgPattern };
 })();
 //DECO-LIB-END
+/* ==== generated content ==== (made by Claude sub-agents, merged into DECO / TEMPLATES / the 素材 panel):
+   DECO_GEN + DECO_CATS_GEN = illustration & shape stickers (same contract as DECO), TEMPLATES_GEN + TPL_CATS_GEN = more templates,
+   CHART_KINDS / CHART_PRESETS / drawChart / chartToText / chartFromText = editable tables & charts (object type 'chart'). */
+//GEN-ILLUST-START
+/* illust.js: flat illustration & shape stickers (イラスト素材). Canvas 2D only, no images, no network.
+   Exposes DECO_CATS_GEN, DECO_GEN. Each sticker is drawn in a design space whose short side is 100 units,
+   fitted uniformly into o.w×o.h; pass 1 builds the silhouette (white die-cut border + soft shadow), pass 2 the art. */
+const { DECO_CATS_GEN, DECO_GEN } = (() => {
+'use strict';
+const PI = Math.PI, TAU = PI*2, sin = Math.sin, cos = Math.cos, MN = Math.min, MX = Math.max, RND = Math.round;
+const O = '#3B3A36', WH = '#FFFFFF', PK = '#F49A9A', LW = 2.6, BW = 3.6;
+let C = null, SIL = 0, HT = null;
+
+/* ---- colour ---- */
+const hex = c => { if (/^#[0-9a-f]{6}$/i.test(c)) return c; HT = HT || document.createElement('canvas').getContext('2d');
+  HT.fillStyle = '#000'; HT.fillStyle = String(c); const v = HT.fillStyle; return v[0] == '#' ? v : '#'+(v.match(/[\d.]+/g) || [0,0,0]).slice(0,3).map(n => (+n | 0).toString(16).padStart(2,'0')).join(''); };
+const rgb = h => { const n = parseInt(h.slice(1,7),16); return [n >> 16 & 255,n >> 8 & 255,n & 255]; };
+const mix = (a,b,t) => { const x = rgb(a), y = rgb(b); return '#'+x.map((v,i) => RND(v+(y[i]-v)*t).toString(16).padStart(2,'0')).join(''); };
+const dk = (c,t) => mix(c,'#000000',t), lt = (c,t) => mix(c,'#ffffff',t);
+
+/* ---- paths (add subpaths to C, which may also be a Path2D) ---- */
+const E = (x,y,rx,ry, r = 0) => { C.moveTo(x+rx*cos(r),y+rx*sin(r)); C.ellipse(x,y,rx,ry,r,0,TAU); };
+const Ci = (x,y,r) => E(x,y,r,r);
+const RR = (x,y,w,h,r) => { r = MN(r,w/2,h/2); C.moveTo(x+r,y); C.arcTo(x+w,y,x+w,y+h,r); C.arcTo(x+w,y+h,x,y+h,r); C.arcTo(x,y+h,x,y,r); C.arcTo(x,y,x+w,y,r); C.closePath(); };
+const PL = (p,open) => { C.moveTo(p[0][0],p[0][1]); for (let i = 1; i < p.length; i++) C.lineTo(p[i][0],p[i][1]); if (!open) C.closePath(); };
+const mid = (p,i) => { const n = p.length, a = p[i%n], b = p[(i+1)%n]; return [(a[0]+b[0])/2,(a[1]+b[1])/2]; };
+const SM = p => { const s = mid(p,p.length-1); C.moveTo(s[0],s[1]); p.forEach((q,i) => { const m = mid(p,i); C.quadraticCurveTo(q[0],q[1],m[0],m[1]); }); C.closePath(); };
+const RP = (p,r) => { const s = mid(p,p.length-1); C.moveTo(s[0],s[1]); p.forEach((q,i) => { const m = mid(p,i); C.arcTo(q[0],q[1],m[0],m[1],r); }); C.closePath(); };
+// leaf from base to tip, half-width w
+const LF = (x0,y0,x1,y1,w) => { const dx = x1-x0, dy = y1-y0, l = Math.hypot(dx,dy), nx = -dy/l*w*1.33, ny = dx/l*w*1.33;
+  C.moveTo(x0,y0); C.bezierCurveTo(x0+dx*.2+nx,y0+dy*.2+ny,x0+dx*.75+nx,y0+dy*.75+ny,x1,y1); C.bezierCurveTo(x0+dx*.75-nx,y0+dy*.75-ny,x0+dx*.2-nx,y0+dy*.2-ny,x0,y0); C.closePath(); };
+// heart (tip down) fitting cx±rx, cy±ry, rotated by a
+const HP = [[-.15,-.95,-1,-.95,-1,-.32],[-1,.2,-.42,.55,0,.92],[.42,.55,1,.2,1,-.32],[1,-.95,.15,-.95,0,-.5]];
+const hp = (cx,cy,rx,ry, a = 0) => { const T = (x,y) => { const X = x*rx, Y = (y-.045)*ry/.875; return [cx+X*cos(a)-Y*sin(a),cy+X*sin(a)+Y*cos(a)]; };
+  C.moveTo(...T(0,-.5)); for (const c of HP) C.bezierCurveTo(...T(c[0],c[1]),...T(c[2],c[3]),...T(c[4],c[5])); C.closePath(); };
+const star = (cx,cy,r,ri, n = 5, a0 = -PI/2) => { const p = []; for (let i = 0; i < n*2; i++) { const a = a0+i*PI/n, q = i & 1 ? ri : r; p.push([cx+cos(a)*q,cy+sin(a)*q]); } return p; };
+const qp = (x0,y0,cx,cy,x1,y1, n = 12) => { const p = []; for (let i = 0; i <= n; i++) { const t = i/n, u = 1-t; p.push([u*u*x0+2*u*t*cx+t*t*x1,u*u*y0+2*u*t*cy+t*t*y1]); } return p; };
+// circles+quads covering a stroked polyline (silhouette of strokes)
+const TB = (p,w) => { const h = w/2; p.forEach(q => Ci(q[0],q[1],h)); for (let i = 1; i < p.length; i++) { const [a,b] = [p[i-1],p[i]], l = Math.hypot(b[0]-a[0],b[1]-a[1]) || 1, nx = -(b[1]-a[1])/l*h, ny = (b[0]-a[0])/l*h;
+  PL([[a[0]+nx,a[1]+ny],[b[0]+nx,b[1]+ny],[b[0]-nx,b[1]-ny],[a[0]-nx,a[1]-ny]]); } };
+const cx2 = (x1,y1,r1,x2,y2,r2) => { const dx = x2-x1, dy = y2-y1, d = Math.hypot(dx,dy), a = (r1*r1-r2*r2+d*d)/(2*d), h = Math.sqrt(MX(0,r1*r1-a*a)), mx = x1+dx*a/d, my = y1+dy*a/d;
+  return [[mx+h*dy/d,my-h*dx/d],[mx-h*dy/d,my+h*dx/d]]; };
+// crescent = circle 1 minus circle 2
+const cres = (x1,y1,r1,x2,y2,r2) => { const [P,Q] = cx2(x1,y1,r1,x2,y2,r2), an = (x,y,p) => Math.atan2(p[1]-y,p[0]-x), d = Math.atan2(y1-y2,x1-x2),
+  inA = (s,e,t) => ((t-s)%TAU+TAU)%TAU < ((e-s)%TAU+TAU)%TAU, aP = an(x1,y1,P), aQ = an(x1,y1,Q), bP = an(x2,y2,P), bQ = an(x2,y2,Q);
+  C.moveTo(P[0],P[1]); C.arc(x1,y1,r1,aP,aQ,!inA(aP,aQ,d)); C.arc(x2,y2,r2,bQ,bP,!inA(bQ,bP,d)); C.closePath(); };
+
+/* ---- painters: in SIL mode only shapes that form the outline add to the path ---- */
+const F = (path,fill, lw = LW) => { if (SIL) return path(); C.beginPath(); path(); C.fillStyle = fill; C.fill(); if (lw) { C.strokeStyle = O; C.lineWidth = lw; C.stroke(); } };
+// union fill: outline only around the outside of overlapping subpaths
+const U = (path,fill) => { if (SIL) return path(); C.beginPath(); path(); C.strokeStyle = O; C.lineWidth = LW*2; C.stroke(); C.fillStyle = fill; C.fill(); };
+const D = (path,fill, a = 1) => { if (SIL) return; C.save(); C.globalAlpha *= a; C.beginPath(); path(); C.fillStyle = fill; C.fill(); C.restore(); };
+const K = (path, col = O, w = LW*.8, a = 1, dash) => { if (SIL) return; C.save(); C.globalAlpha *= a; if (dash) C.setLineDash(dash); C.beginPath(); path(); C.strokeStyle = col; C.lineWidth = w; C.stroke(); C.restore(); };
+// outlined thick stroke (stems, arms, handles)
+const ST = (p,col,w) => { if (SIL) return TB(p,w+LW); C.beginPath(); PL(p,1); C.strokeStyle = O; C.lineWidth = w+LW; C.stroke(); C.strokeStyle = col; C.lineWidth = w-LW; C.stroke(); };
+// plain line that is part of the silhouette (strings, steam)
+const LN = (p,col,w) => { if (SIL) return TB(p,w); C.beginPath(); PL(p,1); C.strokeStyle = col; C.lineWidth = w; C.stroke(); };
+const CL = (path,fn) => { if (SIL) return; C.save(); C.beginPath(); path(); C.clip(); fn(); C.restore(); };
+const hl = (x,y,rx,ry, r = -.6, a = .6) => D(() => E(x,y,rx,ry,r),WH,a);
+// cute face: eyes open / 'happy' (∩) / 'sleep' (∪); mouth 'smile' / 'cat' (ω) / 'open'
+const face = (x,y, s = 1, eye = 'open', mo = 'smile', gap = 7) => { if (SIL) return; const ex = gap*s, w = 1.9*s;
+  for (const d of [-1,1]) {
+    if (eye == 'open') { D(() => E(x+d*ex,y,2.5*s,3*s),O); D(() => Ci(x+d*ex+.9*s,y-1.2*s,.95*s),WH); }
+    else K(() => { C.moveTo(x+d*ex-3*s,y+(eye == 'happy' ? 1 : -1)*s); C.quadraticCurveTo(x+d*ex,y+(eye == 'happy' ? -3.4 : 3)*s,x+d*ex+3*s,y+(eye == 'happy' ? 1 : -1)*s); },O,w);
+    D(() => E(x+d*(ex+5.5*s),y+4.6*s,3.6*s,2.2*s),PK,.65); }
+  if (mo == 'cat') K(() => { C.moveTo(x-4*s,y+3.6*s); C.quadraticCurveTo(x-2*s,y+6.4*s,x,y+3.8*s); C.quadraticCurveTo(x+2*s,y+6.4*s,x+4*s,y+3.6*s); },O,w);
+  else if (mo == 'open') { D(() => { C.moveTo(x-3*s,y+3.2*s); C.quadraticCurveTo(x,y+9*s,x+3*s,y+3.2*s); C.closePath(); },O); D(() => E(x,y+5.6*s,1.6*s,1*s),'#F27C7C'); }
+  else if (mo != 'none') K(() => { C.moveTo(x-2.8*s,y+3.6*s); C.quadraticCurveTo(x,y+6.4*s,x+2.8*s,y+3.6*s); },O,w); };
+const rng = s => () => { s = s+0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15,1 | s); t = t+Math.imul(t ^ t >>> 7,61 | t) ^ t; return ((t ^ t >>> 14) >>> 0)/4294967296; };
+
+/* ---- monstera slits: march from the midrib until outside the leaf (memoized) ---- */
+let MS = null;
+const monSl = lf => { if (MS) return MS; HT = HT || document.createElement('canvas').getContext('2d'); const p2 = new Path2D(), sv = C; C = p2; lf(); C = sv; MS = [];
+  for (const d of [-1,1]) for (const [y,a] of [[-22,.5],[-6,.35],[9,.15]]) { const x = d*7, ux = d*cos(a), uy = -sin(a); let t = 0;
+    while (t < 60 && HT.isPointInPath(p2,x+ux*t,y+uy*t)) t += .5; MS.push([x,y,x+ux*(t+2),y+uy*(t+2)]); }
+  return MS; };
+
+/* ---- the stickers: [id, name, cat, w, h, color, color2, art(c1, c2)] ---- */
+const T = [
+/* plant */
+['monstera','モンステラ','plant',.22,.22,'#5E9E6E',null,a => { const lf = () => hp(0,-5,39,-36);
+  ST(qp(0,14,2,28,5,39),dk(a,.12),6); F(lf,a); if (SIL) return;
+  const sl = monSl(lf), P = () => sl.forEach(s => { C.moveTo(s[0],s[1]); C.lineTo(s[2],s[3]); });
+  K(() => { C.moveTo(0,16); C.quadraticCurveTo(-2,-12,0,-40); },dk(a,.28),2.2);
+  CL(lf,() => K(P,O,6)); K(P,WH,3.4); hl(-20,-26,6,3,-.7,.45); }],
+['sprout','ふたば','plant',.2,.2,'#8CC26E','#C9A27E',(a,b) => {
+  ST(qp(0,36,-3,20,0,4),dk(a,.1),5);
+  F(() => LF(0,4,-40,-16,12),a); F(() => LF(1,2,38,-26,12),a);
+  K(() => { C.moveTo(-3,2); C.quadraticCurveTo(-20,-4,-34,-14); C.moveTo(4,0); C.quadraticCurveTo(20,-12,32,-23); },dk(a,.22),1.8);
+  hl(-24,-14,6,2.6,.25,.5); hl(22,-22,6,2.6,-.4,.5);
+  F(() => { C.moveTo(-34,42); C.bezierCurveTo(-30,22,30,22,34,42); C.closePath(); },b); face(0,34,.55,'happy'); }],
+['pot','はちうえ','plant',.2,.22,'#7DB37A','#E7A07B',(a,b) => { const a2 = dk(a,.14);
+  F(() => LF(0,8,-36,-24,9),a2); F(() => LF(0,8,34,-28,9),a2); F(() => LF(0,8,-14,-44,9),a); F(() => LF(0,8,16,-42,9),a); F(() => LF(0,8,-40,2,8),a); F(() => LF(0,8,40,-2,8),a);
+  K(() => { for (const [x,y] of [[-36,-24],[34,-28],[-14,-44],[16,-42],[-40,2],[40,-2]]) { C.moveTo(0,8); C.lineTo(x*.75,8+(y-8)*.75); } },dk(a,.3),1.5,.7);
+  F(() => RP([[-21,12],[21,12],[16,44],[-16,44]],4),b); F(() => RR(-25,6,50,10,4),lt(b,.12)); face(0,27,.7); }],
+['sakura','さくら','plant',.2,.2,'#F6B3C2',null,a => {
+  for (let i = 0; i < 5; i++) F(() => { C.save(); C.translate(0,1); C.rotate(i*TAU/5); C.moveTo(0,-3); C.bezierCurveTo(-21,-12,-23,-34,-8,-43); C.quadraticCurveTo(-3,-41,0,-36);
+    C.quadraticCurveTo(3,-41,8,-43); C.bezierCurveTo(23,-34,21,-12,0,-3); C.closePath(); C.restore(); },a);
+  D(() => Ci(0,1,17),dk(a,.12),.55);
+  K(() => { for (let i = 0; i < 5; i++) { const g = i*TAU/5-PI/2+PI/5; C.moveTo(0,1); C.lineTo(cos(g)*13,1+sin(g)*13); } },dk(a,.4),1.5);
+  D(() => { for (let i = 0; i < 5; i++) { const g = i*TAU/5-PI/2+PI/5; Ci(cos(g)*13.5,1+sin(g)*13.5,2.2); } },'#F2C14E');
+  D(() => Ci(0,1,4.5),'#F2C14E'); hl(-9,-22,5,2.4,-.9,.5); }],
+['tulip','チューリップ','plant',.16,.22,'#F28B82','#7DB37A',(a,b) => {
+  ST(qp(0,-20,3,20,0,58),b,5); F(() => LF(0,56,-30,14,10),b); F(() => LF(1,52,28,22,9),dk(b,.08));
+  F(() => { C.moveTo(-25,-57); C.bezierCurveTo(-29,-30,-18,-17,0,-17); C.bezierCurveTo(18,-17,29,-30,25,-57); C.lineTo(12,-46); C.lineTo(0,-62); C.lineTo(-12,-46); C.closePath(); },a);
+  K(() => { C.moveTo(-12,-46); C.quadraticCurveTo(-8,-28,0,-22); C.moveTo(12,-46); C.quadraticCurveTo(8,-28,0,-22); },dk(a,.25),1.8); hl(-16,-40,3,7,.2,.5); }],
+['sunflower','ひまわり','plant',.2,.2,'#F7C948','#8A5A3C',(a,b) => {
+  for (let i = 0; i < 14; i++) { const g = (i+.5)*TAU/14; F(() => E(cos(g)*27,sin(g)*27,13,6.5,g),dk(a,.1)); }
+  for (let i = 0; i < 14; i++) { const g = i*TAU/14; F(() => E(cos(g)*29,sin(g)*29,13,6.5,g),a); }
+  F(() => Ci(0,0,18),b); D(() => { for (let r = 5; r < 16; r += 5) for (let i = 0; i < r*1.3; i++) { const g = i*TAU/RND(r*1.3)+r; Ci(cos(g)*r,sin(g)*r,1.3); } },lt(b,.3)); hl(-7,-8,5,2.5); }],
+['clover','よつば','plant',.2,.2,'#79B66E',null,a => {
+  ST(qp(0,-2,14,20,7,39),dk(a,.12),4.5);
+  for (const t of [-.75,-.25,.25,.75]) { const g = t*PI; F(() => hp(cos(g)*22,-3+sin(g)*22,18,20,g+PI/2),t > 0 ? dk(a,.06) : a); }
+  K(() => { for (const t of [-.75,-.25,.25,.75]) { C.moveTo(0,-3); C.lineTo(cos(t*PI)*26,-3+sin(t*PI)*26); } },lt(a,.4),1.8);
+  hl(-22,-25,5,2.6,-.8,.5); }],
+['maple','もみじ','plant',.2,.2,'#E9784F',null,a => { const L = [[-90,44],[-30,41],[28,30],[152,30],[-150,41]].sort((p,q) => p[0]-q[0]), p = [], r = d => d*PI/180, P = (d,l) => p.push([cos(r(d))*l,2+sin(r(d))*l]);
+  L.forEach(([g,l],i) => { const n = L[(i+1)%L.length][0]+(i == L.length-1 ? 360 : 0); P(g-25,l*.52); P(g-15,l*.76); P(g-8,l*.68); P(g,l); P(g+8,l*.68); P(g+15,l*.76); P(g+25,l*.52); P((g+n)/2,(n-g > 90 ? 9 : 13)); });
+  ST([[0,2],[1,22],[3,39]],dk(a,.15),4); F(() => RP(p,1.5),a);
+  K(() => L.forEach(([g,l]) => { C.moveTo(0,2); C.lineTo(cos(r(g))*l*.78,2+sin(r(g))*l*.78); }),dk(a,.22),1.8); hl(-10,-16,5,2.4,-1.2,.45); }],
+['cactus','サボテン','plant',.18,.22,'#86B97A','#E7A07B',(a,b) => {
+  ST([[-10,6],[-26,6],[-26,-12]],a,12); ST([[10,-4],[24,-4],[24,-20]],a,11); F(() => RR(-14,-32,28,52,14),a);
+  K(() => { for (const [x,y] of [[-6,-22],[7,-14],[-7,-2],[6,8],[-26,-6],[24,-14]]) { C.moveTo(x-2,y-2); C.lineTo(x+2,y+2); C.moveTo(x+2,y-2); C.lineTo(x-2,y+2); } },dk(a,.35),1.2);
+  for (let i = 0; i < 5; i++) { const g = i*TAU/5; F(() => Ci(cos(g)*4.2,-35+sin(g)*4.2,3.6),'#F49AAE',1.6); } D(() => Ci(0,-35,2.4),'#F7D774');
+  F(() => RP([[-22,18],[22,18],[17,44],[-17,44]],3),b); F(() => RR(-25,13,50,9,4),lt(b,.12)); face(0,-12,.6); hl(-8,-24,2,5,0,.5); }],
+['branch','リーフ','plant',.22,.22,'#8DB27F',null,a => { const sp = qp(-30,38,-12,-4,26,-30,20);
+  ST(sp,dk(a,.25),3.4); F(() => LF(26,-30,40,-42,6),a);
+  [3,6,9,12,15,18].forEach((k,i) => { const [x,y] = sp[k], [u,v] = sp[k+1], g = Math.atan2(v-y,u-x)+(i & 1 ? .95 : -.95), l = 17-i*.8;
+    F(() => LF(x,y,x+cos(g)*l,y+sin(g)*l,6),i & 1 ? a : dk(a,.1));
+    K(() => { C.moveTo(x,y); C.lineTo(x+cos(g)*l*.7,y+sin(g)*l*.7); },dk(a,.3),1.2,.7); }); }],
+/* illust */
+['cat','ねこ','illust',.2,.18,'#F4B183','#FFFFFF',(a,b) => {
+  for (const d of [-1,1]) { F(() => RP([[d*40,-2],[d*33,-41],[d*8,-26]],5),a); D(() => RP([[d*33,-8],[d*30,-31],[d*15,-22]],3),PK,.8); }
+  F(() => E(0,8,42,32),a); D(() => { RR(-3,-23,6,11,3); RR(-11,-21,5,8,2.5); RR(6,-21,5,8,2.5); },dk(a,.18));
+  D(() => { E(-6,17,8,6); E(6,17,8,6); },b); face(0,5,1,'open','cat',15);
+  D(() => RP([[-3.6,10],[3.6,10],[0,14]],1.4),'#E97A7A');
+  K(() => { for (const d of [-1,1]) { C.moveTo(d*25,12); C.lineTo(d*39,9); C.moveTo(d*25,16); C.lineTo(d*38,18); } },O,1.4); hl(-24,-8,6,3); }],
+['dog','いぬ','illust',.2,.18,'#E8C9A0','#9C6B4E',(a,b) => {
+  F(() => E(0,8,38,32),a); D(() => E(14,3,9,10),b,.85);
+  for (const d of [-1,1]) F(() => E(d*31,-3,11,21,d*-.45),b);
+  F(() => E(0,19,16,11),lt(a,.65)); face(0,3,1,'open','smile',14);
+  D(() => E(0,13,6,4.4),O); D(() => Ci(-1.6,11.8,1.2),WH);
+  F(() => { C.moveTo(-3.5,22); C.quadraticCurveTo(-3.5,30,0,30); C.quadraticCurveTo(3.5,30,3.5,22); C.closePath(); },'#F27C7C',1.6); hl(-20,-12,6,3); }],
+['rabbit','うさぎ','illust',.18,.24,'#F7F1E8','#F6B3C2',(a,b) => {
+  for (const d of [-1,1]) { F(() => E(d*14,-34,9.5,25,d*.14),a); D(() => E(d*14,-31,4.5,17,d*.14),b); }
+  F(() => E(0,18,40,33),a); face(0,18,1,'open','cat',14); D(() => E(0,19.5,2.8,2),'#E97A7A'); hl(-22,4,6,3); }],
+['bear','くま','illust',.2,.18,'#B98B66','#F3E3CC',(a,b) => {
+  for (const d of [-1,1]) { F(() => Ci(d*29,-22,12),a); D(() => Ci(d*29,-22,6),b); }
+  F(() => E(0,8,40,32),a); F(() => E(0,18,15,11),b,1.8); face(0,4,1,'open','smile',16);
+  D(() => E(0,14,5.5,4),O); K(() => { C.moveTo(0,18); C.lineTo(0,21); },O,1.8); hl(-22,-10,6,3); }],
+['bird','ことり','illust',.2,.18,'#9ACBD9','#F7C948',(a,b) => {
+  LN([[-4,34],[-4,43]],O,2.4); LN([[6,34],[6,43]],O,2.4);
+  LN(qp(4,-24,0,-36,-6,-38,6),O,2.4); F(() => RP([[-28,2],[-46,-12],[-43,14]],3),dk(a,.12));
+  F(() => E(0,6,34,30),a); CL(() => E(0,6,34,30),() => D(() => E(8,24,26,16),lt(a,.6)));
+  F(() => E(-8,12,15,10,-.35),dk(a,.12),1.8);
+  F(() => RP([[32,-1],[45,5],[32,11]],2),b,2); face(18,0,.8,'open','none',0); hl(-12,-12,6,3); }],
+['cloud','くも','illust',.26,.18,'#FFFFFF',null,a => {
+  U(() => { Ci(-32,6,20); Ci(-4,-6,27); Ci(26,-2,21); Ci(44,12,15); RR(-54,4,110,26,13); },a);
+  face(-2,8,1,'happy','smile',10); hl(-14,-22,7,3.4,-.4,.9); }],
+['sun','たいよう','illust',.2,.2,'#F7C948','#F29E4C',(a,b) => {
+  for (let i = 0; i < 12; i++) { const g = i*TAU/12, s = i & 1 ? 39 : 44; F(() => RP([[cos(g-.2)*27,sin(g-.2)*27],[cos(g)*s,sin(g)*s],[cos(g+.2)*27,sin(g+.2)*27]],2.2),b,2); }
+  F(() => Ci(0,0,29),a); face(0,0,1.1,'happy','open',9); hl(-13,-15,6,3); }],
+['moon','つきとほし','illust',.2,.2,'#F7D774','#FFE9A8',(a,b) => {
+  F(() => cres(-4,4,39,14,-10,30),a);
+  F(() => RP(star(29,-27,11,5),1.5),b,2); F(() => RP(star(33,20,7,3.3),1),b,2); F(() => Ci(10,-38,2.6),b,1.6);
+  face(-25,14,.8,'sleep','smile',6); hl(-28,-12,3,6,.4,.55); }],
+['rainbow','にじ','illust',.26,.17,'#F49A9A','#FFFFFF',(a,b) => { const cs = [a,'#F7D774','#9CCB86','#8EC5E0'];
+  cs.forEach((c,i) => { const R = 60-i*9; F(() => { C.moveTo(-R,26); C.arc(0,26,R,PI,TAU); C.lineTo(R-9,26); C.arc(0,26,R-9,TAU,PI,true); C.closePath(); },c,2); });
+  for (const d of [-1,1]) U(() => { Ci(d*42-9,32,9); Ci(d*42+2,28,11); Ci(d*42+12,33,8); RR(d*42-17,30,36,12,6); },b); }],
+['camera','カメラ','illust',.22,.17,'#8FB08C','#F4EFE4',(a,b) => {
+  F(() => RR(-46,-33,15,10,3),dk(a,.25)); F(() => RR(-18,-36,36,16,6),dk(a,.12));
+  F(() => RR(-55,-25,110,62,14),a); CL(() => RR(-55,-25,110,62,14),() => D(() => C.rect(-60,-6,120,26),dk(a,.12)));
+  F(() => Ci(0,8,25),b); F(() => Ci(0,8,18),'#5D6A70'); D(() => Ci(0,8,11),'#7FA3B6'); D(() => { Ci(-5,3,4); Ci(4,13,1.8); },WH,.85);
+  F(() => RR(32,-17,14,9,3),'#FFF3C4',2); hl(-40,-16,6,2.6,-.2,.5); }],
+/* food */
+['coffee','コーヒー','food',.2,.2,'#A8C3A0','#8A5A3C',(a,b) => {
+  for (const x of [-12,0,12]) LN(qp(x,-21,x+7,-30,x,-40,8),'#BDB6AA',3);
+  F(() => E(0,35,42,8.5),lt(a,.35)); ST(qp(26,-6,46,4,24,20,10),a,7);
+  F(() => { C.moveTo(-30,-12); C.lineTo(30,-12); C.bezierCurveTo(30,18,22,32,0,32); C.bezierCurveTo(-22,32,-30,18,-30,-12); C.closePath(); },a);
+  F(() => E(0,-12,30,7),lt(a,.4)); D(() => E(0,-11.5,25,5),b); D(() => hp(0,-11.5,6,3.4),lt(b,.65));
+  face(0,8,.8); hl(-21,2,2.4,7,0,.45); }],
+['cake','ショートケーキ','food',.22,.2,'#E9575F','#FFF6EA',(a,b) => { const A = [-48,6], B = [24,6], Cc = [24,40], Dd = [-48,40], Ee = [46,-12], Ff = [46,22];
+  F(() => PL([B,Ee,Ff,Cc]),dk(b,.07)); F(() => PL([A,B,Cc,Dd]),'#F3CF8E');
+  D(() => { C.rect(-48,6,72,6); C.rect(-48,20,72,7); },b); D(() => { for (const x of [-40,-26,-12,2,16]) { C.moveTo(x+5.5,26.5); C.arc(x,26.5,5.5,0,PI,true); } },a);
+  K(() => PL([A,B,Cc,Dd]),O,LW); F(() => PL([A,B,Ee]),b);
+  F(() => Ci(32,-5,8),b,2); F(() => hp(32,-19,10,11),a); D(() => { for (const [x,y] of [[28,-22],[35,-23],[31,-16],[37,-17],[26,-16]]) E(x,y,.9,1.4); },'#FFE9A8');
+  F(() => RP([[25,-30],[32,-26],[39,-30],[36,-34],[32,-30],[28,-34]],1.5),'#79B66E',1.8); hl(-20,8.5,8,1.2,0,.6); }],
+['donut','ドーナツ','food',.2,.2,'#F6A5B8','#E8B87A',(a,b) => { const p = [], r = rng(11), cs = ['#FFFFFF','#8EC5E0','#F7D774','#9CCB86','#F28B82'];
+  for (let i = 0; i < 18; i++) { const g = i*TAU/18, q = i % 3 == 1 ? 38 : 33.5; p.push([cos(g)*q,sin(g)*q]); }
+  F(() => Ci(0,0,43),b); F(() => SM(p),a); F(() => Ci(0,0,14),b); F(() => Ci(0,0,9.5),WH,LW);
+  if (!SIL) for (let i = 0; i < 16; i++) { const g = i*TAU/16+r()*.3, d = 19+r()*10, t = r()*PI, x = cos(g)*d, y = sin(g)*d;
+    K(() => { C.moveTo(x-cos(t)*2.4,y-sin(t)*2.4); C.lineTo(x+cos(t)*2.4,y+sin(t)*2.4); },cs[i % 5],2.6); }
+  hl(-18,-22,7,3,-.6,.55); }],
+['onigiri','おにぎり','food',.2,.2,'#FFFDF7','#3E4A3D',(a,b) => { const rice = () => RP([[0,-46],[44,38],[-44,38]],16);
+  F(rice,a); CL(rice,() => { D(() => RR(-16,14,32,40,3),b); K(() => RR(-16,14,32,40,3),O,1.6); }); K(rice,O,LW);
+  face(0,-2,.9); hl(-12,-20,2.4,6,.5,.9); }],
+['icecream','アイス','food',.17,.24,'#F6B3C2','#E8B87A',(a,b) => {
+  const cone = () => RP([[-25,2],[25,2],[0,64]],4);
+  F(cone,b); CL(cone,() => K(() => { for (let k = -60; k < 60; k += 9) { C.moveTo(k,0); C.lineTo(k+40,66); C.moveTo(-k,0); C.lineTo(-k-40,66); } },dk(b,.2),1.6)); K(cone,O,LW);
+  LN(qp(4,-50,6,-58,12,-62,5),O,2); F(() => Ci(4,-49,7),'#E5535F'); hl(1.5,-52,2,1.2,-.6,.8);
+  F(() => { C.moveTo(-32,-14); C.arc(0,-14,32,PI,TAU); C.lineTo(32,2); [[16,14],[0,9],[-16,15],[-32,8]].reduce((x0,[x1,yb]) => { C.quadraticCurveTo((x0+x1)/2,yb,x1,2); return x1; },32); C.closePath(); },a);
+  face(0,-14,.9); hl(-16,-30,6,3); }],
+['boba','タピオカ','food',.16,.24,'#D9B38C','#5A3E33',(a,b) => { const cup = () => RP([[-30,-30],[30,-30],[22,66],[-22,66]],6);
+  ST([[2,-38],[10,-64]],'#F49A9A',8);
+  F(cup,'#F4F7F5'); CL(cup,() => { D(() => C.rect(-40,-18,80,90),a); D(() => { for (const [x,y] of [[-14,58],[-3,60],[8,58],[17,56],[-18,47],[-7,49],[4,47],[14,45],[-1,38],[-12,39],[10,37]]) Ci(x,y,5); },b);
+    D(() => { for (const [x,y] of [[-15,56],[6,56],[-8,47],[12,43]]) Ci(x,y,1.4); },WH,.7); });
+  K(cup,O,LW); F(() => { C.moveTo(-31,-30); C.bezierCurveTo(-31,-50,31,-50,31,-30); C.closePath(); },'#F4F7F5'); F(() => RR(-34,-33,68,8,4),'#E7ECEA');
+  face(0,8,.9); hl(-21,10,2.4,14,.05,.7); }],
+['cherry','さくらんぼ','food',.2,.2,'#E5535F','#6FA67A',(a,b) => {
+  ST(qp(-16,18,-10,-12,8,-34),b,3.6); ST(qp(18,10,16,-14,8,-34),b,3.6); F(() => LF(8,-34,36,-38,8),b);
+  K(() => { C.moveTo(10,-34); C.lineTo(31,-37); },dk(b,.25),1.4);
+  F(() => Ci(-16,22,18),a); F(() => Ci(18,16,17),dk(a,.06)); hl(-23,14,5,3); hl(11,8,5,3); }],
+/* life */
+['house','おうち','life',.2,.2,'#F2A07B','#FFF3E0',(a,b) => {
+  F(() => RR(17,-40,11,22,2),dk(a,.1)); F(() => RR(-31,-6,62,48,4),b); F(() => RP([[-45,-2],[0,-42],[45,-2]],5),a);
+  F(() => RR(-24,12,16,30,7),'#8FB08C'); D(() => Ci(-12,28,1.4),O);
+  F(() => RR(4,8,18,16,3),'#BFE0EA',2); K(() => { C.moveTo(13,8); C.lineTo(13,24); C.moveTo(4,16); C.lineTo(22,16); },O,1.6);
+  F(() => Ci(0,-18,6),'#FFF3C4',2); hl(-16,-24,7,2.4,-.75,.5); }],
+['gift','プレゼント','life',.2,.2,'#8FB08C','#F6A5B8',(a,b) => {
+  for (const d of [-1,1]) F(() => E(d*12,-28,13,8,d*.45),b); F(() => RR(-34,-6,68,46,5),a); F(() => RR(-40,-20,80,15,5),lt(a,.12));
+  D(() => { C.rect(-7,-19,14,13); C.rect(-7,-4.7,14,43.4); },b); K(() => { C.moveTo(-7,-19); C.lineTo(-7,38.7); C.moveTo(7,-19); C.lineTo(7,38.7); },O,1.6);
+  F(() => Ci(0,-24,6),dk(b,.1)); hl(-26,-14,6,2,0,.5); }],
+['balloon','ふうせん','life',.14,.24,'#F28B82',null,a => {
+  LN(Array.from({ length: 25 },(_,i) => [sin(i/24*TAU*1.5)*5,10+i*2.8]),O,2);
+  F(() => RP([[0,2],[6,11],[-6,11]],2),dk(a,.08),2); F(() => E(0,-34,34,41),a); hl(-14,-52,6,10,.45,.6); D(() => Ci(-20,-30,2.4),WH,.6); }],
+['letter','てがみ','life',.24,.17,'#F7E3C8','#F28B82',(a,b) => {
+  F(() => RR(-58,-36,116,72,6),a); K(() => { C.moveTo(-55,33); C.lineTo(-10,0); C.moveTo(55,33); C.lineTo(10,0); },dk(a,.22),1.8);
+  F(() => RP([[-57,-35],[57,-35],[0,8]],4),dk(a,.06)); F(() => hp(0,6,11,10),b); hl(-3,2,2.4,1.4,-.6,.6); }],
+['pencil','えんぴつ','life',.2,.2,'#F7C948','#F6A5B8',(a,b) => { const R = f => { C.save(); C.rotate(-PI/4); f(); C.restore(); };
+  F(() => R(() => RR(-55,-8,16,16,5)),b); F(() => R(() => C.rect(-42,-8,10,16)),'#C9CCCB');
+  F(() => R(() => PL([[28,-8],[55,0],[28,8]])),'#F3D9B1'); F(() => R(() => PL([[46,-3.3],[55,0],[46,3.3]])),O,1.6);
+  F(() => R(() => C.rect(-32,-8,60,16)),a); D(() => R(() => C.rect(-32,-8,60,5)),lt(a,.4)); D(() => R(() => C.rect(-32,3,60,5)),dk(a,.1));
+  K(() => R(() => C.rect(-32,-8,60,16)),O,LW); K(() => R(() => { C.moveTo(-37,-8); C.lineTo(-37,8); }),O,1.4); }],
+['book','ほん','life',.24,.17,'#8FB08C','#FFF8EC',(a,b) => {
+  F(() => RR(-60,-24,120,62,7),a);
+  for (const d of [-1,1]) F(() => { C.moveTo(0,-26); C.quadraticCurveTo(d*24,-38,d*54,-30); C.lineTo(d*54,30); C.quadraticCurveTo(d*24,22,0,34); C.closePath(); },d < 0 ? b : dk(b,.04));
+  K(() => { for (const d of [-1,1]) for (let k = 0; k < 4; k++) { const y = -18+k*11; C.moveTo(d*8,y+4); C.quadraticCurveTo(d*26,y-4,d*46,y); } },dk(b,.25),1.6);
+  K(() => { C.moveTo(0,-26); C.lineTo(0,34); },O,1.8); F(() => PL([[36,-31],[44,-31],[44,-12],[40,-16],[36,-12]]),'#F28B82',1.8); }],
+['phone','スマホ','life',.14,.24,'#F6B3C2','#BFE0EA',(a,b) => {
+  F(() => RR(-34,-74,68,148,15),a); F(() => RR(-27,-60,54,112,7),b,2); D(() => RR(-9,-69,18,4.5,2.25),O); D(() => RR(-10,61,20,4,2),dk(a,.3));
+  D(() => { for (let i = 0; i < 4; i++) RR(-20+i*11,-50,8,8,2.5); },WH,.85); D(() => hp(0,8,15,13),'#F28B82'); hl(-5,4,3,1.6,-.6,.8);
+  D(() => { RR(-20,34,40,5,2.5); RR(-20,42,26,5,2.5); },WH,.75); hl(-20,-40,2.4,12,.25,.35); }],
+/* figure */
+['bubble','ふきだし','figure',.26,.18,'#FFFFFF',null,a => {
+  U(() => { RR(-64,-40,128,64,30); PL([[-6,20],[-46,42],[-34,14]]); },a); hl(-44,-28,8,3.4,-.2,.5); }],
+['shout','ギザギザ','figure',.26,.2,'#FFE16A',null,a => { const f = [1,.9,1.04,.94,1,.88,1.06,.95], p = [];
+  for (let i = 0; i < 44; i++) { const g = i*TAU/44, s = i & 1 ? .74 : f[(i >> 1) % 8]; p.push([cos(g)*58*s,sin(g)*41*s]); }
+  F(() => RP(p,1.2),a); }],
+['think','もくもく','figure',.26,.2,'#FFFFFF',null,a => {
+  U(() => { E(8,-10,38,21); for (let i = 0; i < 11; i++) { const g = i*TAU/11; Ci(8+cos(g)*38,-10+sin(g)*20,13); } Ci(-36,26,7); Ci(-48,38,4.5); },a); }],
+['arrow','矢印バナー','figure',.28,.12,'#8FB08C',null,a => { const p = [[-110,-30],[80,-30],[110,0],[80,30],[-110,30],[-94,0]];
+  F(() => RP(p,4),a); CL(() => RP(p,4),() => D(() => C.rect(-120,-31,240,12),lt(a,.2)));
+  K(() => RP([[-101,-23],[77,-23],[100,0],[77,23],[-101,23],[-88,0]],3),WH,1.6,.8,[5,4]); K(() => RP(p,4),O,LW); }],
+['badge','バッジ','figure',.2,.2,'#F28B82','#FFFFFF',(a,b) => {
+  F(() => RP(star(0,0,44,37.5,18),2.5),a); K(() => Ci(0,0,31),b,2.2,.95,[4.5,3.5]); hl(-18,-22,7,3,-.7,.45); }],
+['check','チェック','figure',.2,.2,'#79B66E','#FFFFFF',(a,b) => {
+  F(() => RR(-38,-24,62,62,12),b); ST([[-24,4],[-8,20],[34,-32]],a,11); }],
+['circle','まるバッジ','figure',.2,.2,'#F7C948','#FFFFFF',(a,b) => {
+  F(() => Ci(0,0,43),a); F(() => Ci(0,0,32),b,2); K(() => Ci(0,0,37.5),WH,1.6,.8,[4,4]); hl(-24,-22,6,3,-.75,.55); }],
+['tag','ねふだ','figure',.26,.15,'#F6B3C2',null,a => { const p = [[-80,0],[-52,-34],[78,-34],[78,34],[-52,34]];
+  LN(qp(-54,0,-78,-34,-40,-42,10),O,2); F(() => RP(p,7),a); K(() => RP([[-71,0],[-48,-27],[71,-27],[71,27],[-48,27]],5),WH,1.6,.85,[5,4]);
+  F(() => Ci(-54,0,6.5),WH,2); LN([[-54,0],[-57,-4]],O,2); }],
+];
+
+const DECO_GEN = {};
+for (const [id,name,cat,w,h,color,color2,art] of T) { const k = MN(w,h), hw = 50*w/k, hh = 50*h/k;
+  const sp = DECO_GEN['il-'+id] = { name,cat,w,h,color,color2, draw(ctx,o) {
+    const a = hex(o.color || sp.color), b = hex(o.color2 || sp.color2 || '#FFFFFF'), s = MN(o.w/(2*hw),o.h/(2*hh));
+    if (!(s > 0)) return; const sv = C; ctx.save();
+    try { C = ctx; ctx.scale(s,s); ctx.lineJoin = ctx.lineCap = 'round';
+      SIL = 1; ctx.beginPath(); art(a,b); const t = ctx.getTransform(), kp = Math.hypot(t.a,t.b) || 1;
+      ctx.shadowColor = 'rgba(40,38,30,.26)'; ctx.shadowBlur = 6*kp; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 2.2*kp;
+      ctx.strokeStyle = WH; ctx.lineWidth = LW+BW*2; ctx.stroke(); ctx.shadowColor = 'rgba(0,0,0,0)'; ctx.shadowBlur = ctx.shadowOffsetY = 0; ctx.fillStyle = WH; ctx.fill();
+      SIL = 0; art(a,b);
+    } finally { SIL = 0; C = sv; ctx.restore(); } } };
+}
+const DECO_CATS_GEN = [['illust','イラスト'],['plant','植物'],['food','たべもの'],['life','暮らし'],['figure','図形・吹き出し']];
+return { DECO_CATS_GEN, DECO_GEN };
+})();
+//GEN-ILLUST-END
+//GEN-CHARTS-START
+/* Lufora charts & tables — editable chart/table stickers (Canvas 2D, no deps) */
+const { CHART_KINDS, CHART_PRESETS, drawChart, chartToText, chartFromText } = (() => {
+'use strict';
+const K = (name, table) => ({ name, table: !!table });
+const CHART_KINDS = {
+bar: K('棒グラフ'), hbar: K('横棒グラフ'), line: K('折れ線グラフ'), area: K('面グラフ'),
+pie: K('円グラフ'), donut: K('ドーナツグラフ'), progress: K('進捗バー'), gauge: K('達成率メーター'),
+ranking: K('ランキング'), rating: K('星評価'),
+table: K('表', 1), timetable: K('時間割', 1), checklist: K('チェックリスト', 1), schedule: K('予定表', 1),
+compare: K('比較表（◯✕）', 1), price: K('価格表', 1), weather: K('週間天気', 1)
+};
+const isTable = o => CHART_KINDS[o.kind] ? CHART_KINDS[o.kind].table : Array.isArray(o.rows) && !Array.isArray(o.values);
+
+/* ---------- colour ---------- */
+const hex = h => { h = String(h || '').trim().replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); return /^[0-9a-f]{6}$/i.test(h) ? [0, 8, 16].map(s => parseInt(h, 16) >> (16 - s) & 255) : null; };
+const css = (c, a) => a == null ? `rgb(${c.map(Math.round)})` : `rgba(${c.map(Math.round)},${a})`;
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const WH = [255, 255, 255], BK = [0, 0, 0];
+const lum = c => (.299 * c[0] + .587 * c[1] + .114 * c[2]) / 255;
+const onCol = c => lum(c) > .66 ? [58, 56, 51] : WH;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+function hsl([r, g, b]) {
+r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let h = 0, s = 0;
+if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = 60 * (mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4); }
+return [h, s, l];
+}
+function rgbOf(h, s, l) {
+h = (((h % 360) + 360) % 360) / 360; if (!s) return [l * 255, l * 255, l * 255];
+const q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+const f = t => { t = (t + 1) % 1; return 255 * (t < 1 / 6 ? p + (q - p) * 6 * t : t < .5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p); };
+return [f(h + 1 / 3), f(h), f(h - 1 / 3)];
+}
+function pal(o) {
+const st = o.style === 'bold' || o.style === 'mono' ? o.style : 'soft';
+const c = hex(o.color) || [94, 140, 95], [h, s, l] = hsl(c), mono = st === 'mono';
+const c2 = hex(o.color2) || (mono ? [178, 178, 173] : rgbOf(h - 80, clamp(s, .3, .55), clamp(l + .08, .5, .7)));
+const P = { st, c, c2, ink: [58, 56, 51], sub: [138, 133, 122],
+card: st === 'soft' ? mix([255, 253, 247], c, .045) : mono ? [250, 250, 248] : WH,
+pale: mono ? [239, 239, 236] : mix(c, WH, .86), light: mono ? [196, 196, 192] : mix(c, WH, .5),
+dark: mono ? [58, 56, 51] : mix(c, BK, .35) };
+P.zebra = mix(P.card, mono ? [0, 0, 0] : c, mono ? .03 : .06);
+P.cat = i => {
+if (!i) return c;
+if (mono) { const g = [110, 150, 185, 130, 170, 205, 95, 160, 215, 120, 195, 140][(i - 1) % 12]; return [g, g, g - 3]; }
+return st === 'bold' ? rgbOf(h + i * 137.508, clamp(s, .35, .7), clamp(l, .45, .6) + (i % 2) * .06)
+: rgbOf(h + i * 137.508, clamp(s, .28, .5), clamp(l + .12, .64, .76) - (i % 2) * .05);
+};
+P.sat = mono ? [110, 150, 200] : [104, 146, 196]; P.sun = mono ? [205, 110, 110] : [212, 118, 118];
+return P;
+}
+
+/* ---------- text & shapes ---------- */
+let FAM = '';
+const font = (x, sz, wt) => { x.font = `${wt || 400} ${Math.max(1, sz).toFixed(2)}px ${FAM}`; };
+function fit(x, t, maxW, sz, wt, minK) {
+t = String(t == null ? '' : t); font(x, sz, wt); if ([...t].length <= 4) minK = Math.min(minK || 1, .3); if (!t || maxW <= 0) return maxW > 0 ? t : '';
+let w = x.measureText(t).width; if (w <= maxW) return t;
+const s2 = Math.max(sz * (minK || .62), sz * maxW / w * .97); font(x, s2, wt); w = x.measureText(t).width; if (w <= maxW * 1.02) return t;
+const ch = [...t]; let lo = 0, hi = ch.length - 1;
+while (lo < hi) { const m = (lo + hi + 1) >> 1; if (x.measureText(ch.slice(0, m).join('') + '…').width <= maxW) lo = m; else hi = m - 1; }
+return lo ? ch.slice(0, lo).join('') + '…' : (x.measureText('…').width <= maxW ? '…' : '');
+}
+function tx(x, t, px, py, maxW, sz, wt, col, al, minK) {
+const s = fit(x, t, maxW, sz, wt, minK); if (!s) return 0;
+x.fillStyle = css(col); x.textAlign = al || 'left'; x.textBaseline = 'middle'; x.fillText(s, px, py); return x.measureText(s).width;
+}
+function rr(x, px, py, w, h, r) {
+const R = Array.isArray(r) ? r : [r, r, r, r], m = Math.min(Math.abs(w), Math.abs(h)) / 2, k = R.map(v => clamp(v || 0, 0, m));
+x.beginPath(); x.moveTo(px + k[0], py); x.arcTo(px + w, py, px + w, py + h, k[1]); x.arcTo(px + w, py + h, px, py + h, k[2]);
+x.arcTo(px, py + h, px, py, k[3]); x.arcTo(px, py, px + w, py, k[0]); x.closePath();
+}
+const circ = (x, px, py, r) => { x.beginPath(); x.arc(px, py, Math.max(0, r), 0, Math.PI * 2); };
+const line = (x, a, b, c, d) => { x.beginPath(); x.moveTo(a, b); x.lineTo(c, d); x.stroke(); };
+function fmt(v) {
+if (!isFinite(v)) return '0'; const n = Math.round(v * 100) / 100, a = Math.abs(n);
+let s = Number.isInteger(n) ? String(a) : a.toFixed(2).replace(/0+$/, '');
+s = s.replace(/^(\d+)/, m => m.length > 3 ? m.replace(/\B(?=(\d{3})+$)/g, ',') : m);
+return (n < 0 ? '-' : '') + s;
+}
+const short = v => Math.abs(v) >= 1e4 ? +(v / 1e4).toFixed(Math.abs(v) >= 1e5 ? 0 : 1) + '万' : String(Math.round(v * 10) / 10);
+const pickF = (x, vs, w, sz) => [fmt, v => String(Math.round(v * 10) / 10), short].find(F => { font(x, sz * .6, 800); return vs.every(v => x.measureText(F(v)).width <= w); }) || short;
+function nice(v) { if (!(v > 0)) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return p * (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10); }
+const hash = s => { let h = 7; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) >>> 0; return h; };
+
+function empty(x, R, P, S) {
+x.save(); x.setLineDash([S * .025, S * .02]); x.lineWidth = Math.max(1, S * .006); x.strokeStyle = css(P.light);
+rr(x, R.x, R.y, R.w, R.h, S * .04); x.stroke(); x.restore();
+tx(x, 'データを入力してください', R.x + R.w / 2, R.y + R.h / 2, R.w * .9, S * .06, 400, P.sub, 'center');
+}
+function leaf(x, px, py, s, col, bg) {
+x.save(); x.translate(px, py); x.rotate(-.5); x.beginPath(); x.moveTo(-s / 2, 0);
+x.quadraticCurveTo(-s / 6, -s * .45, s / 2, 0); x.quadraticCurveTo(-s / 6, s * .45, -s / 2, 0); x.fillStyle = css(col); x.fill();
+x.strokeStyle = css(bg); x.lineWidth = s * .07; line(x, -s * .3, 0, s * .3, 0); x.restore();
+}
+
+/* ---------- data ---------- */
+const num = v => { v = typeof v === 'number' ? v : parseFloat(v); return isFinite(v) ? v : 0; };
+function series(o) {
+const lab = Array.isArray(o.labels) ? o.labels : [], val = Array.isArray(o.values) ? o.values : [];
+const n = Math.min(40, Math.max(lab.length, val.length));
+const v2 = Array.isArray(o.series2) && o.series2.length ? Array.from({ length: n }, (_, i) => num(o.series2[i])) : null;
+return { n, lab: Array.from({ length: n }, (_, i) => lab[i] == null ? '' : String(lab[i])), v: Array.from({ length: n }, (_, i) => num(val[i])), v2 };
+}
+function tableRows(o) {
+const r = Array.isArray(o.rows) ? o.rows.slice(0, 40) : [];
+return r.map(row => (Array.isArray(row) ? row : [row]).slice(0, 12).map(c => c == null ? '' : String(c)));
+}
+
+/* ---------- axis charts ---------- */
+function range(all, zero, P) {
+let mn = Math.min(...all), mx = Math.max(...all);
+if (zero) { mn = Math.min(0, mn); mx = Math.max(0, mx); if (mx > 0) mx = nice(mx); if (mn < 0) mn = -nice(-mn); if (mx === mn) mx = 1; }
+else { const sp = mx - mn || Math.abs(mx) * .2 || 1; mn -= sp * .18; mx += sp * .18; }
+return [mn, mx];
+}
+function gridLines(x, R, top, bot, P, S) {
+x.strokeStyle = css(P.ink, .08); x.lineWidth = Math.max(.5, S * .004);
+for (let k = 0; k <= 3; k++) { const y = top + (bot - top) * k / 3; line(x, R.x, y, R.x + R.w, y); }
+}
+function bars(x, R, d, P, S) {
+const { n, lab, v, v2 } = d, all = v2 ? v.concat(v2) : v, [mn, mx] = range(all, 1, P), slot = R.w / n;
+const fs = Math.min(S * .062, slot * (v2 ? .3 : .42) + S * .012), valH = fs * 1.5, labH = fs * 1.7;
+const top = R.y + valH, bot = R.y + R.h - labH - (mn < 0 ? valH : 0), Y = t => bot - (t - mn) / (mx - mn) * (bot - top);
+gridLines(x, R, top, bot, P, S);
+const gw = Math.min(slot * (v2 ? .74 : .6), S * (v2 ? .26 : .16)), bw = v2 ? gw / 2 * .9 : gw;
+let imax = 0; v.forEach((t, i) => { if (t > v[imax]) imax = i; });
+const showV = slot > fs * 1.4, VF = pickF(x, all, slot * .86, fs * .92); font(x, fs * .82, 800); const both = !v2 || Math.max(...all.map(t => x.measureText(fmt(t)).width)) < gw / 2 * 1.1;
+for (let i = 0; i < n; i++) {
+const cx = R.x + slot * (i + .5);
+(v2 ? [[v[i], P.c, -1], [v2[i], P.c2, 1]] : [[v[i], P.st === 'bold' || i === imax ? P.c : P.light, 0]]).forEach(([t, col, side]) => {
+const bx = cx + side * gw / 4 - bw / 2, y0 = Y(0), y1 = Y(t), r = Math.min(bw * .3, S * .03);
+x.fillStyle = css(col); rr(x, bx, Math.min(y0, y1), bw, Math.max(Math.abs(y1 - y0), .01), t >= 0 ? [r, r, 0, 0] : [0, 0, r, r]); x.fill();
+if (showV && (both || side < 0)) tx(x, VF(t), both ? bx + bw / 2 : cx, t >= 0 ? (both ? y1 : Math.min(y1, Y(v2[i]))) - valH * .45 : y1 + valH * .5, both && v2 ? gw / 2 * 1.1 : slot * .86, fs * (v2 ? .82 : .92), 800, P.dark, 'center', .42);
+});
+tx(x, lab[i], cx, R.y + R.h - labH * .45, slot * .94, fs, 400, P.sub, 'center', .5);
+}
+x.strokeStyle = css(P.ink, .25); x.lineWidth = Math.max(1, S * .006); line(x, R.x, Y(0), R.x + R.w, Y(0));
+}
+function hbars(x, R, d, P, S) {
+const { n, lab, v } = d, rh = R.h / n, fs = Math.min(S * .062, rh * .48), [mn, mx] = range(v, 1, P);
+font(x, fs, 400); const lw = Math.min(R.w * .34, Math.max(...lab.map(t => x.measureText(t).width)) + fs * .6);
+font(x, fs * .92, 800); const vw = Math.max(...v.map(t => x.measureText(fmt(t)).width)) + fs * .6;
+const px = R.x + lw + (mn < 0 ? vw : 0), pw = Math.max(1, R.w - lw - vw * (mn < 0 ? 2 : 1)), X = t => px + (t - mn) / (mx - mn) * pw, bh = Math.min(rh * .58, S * .09);
+let imax = 0; v.forEach((t, i) => { if (t > v[imax]) imax = i; });
+for (let i = 0; i < n; i++) {
+const cy = R.y + rh * (i + .5), x0 = X(0), x1 = X(v[i]), r = bh / 2;
+if (mn >= 0) { x.fillStyle = css(P.pale); rr(x, px, cy - bh / 2, pw, bh, r); x.fill(); }
+x.fillStyle = css(P.st === 'bold' ? P.cat(i) : i === imax ? P.c : P.light);
+rr(x, Math.min(x0, x1), cy - bh / 2, Math.max(Math.abs(x1 - x0), .01), bh, v[i] >= 0 ? [0, r, r, 0] : [r, 0, 0, r]); x.fill();
+tx(x, lab[i], R.x + lw - fs * .4, cy, lw - fs * .5, fs, 400, P.ink, 'right');
+tx(x, fmt(v[i]), mn >= 0 ? px + pw + fs * .3 : x1 + (v[i] >= 0 ? fs * .3 : -fs * .3), cy, vw, fs * .92, 800, P.dark, v[i] >= 0 || mn >= 0 ? 'left' : 'right');
+}
+}
+function lines(x, R, d, P, S, area) {
+const { n, lab, v, v2 } = d, all = v2 ? v.concat(v2) : v, [mn, mx] = range(all, area, P), slot = R.w / n;
+const fs = Math.min(S * .06, slot * .42 + S * .012), valH = fs * 1.6, labH = fs * 1.7, top = R.y + valH, bot = R.y + R.h - labH;
+const Y = t => bot - (t - mn) / (mx - mn) * (bot - top), X = i => R.x + slot * (i + .5), lw = S * (P.st === 'bold' ? .02 : .014);
+gridLines(x, R, top, bot, P, S);
+const draw = (vs, col, main) => {
+const yb = area ? Y(Math.max(mn, Math.min(0, mx))) : bot;
+x.beginPath(); vs.forEach((t, i) => i ? x.lineTo(X(i), Y(t)) : x.moveTo(X(i), Y(t)));
+if (n > 1) {
+x.save(); x.lineTo(X(n - 1), yb); x.lineTo(X(0), yb); x.closePath();
+const g = x.createLinearGradient(0, top, 0, bot); g.addColorStop(0, css(col, area ? .45 : .16)); g.addColorStop(1, css(col, area ? .08 : 0));
+x.fillStyle = g; x.fill(); x.restore();
+x.beginPath(); vs.forEach((t, i) => i ? x.lineTo(X(i), Y(t)) : x.moveTo(X(i), Y(t)));
+x.strokeStyle = css(col); x.lineWidth = lw; x.lineJoin = x.lineCap = 'round'; if (!main) x.setLineDash([lw * 2, lw * 1.6]); x.stroke(); x.setLineDash([]);
+}
+vs.forEach((t, i) => { circ(x, X(i), Y(t), lw * 1.35); x.fillStyle = css(P.card); x.fill(); x.lineWidth = lw * .8; x.strokeStyle = css(col); x.stroke(); });
+};
+if (v2) draw(v2, P.c2, 0); draw(v, P.c, 1);
+const showV = slot > fs * 1.5, VF = pickF(x, v, slot * .86, fs * .9);
+for (let i = 0; i < n; i++) {
+if (showV) tx(x, VF(v[i]), X(i), Y(v[i]) - valH * .5, slot * .86, fs * .9, 800, P.dark, 'center', .42);
+tx(x, lab[i], X(i), R.y + R.h - labH * .45, slot * .94, fs, 400, P.sub, 'center', .5);
+}
+}
+/* ---------- round charts ---------- */
+function pie(x, R, d, P, S, donut) {
+const v = d.v.map(t => Math.max(0, t)), sum = v.reduce((a, b) => a + b, 0); if (!(sum > 0)) return empty(x, R, P, S);
+const n = d.n, side = R.w > R.h * 1.2; let r, cx, cy, L;
+if (side) { r = Math.min(R.h / 2, R.w * .24); cx = R.x + r; cy = R.y + R.h / 2; L = { x: cx + r + S * .06, y: R.y, w: R.x + R.w - cx - r - S * .06, h: R.h }; }
+else { r = Math.min(R.w / 2, R.h * .3); cx = R.x + R.w / 2; cy = R.y + r; L = { x: R.x, y: cy + r + S * .04, w: R.w, h: R.y + R.h - cy - r - S * .04 }; }
+let a = -Math.PI / 2;
+v.forEach((t, i) => { if (!t) return; const b = a + t / sum * Math.PI * 2; x.beginPath(); x.moveTo(cx, cy); x.arc(cx, cy, r, a, b); x.closePath(); x.fillStyle = css(P.cat(i)); x.fill(); a = b; });
+if (v.filter(t => t > 0).length > 1) {
+x.strokeStyle = css(P.card); x.lineWidth = Math.max(1, r * .03); a = -Math.PI / 2;
+v.forEach(t => { line(x, cx, cy, cx + r * Math.cos(a), cy + r * Math.sin(a)); a += t / sum * Math.PI * 2; });
+}
+const ri = r * .58;
+if (donut) {
+circ(x, cx, cy, ri); x.fillStyle = css(P.card); x.fill();
+tx(x, '合計', cx, cy - ri * .3, ri * 1.4, ri * .26, 400, P.sub, 'center');
+tx(x, fmt(sum), cx, cy + ri * .14, ri * 1.6, ri * .5, 800, P.dark, 'center');
+}
+a = -Math.PI / 2;
+v.forEach((t, i) => {
+const sh = t / sum, m = a + sh * Math.PI * 2 / 2, rm = donut ? (r + ri) / 2 : r * .64; a += sh * Math.PI * 2;
+if (sh >= .07 && r > S * .08) tx(x, Math.round(sh * 100) + '%', cx + rm * Math.cos(m), cy + rm * Math.sin(m), r * .5, r * .15, 800, onCol(P.cat(i)), 'center');
+});
+if (L.w < S * .1 || L.h < S * .05) return;
+const cols = side || n <= 3 ? 1 : 2, nr = Math.ceil(n / cols), ih = Math.min(L.h / nr, S * .11), fs = Math.min(ih * .6, S * .058), cw = L.w / cols;
+const y0 = L.y + (L.h - ih * nr) / 2;
+for (let i = 0; i < n; i++) {
+const lx = L.x + (i % cols) * cw + (cols > 1 ? fs * .3 : 0), ly = y0 + ih * (Math.floor(i / cols) + .5);
+circ(x, lx + fs * .4, ly, fs * .36); x.fillStyle = css(P.cat(i)); x.fill();
+const pct = Math.round(v[i] / sum * 100) + '%'; font(x, fs, 800); const pw = x.measureText('100%').width;
+tx(x, d.lab[i], lx + fs * 1.05, ly, cw - fs * 1.6 - pw, fs, 400, P.ink);
+tx(x, pct, lx + cw - fs * .5, ly, pw + fs, fs, 800, P.dark, 'right');
+}
+}
+function progress(x, R, d, P, S) {
+const n = Math.min(d.n, 12), rh = R.h / n, fs = Math.min(S * .062, rh * .36), th = Math.min(rh * .26, S * .055), two = rh >= fs * 1.5 + th * 1.6;
+for (let i = 0; i < n; i++) {
+const t = d.v[i], p = clamp(t, 0, 100) / 100, y = R.y + rh * i, pct = fmt(t) + '%';
+font(x, fs * 1.05, 800); const pw = x.measureText(pct).width;
+let bx = R.x, bw = R.w, by;
+if (two) { const cy = y + rh / 2 - (fs * .75 + th * .55) + fs * .55; tx(x, d.lab[i], R.x, cy, R.w - pw - fs, fs, 400, P.ink); tx(x, pct, R.x + R.w, cy, pw + 2, fs * 1.05, 800, P.dark, 'right'); by = cy + fs * .65 + th * .2; }
+else { const lw = R.w * .3; tx(x, d.lab[i], R.x, y + rh / 2, lw - fs * .4, fs, 400, P.ink); tx(x, pct, R.x + R.w, y + rh / 2, pw + 2, fs * 1.05, 800, P.dark, 'right'); bx = R.x + lw; bw = R.w - lw - pw - fs * .5; by = y + rh / 2 - th / 2; }
+x.fillStyle = css(P.pale); rr(x, bx, by, bw, th, th / 2); x.fill();
+if (p > 0) { x.fillStyle = css(P.st === 'bold' ? P.cat(i) : P.c); rr(x, bx, by, Math.max(th, bw * p), th, th / 2); x.fill(); }
+}
+}
+function gauge(x, R, d, P, S) {
+const t = d.v[0], p = clamp(t, 0, 100) / 100, lab = d.lab[0], lh = lab ? S * .1 : 0;
+const r = Math.max(1, Math.min(R.w * .44, (R.h - lh) / 1.3)), th = r * .2, cx = R.x + R.w / 2, cy = R.y + (R.h - lh - r * 1.12) / 2 + r * 1.02;
+x.lineCap = 'round'; x.lineWidth = th; x.strokeStyle = css(P.pale);
+x.beginPath(); x.arc(cx, cy, r - th / 2, Math.PI, Math.PI * 2); x.stroke();
+if (p > 0) { x.strokeStyle = css(P.c); x.beginPath(); x.arc(cx, cy, r - th / 2, Math.PI, Math.PI * (1 + p)); x.stroke(); }
+tx(x, fmt(t) + '%', cx, cy - r * .26, r * 1.25, r * .42, 800, P.dark, 'center');
+tx(x, '0', cx - r + th / 2, cy + th * 1.05, th * 2, th * .45, 400, P.sub, 'center');
+tx(x, '100', cx + r - th / 2, cy + th * 1.05, th * 2, th * .45, 400, P.sub, 'center');
+if (lab) tx(x, lab, cx, R.y + R.h - lh * .45, R.w, Math.min(S * .07, lh * .7), 400, P.ink, 'center');
+}
+function ranking(x, R, d, P, S) {
+const n = Math.min(d.n, 12), rh = R.h / n, fs = Math.min(S * .068, rh * .4), br = Math.min(rh * .33, S * .055), showV = d.v.some(t => t);
+const medal = [[226, 180, 72], [168, 174, 180], [201, 141, 96]];
+for (let i = 0; i < n; i++) {
+const y = R.y + rh * i, cy = y + rh / 2;
+x.fillStyle = css(i % 2 ? P.card : P.zebra); rr(x, R.x, y + rh * .06, R.w, rh * .88, rh * .3); x.fill();
+const bc = P.st === 'mono' ? (i ? [150, 150, 146] : P.c) : i < 3 ? medal[i] : P.light;
+circ(x, R.x + br * 1.4, cy, br); x.fillStyle = css(bc); x.fill();
+tx(x, String(i + 1), R.x + br * 1.4, cy + br * .04, br * 1.6, br * 1.05, 800, WH, 'center');
+font(x, fs, 800); const vs = showV ? fmt(d.v[i]) : '', vw = showV ? x.measureText(vs).width + fs * .5 : 0;
+tx(x, d.lab[i], R.x + br * 2.8, cy, R.w - br * 2.8 - vw - fs * .3, fs * (i ? 1 : 1.08), i ? 400 : 800, P.ink);
+if (showV) tx(x, vs, R.x + R.w - fs * .5, cy, vw, fs, 800, P.dark, 'right');
+}
+}
+function star(x, cx, cy, r) { x.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r * .48 : r; x.lineTo(cx + q * Math.cos(a), cy + q * Math.sin(a)); } x.closePath(); }
+function rating(x, R, d, P, S) {
+const n = Math.min(d.n, 12), rh = R.h / n, fs = Math.min(S * .064, rh * .42);
+font(x, fs, 800); const nw = x.measureText('4.5').width + fs * .6, ss = Math.min(rh * .66, (R.w * .6 - nw) / 5.3), sw = ss * 5.3, lw = R.w - sw - nw;
+for (let i = 0; i < n; i++) {
+const cy = R.y + rh * (i + .5), t = clamp(d.v[i], 0, 5), sx = R.x + lw;
+tx(x, d.lab[i], R.x, cy, lw - fs * .4, fs, 400, P.ink);
+for (let k = 0; k < 5; k++) {
+const cx = sx + ss * (k * 1.06 + .55); star(x, cx, cy, ss * .5); x.fillStyle = css(P.st === 'mono' ? [222, 222, 218] : P.pale); x.fill();
+const f = clamp(t - k, 0, 1); if (f > 0) { x.save(); x.beginPath(); x.rect(cx - ss / 2, cy - ss / 2, ss * f, ss); x.clip(); star(x, cx, cy, ss * .5); x.fillStyle = css(P.c); x.fill(); x.restore(); }
+}
+tx(x, fmt(d.v[i]), R.x + R.w, cy, nw, fs, 800, P.dark, 'right');
+}
+}
+/* ---------- tables ---------- */
+const MARK = { '◎': 'dbl', '◯': 'o', '○': 'o', '〇': 'o', 'O': 'o', '△': 'tri', '▲': 'tri', '✕': 'x', '×': 'x', '✖': 'x', 'X': 'x', 'x': 'x', '-': '-', '－': '-', 'ー': '-', '―': '-' };
+const CHECK = /^(☑|✓|✔|☒|■|済|完了|done|ok|v|y|yes|1|true)$/i;
+function mark(x, kind, cx, cy, m, P, S) {
+const lw = Math.max(1, m * .22), good = P.c, mid = P.st === 'mono' ? [150, 150, 146] : [214, 166, 74], bad = P.st === 'mono' ? [185, 185, 181] : [205, 112, 112];
+x.lineWidth = lw; x.lineCap = x.lineJoin = 'round';
+if (kind === 'o' || kind === 'dbl') { x.strokeStyle = css(good); circ(x, cx, cy, m); x.stroke(); if (kind === 'dbl') { circ(x, cx, cy, m * .48); x.stroke(); } }
+else if (kind === 'tri') { x.strokeStyle = css(mid); x.beginPath(); x.moveTo(cx, cy - m); x.lineTo(cx + m * .95, cy + m * .7); x.lineTo(cx - m * .95, cy + m * .7); x.closePath(); x.stroke(); }
+else if (kind === 'x') { x.strokeStyle = css(bad); const k = m * .78; line(x, cx - k, cy - k, cx + k, cy + k); line(x, cx + k, cy - k, cx - k, cy + k); }
+else { x.strokeStyle = css(P.sub); line(x, cx - m * .6, cy, cx + m * .6, cy); }
+}
+function grid(x, R, rows, P, S, opt) {
+const nr = rows.length, nc = Math.max(1, ...rows.map(r => r.length)), rh = R.h / nr;
+const fs = Math.min(rh * .42, S * .066, (R.w / nc) * .32);
+const w0 = opt.w0 || 0, m = nc - (w0 ? 1 : 0);
+const nat = Array.from({ length: nc }, (_, c) => { font(x, fs, c || !opt.fc ? 400 : 800); return Math.max(fs * 1.6, ...rows.map(r => x.measureText(r[c] || '').width)) + fs * 1.1; });
+const tot = nat.reduce((a, b, c) => a + (w0 && !c ? 0 : b), 0), cw = nat.map((w, c) => w0 && !c ? w0 : (R.w - w0) * (opt.prop ? w / tot : .35 / m + .65 * w / tot));
+const cx = []; let acc = R.x; cw.forEach((w, i) => { cx.push(acc); acc += w; });
+x.save(); rr(x, R.x, R.y, R.w, R.h, S * .035); x.clip();
+const hbg = P.st === 'bold' ? mix(P.c, BK, .12) : P.st === 'mono' ? [232, 232, 228] : mix(P.c, WH, .7), hfg = P.st === 'bold' ? onCol(mix(P.c, BK, .12)) : P.dark;
+x.fillStyle = css(hbg); x.fillRect(R.x, R.y, R.w, rh);
+for (let r = 1; r < nr; r++) {
+if (r % 2 === 0 && !opt.nozebra) { x.fillStyle = css(P.zebra); x.fillRect(R.x, R.y + rh * r, R.w, rh); }
+if (opt.fc) { x.fillStyle = css(P.c, .1); x.fillRect(R.x, R.y + rh * r, cw[0], rh); }
+}
+x.strokeStyle = css(P.ink, .1); x.lineWidth = Math.max(.5, S * .004);
+for (let r = 2; r < nr; r++) line(x, R.x, R.y + rh * r, R.x + R.w, R.y + rh * r);
+if (opt.vl) for (let c = 1; c < nc; c++) line(x, cx[c], R.y + rh, cx[c], R.y + R.h);
+if (P.st === 'mono') { x.fillStyle = css(P.c); x.fillRect(R.x, R.y + rh - S * .006, R.w, S * .006); }
+rows.forEach((row, r) => { for (let c = 0; c < nc; c++) {
+const t = row[c] || '', w = cw[c], y = R.y + rh * r;
+if (r && opt.cell && opt.cell(x, t, cx[c], y, w, rh, r, c, row, fs)) continue;
+const al = opt.al ? opt.al(c, r) : 'center', px = al === 'left' ? cx[c] + fs * .5 : al === 'right' ? cx[c] + w - fs * .5 : cx[c] + w / 2;
+tx(x, t, px, y + rh / 2, w - fs * .8, r ? fs : fs * .95, r && !(opt.fc && !c) ? 400 : 800, r ? (opt.col ? opt.col(r, c, row) : P.ink) : hfg, al);
+} });
+x.restore();
+}
+function dayCol(t, P) { return /^(土|Sat)/i.test(t) ? P.sat : /^(日|祝|Sun)/i.test(t) ? P.sun : null; }
+function weatherIcon(x, w, cx, cy, s, P) {
+const mono = P.st === 'mono', sunC = mono ? P.c : [242, 184, 75], cl = mono ? [190, 190, 186] : [186, 196, 206], rain = mono ? [130, 130, 126] : [100, 150, 205];
+const sun = (X, Y, r) => { x.strokeStyle = x.fillStyle = css(sunC); x.lineWidth = r * .22; x.lineCap = 'round'; for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; line(x, X + Math.cos(a) * r * 1.35, Y + Math.sin(a) * r * 1.35, X + Math.cos(a) * r * 1.75, Y + Math.sin(a) * r * 1.75); } circ(x, X, Y, r); x.fill(); };
+const cloud = (X, Y, r) => { x.fillStyle = css(cl); circ(x, X - r * .55, Y + r * .15, r * .55); x.fill(); circ(x, X + r * .1, Y - r * .2, r * .72); x.fill(); circ(x, X + r * .7, Y + r * .2, r * .48); x.fill(); rr(x, X - r * 1.1, Y + r * .1, r * 2.25, r * .58, r * .29); x.fill(); };
+const k = /雨|☂|☔|rain/i.test(w) ? 'r' : /雪|☃|❄|snow/i.test(w) ? 's' : /曇|☁|くもり|cloud/i.test(w) ? 'c' : /晴|☀|はれ|sun/i.test(w) ? 'f' : '';
+const two = /のち|時々|一時|\/|→/.test(w);
+if (two && /晴|☀/.test(w) && k !== 'f') { sun(cx - s * .28, cy - s * .2, s * .2); }
+if (k === 'f') { sun(cx, cy, s * .24); if (two && /曇/.test(w)) cloud(cx + s * .2, cy + s * .15, s * .24); }
+else if (k) {
+cloud(cx, cy - s * .08, s * .3);
+if (k === 'r') { x.strokeStyle = css(rain); x.lineWidth = s * .06; x.lineCap = 'round'; for (let j = -1; j <= 1; j++) line(x, cx + j * s * .2, cy + s * .2, cx + j * s * .2 - s * .06, cy + s * .36); }
+if (k === 's') { x.fillStyle = css(rain); for (let j = -1; j <= 1; j++) { circ(x, cx + j * s * .2, cy + s * .28 + (j & 1) * s * .06, s * .05); x.fill(); } }
+} else tx(x, w, cx, cy, s, s * .3, 400, P.ink, 'center');
+}
+function weather(x, R, rows, P, S) {
+const n = Math.max(...rows.map(r => r.length)), cw = R.w / n, fs = Math.min(S * .062, cw * .3), extra = Math.max(0, rows.length - 3);
+const dayH = fs * 1.8, wordH = rows[1] ? fs * 1.4 : 0, tH = rows[2] ? fs * 1.7 : 0, exH = extra * fs * 1.4, ih = rows[1] ? Math.max(0, Math.min(R.h - dayH - wordH - tH - exH, cw * 1.1)) : 0, oy = (R.h - dayH - wordH - tH - exH - ih) / 2;
+const hi = P.st === 'mono' ? P.ink : [205, 100, 90], lo = P.st === 'mono' ? P.sub : [90, 130, 190];
+for (let i = 0; i < n; i++) {
+const x0 = R.x + cw * i, cx = x0 + cw / 2; let y = R.y + Math.max(0, oy);
+x.fillStyle = css(i % 2 ? P.card : P.zebra); rr(x, x0 + cw * .04, R.y, cw * .92, R.h, Math.min(cw * .3, S * .04)); x.fill();
+const day = (rows[0] || [])[i] || '';
+tx(x, day, cx, y + dayH / 2, cw * .9, fs * 1.05, 800, dayCol(day, P) || P.dark, 'center'); y += dayH;
+if (rows[1]) { const s = Math.min(cw * .92, ih); weatherIcon(x, rows[1][i] || '', cx, y + ih / 2, s, P); y += ih; tx(x, rows[1][i] || '', cx, y + wordH / 2, cw * .9, fs * .8, 400, P.sub, 'center'); y += wordH; }
+if (rows[2]) {
+const p = (rows[2][i] || '').split(/\s*[\/／]\s*/);
+if (p.length === 2) { const hw = cw * .45; tx(x, p[0], cx - fs * .15, y + tH / 2, hw, fs, 800, hi, 'right'); tx(x, '/', cx, y + tH / 2, fs, fs * .8, 400, P.sub, 'center'); tx(x, p[1], cx + fs * .15, y + tH / 2, hw, fs, 800, lo, 'left'); }
+else tx(x, p[0], cx, y + tH / 2, cw * .9, fs, 800, P.ink, 'center');
+y += tH;
+}
+for (let r = 3; r < rows.length; r++) { tx(x, rows[r][i] || '', cx, y + fs * .7, cw * .9, fs * .8, 400, P.ink, 'center'); y += fs * 1.4; }
+}
+}
+function table(x, R, rows, P, S, kind) {
+if (kind === 'weather') return weather(x, R, rows, P, S);
+const opt = { vl: 1 };
+if (kind === 'timetable') { opt.fc = 1; opt.cell = (x, t, px, py, w, h, r, c, row, fs) => { if (!c || !t) return false;
+const k = P.st === 'mono' ? [236, 236, 232] : mix(P.cat(1 + hash(t) % 9), WH, P.st === 'bold' ? .45 : .6), m = Math.min(w, h) * .1;
+x.fillStyle = css(k); rr(x, px + m, py + m, w - m * 2, h - m * 2, m * 1.6); x.fill(); tx(x, t, px + w / 2, py + h / 2, w - fs * .7, fs, 400, P.ink, 'center'); return true; }; }
+if (kind === 'compare') { opt.fc = 1; opt.cell = (x, t, px, py, w, h, r, c, row, fs) => { const m = MARK[t.trim()]; if (!c || !m) return false; mark(x, m, px + w / 2, py + h / 2, Math.min(h * .28, w * .25), P, S); return true; }; }
+if (kind === 'checklist') {
+opt.vl = 0; opt.w0 = 1; opt.al = c => c === 1 ? 'left' : c ? 'right' : 'center';
+opt.col = (r, c, row) => CHECK.test((row[0] || '').trim()) ? P.sub : P.ink;
+opt.cell = (x, t, px, py, w, h, r, c, row, fs) => {
+const done = CHECK.test((row[0] || '').trim());
+if (c === 0) { const b = Math.min(h * .48, w * .62); x.lineWidth = Math.max(1, b * .1); rr(x, px + (w - b) / 2, py + (h - b) / 2, b, b, b * .25);
+if (done) { x.fillStyle = css(P.c); x.fill(); x.strokeStyle = css(onCol(P.c)); x.lineCap = x.lineJoin = 'round'; x.lineWidth = b * .14; x.beginPath(); x.moveTo(px + w / 2 - b * .25, py + h / 2); x.lineTo(px + w / 2 - b * .05, py + h / 2 + b * .2); x.lineTo(px + w / 2 + b * .27, py + h / 2 - b * .2); x.stroke(); }
+else { x.strokeStyle = css(P.light); x.stroke(); } return true; }
+if (!done) return false; const al = c === 1 ? 'left' : 'right', tw = tx(x, t, al === 'left' ? px + fs * .5 : px + w - fs * .5, py + h / 2, w - fs * .8, fs, 400, P.sub, al);
+if (tw) { const sx = al === 'left' ? px + fs * .5 : px + w - fs * .5 - tw; x.strokeStyle = css(P.sub, .8); x.lineWidth = Math.max(1, fs * .07); line(x, sx, py + h / 2, sx + tw, py + h / 2); } return true;
+};
+}
+if (kind === 'schedule') {
+opt.vl = 0; opt.w0 = 1; opt.al = (c, r) => !r || c === 0 ? 'center' : c === 1 && rows[0].length > 2 ? 'center' : 'left';
+opt.col = (r, c) => c === 1 && rows[0].length > 2 ? P.sub : P.ink;
+opt.cell = (x, t, px, py, w, h, r, c, row, fs) => { if (c) return false; const b = Math.min(h * .36, w * .4); circ(x, px + w / 2, py + h / 2, b);
+x.fillStyle = css(P.st === 'mono' ? [120, 120, 116] : dayCol(t, P) || P.c); x.fill(); tx(x, t, px + w / 2, py + h / 2, b * 1.7, b * 1.05, 800, WH, 'center'); return true; };
+}
+if (kind === 'price') {
+opt.vl = 0; opt.nozebra = opt.prop = 1; opt.al = c => c ? 'right' : 'left';
+opt.cell = (x, t, px, py, w, h, r, c, row, fs) => {
+if (c === 0) { const tw = tx(x, t, px + fs * .5, py + h / 2, w - fs * 1.2, fs, 400, P.ink, 'left'); x.fillStyle = css(P.sub, .6);
+for (let dx = px + fs * .5 + tw + fs * .5; dx < px + w - fs * .2; dx += fs * .45) { circ(x, dx, py + h / 2 + fs * .25, fs * .06); x.fill(); } return true; }
+const tw = tx(x, t, px + w - fs * .5, py + h / 2, w - fs * .6, fs * 1.02, 800, P.dark, 'right'); x.fillStyle = css(P.sub, .6);
+for (let dx = px; dx < px + w - fs * .9 - tw; dx += fs * .45) { circ(x, dx, py + h / 2 + fs * .25, fs * .06); x.fill(); } return true;
+};
+}
+if (opt.w0) { const nc = Math.max(...rows.map(r => r.length)); opt.w0 = nc > 1 ? Math.min(R.h / rows.length * 1.25, R.w * .22) : 0; }
+grid(x, R, rows, P, S, opt);
+}
+
+/* ---------- main ---------- */
+function render(x, o) {
+let W = +o.w, H = +o.h; if (!(W > 0) || !isFinite(W)) W = 300; if (!(H > 0) || !isFinite(H)) H = 200;
+FAM = `"${String(o.font || 'M PLUS Rounded 1c').replace(/"/g, '')}","Hiragino Sans","Noto Sans JP",sans-serif`;
+const P = pal(o), S = Math.min(W, H), x0 = -W / 2, y0 = -H / 2, rad = S * .07;
+let k = 1; try { const t = x.getTransform(); k = Math.hypot(t.a, t.b) || 1; } catch (e) {}
+x.save(); x.shadowColor = 'rgba(48,40,24,.22)'; x.shadowBlur = S * .06 * k; x.shadowOffsetY = S * .02 * k;
+rr(x, x0, y0, W, H, rad); x.fillStyle = css(P.card); x.fill(); x.restore();
+x.strokeStyle = css(P.st === 'mono' ? [0, 0, 0] : P.c, .1); x.lineWidth = Math.max(.5, S * .004); rr(x, x0, y0, W, H, rad); x.stroke();
+const pad = S * .07, title = String(o.title == null ? '' : o.title).trim(); let top = y0 + pad;
+if (title) {
+const fs = Math.min(S * .088, H * .1);
+if (P.st === 'bold') {
+const bh = fs * 2; x.save(); rr(x, x0, y0, W, H, rad); x.clip(); x.fillStyle = css(P.c); x.fillRect(x0, y0, W, bh); x.restore();
+tx(x, title, 0, y0 + bh / 2, W - pad * 2, fs, 800, onCol(P.c), 'center'); top = y0 + bh + pad * .7;
+} else {
+leaf(x, x0 + pad + fs * .42, top + fs * .62, fs * .9, P.c, P.card);
+tx(x, title, x0 + pad + fs * 1.15, top + fs * .62, W - pad * 2 - fs * 1.15, fs, 800, P.dark); top += fs * 1.25 + pad * .6;
+}
+}
+const R = { x: x0 + pad, y: top, w: W - pad * 2, h: y0 + H - pad - top };
+if (R.w < 4 || R.h < 4) return;
+const kind = CHART_KINDS[o.kind] ? o.kind : isTable(o) ? 'table' : 'bar';
+if (CHART_KINDS[kind].table) { const rows = tableRows(o); if (!rows.length || !rows.some(r => r.some(c => c.trim()))) return empty(x, R, P, S); return table(x, R, rows, P, S, kind); }
+const d = series(o); if (!d.n) return empty(x, R, P, S);
+({ bar: bars, hbar: hbars, line: (a, b, c, e, f) => lines(a, b, c, e, f, 0), area: (a, b, c, e, f) => lines(a, b, c, e, f, 1), pie: (a, b, c, e, f) => pie(a, b, c, e, f, 0),
+donut: (a, b, c, e, f) => pie(a, b, c, e, f, 1), progress, gauge, ranking, rating })[kind](x, R, d, P, S);
+}
+function drawChart(ctx, o) {
+if (!ctx || !o) return; ctx.save();
+try { render(ctx, o); } catch (e) { if (typeof console !== 'undefined') console.warn('drawChart', e); }
+ctx.restore();
+}
+
+/* ---------- text I/O ---------- */
+const z2h = s => String(s).replace(/[０-９Ａ-Ｚａ-ｚ．－＋，]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[−ー―‐](?=\s*\d)/g, '-');
+const cleanCell = c => String(c == null ? '' : c).replace(/[\r\n]+/g, ' ').replace(/\s*[|｜]\s*/g, ' / ').trim();
+function chartToText(o) {
+o = o || {}; const L = ['# ' + String(o.title == null ? '' : o.title).replace(/[\r\n]+/g, ' ').trim()];
+if (isTable(o)) tableRows(o).forEach(r => L.push(r.map(cleanCell).join(' | ')));
+else { const d = series(o); for (let i = 0; i < d.n; i++) L.push(`${cleanCell(d.lab[i]).replace(/[:：]\s*$/, '')}: ${d.v[i]}${d.v2 ? ', ' + d.v2[i] : ''}`); }
+return L.join('\n');
+}
+function chartFromText(o, text) {
+o = o || {}; let lines = String(text == null ? '' : text).replace(/\r/g, '').split('\n'), title = '';
+const i0 = lines.findIndex(l => l.trim()); if (i0 >= 0 && /^[#＃]/.test(lines[i0].trim())) { title = lines[i0].trim().replace(/^[#＃]+\s*/, ''); lines = lines.slice(i0 + 1); }
+lines = lines.map(l => l.trim()).filter(Boolean);
+if (isTable(o)) return { title, rows: lines.map(l => (/[|｜]/.test(l) ? l.split(/\s*[|｜]\s*/) : l.split(/\t+/)).map(c => c.trim())) };
+const labels = [], values = [], s2 = []; let two = false;
+for (const l of lines) {
+let lab, rest, m = l.match(/^(.*)[:：]\s*([^:：]*)$/);
+if (m) { lab = m[1].trim(); rest = m[2]; } else if ((m = z2h(l).match(/^(.*?)\s+(-?[\d.,\s]+)$/))) { lab = m[1].trim(); rest = m[2]; } else { lab = l; rest = ''; }
+const ns = z2h(rest).replace(/(\d)[,，](?=\d{3}(?!\d))/g, '$1').split(/[,、，\/／\s]+/).map(t => parseFloat(t.replace(/[^\d.\-]/g, ''))).filter(t => isFinite(t));
+labels.push(lab); values.push(ns.length ? ns[0] : 0); s2.push(ns.length > 1 ? ns[1] : 0); if (ns.length > 1) two = true;
+}
+return { title, labels, values, series2: two ? s2 : undefined };
+}
+
+/* ---------- presets ---------- */
+const SAGE = '#5E8C5F', PINK = '#E59AA8', BLUE = '#7EA6CC', YEL = '#E5B84C', BRN = '#A88160', LAV = '#9C8FC4';
+const WK = ['月', '火', '水', '木', '金', '土', '日'];
+const p = (id, name, kind, w, h, title, data, color, style, extra) => Object.assign({ id: 'ch-' + id, name, kind, w, h, title }, data, { color, style }, extra || {});
+const cv = (labels, values) => ({ labels, values });
+const CHART_PRESETS = [
+p('steps', '1週間の歩数', 'bar', .62, .46, '1週間の歩数', cv(WK, [6230, 8120, 7450, 10200, 5400, 12800, 9300]), SAGE, 'soft'),
+p('budget', '家計簿', 'pie', .64, .42, '今月の支出', cv(['食費', '住居', '光熱費', '交際費', '日用品', 'その他'], [42000, 65000, 12000, 18000, 8000, 9000]), PINK, 'soft'),
+p('study', '勉強時間', 'line', .62, .44, '勉強時間（時間）', cv(WK, [1.5, 2, 1, 3, 2.5, 4, 3.5]), BLUE, 'soft'),
+p('survey', 'アンケート結果', 'donut', .62, .44, 'アンケート結果', cv(['満足', 'やや満足', '普通', 'やや不満', '不満'], [42, 31, 15, 8, 4]), SAGE, 'bold'),
+p('goal', '目標達成', 'progress', .58, .38, '今月の目標', cv(['読書 10冊', '運動 20回', '貯金 5万円'], [80, 55, 72]), YEL, 'soft'),
+p('gauge', '達成率メーター', 'gauge', .46, .36, '目標達成率', cv(['ダイエット'], [72]), SAGE, 'soft'),
+p('rank', 'おすすめランキング', 'ranking', .56, .42, 'おすすめ TOP3', cv(['抹茶ラテ', 'ほうじ茶ラテ', 'いちごミルク'], [98, 87, 76]), PINK, 'bold'),
+p('rating', '評価 ★', 'rating', .58, .42, 'お店の評価', cv(['味', '雰囲気', 'コスパ', '接客'], [4.5, 4, 3.5, 5]), YEL, 'soft'),
+p('timetable', '時間割', 'timetable', .7, .58, '時間割', { rows: [['', '月', '火', '水', '木', '金'], ['1', '国語', '数学', '英語', '理科', '数学'], ['2', '数学', '英語', '国語', '社会', '英語'], ['3', '英語', '理科', '体育', '数学', '国語'], ['4', '理科', '社会', '数学', '英語', '音楽'], ['5', '社会', '体育', '美術', '国語', '理科'], ['6', '体育', '国語', '美術', '総合', '']] }, SAGE, 'soft'),
+p('todo', 'やることリスト', 'checklist', .5, .5, 'やることリスト', { rows: [['✓', 'やること'], ['☑', '洗濯'], ['☐', '買い物'], ['☐', 'メールの返信'], ['☑', '部屋の掃除'], ['☐', '日記を書く']] }, BLUE, 'soft'),
+p('week', '今週の予定', 'schedule', .6, .5, '今週の予定', { rows: [['曜日', '時間', '予定'], ['月', '10:00', '歯医者'], ['水', '19:00', 'ヨガ'], ['金', '18:30', '友だちとごはん'], ['土', '9:00', 'カフェ巡り'], ['日', '13:00', '映画']] }, SAGE, 'soft'),
+p('compare', '比較表 ◯✕', 'compare', .6, .46, 'カフェ比較', { rows: [['', 'A店', 'B店', 'C店'], ['安さ', '◯', '△', '◎'], ['駅近', '◎', '◯', '✕'], ['Wi-Fi', '✕', '◯', '◯'], ['電源', '◯', '✕', '◯']] }, BLUE, 'bold'),
+p('menu', 'メニュー価格表', 'price', .54, .5, 'Cafe Menu', { rows: [['メニュー', '価格'], ['ブレンドコーヒー', '¥480'], ['カフェラテ', '¥520'], ['抹茶ラテ', '¥560'], ['チーズケーキ', '¥450'], ['季節のタルト', '¥600']] }, BRN, 'soft'),
+p('weight', '体重記録', 'line', .6, .42, '体重の記録（kg）', cv(['1週', '2週', '3週', '4週', '5週', '6週'], [58.2, 57.8, 57.9, 57.3, 57, 56.6]), PINK, 'mono'),
+p('sales', '売上（2系列）', 'bar', .66, .46, '売上 今年／昨年（万円）', { labels: ['1月', '2月', '3月', '4月', '5月', '6月'], values: [120, 135, 150, 142, 168, 190], series2: [100, 118, 125, 130, 140, 152] }, SAGE, 'bold', { color2: '#D9B36C' }),
+p('vote', '人気投票', 'hbar', .6, .44, '好きなアイスは？', cv(['いちご', 'チョコ', 'バニラ', '抹茶', 'マンゴー'], [128, 96, 74, 61, 43]), PINK, 'soft'),
+p('weather', '週間天気', 'weather', .72, .4, '週間天気', { rows: [WK, ['晴', '晴のち曇', '雨', '曇', '晴', '晴', '雨のち晴'], ['18/9', '16/10', '14/11', '15/9', '19/10', '20/12', '17/11']] }, BLUE, 'soft'),
+p('books', '読書記録', 'table', .64, .46, '読書記録', { rows: [['日付', 'タイトル', '評価'], ['11/2', '星降る庭', '★★★★☆'], ['11/9', '夜明けのパン屋', '★★★★★'], ['11/16', '森のことば', '★★★☆☆'], ['11/23', '旅する植物図鑑', '★★★★☆']] }, LAV, 'soft'),
+p('shop', '買い物リスト', 'checklist', .5, .48, '買い物リスト', { rows: [['✓', '品物', '数量'], ['☐', '牛乳', '1本'], ['☑', '卵', '1パック'], ['☐', 'りんご', '3個'], ['☐', '食パン', '1斤']] }, YEL, 'soft'),
+p('follow', 'フォロワー推移', 'area', .62, .44, 'フォロワー推移', cv(['6月', '7月', '8月', '9月', '10月', '11月'], [120, 180, 260, 390, 520, 740]), SAGE, 'soft'),
+p('sleep', '睡眠時間', 'bar', .6, .44, '睡眠時間（h）', cv(WK, [6.5, 7, 5.5, 8, 6, 9, 7.5]), LAV, 'mono')
+];
+return { CHART_KINDS, CHART_PRESETS, drawChart, chartToText, chartFromText };
+})();
+//GEN-CHARTS-END
+//GEN-TPL-START
+// extra template categories (ids not already used: existing are all, collage, season, sns, oshi, life, howto)
+const TPL_CATS_GEN = [['month', '12か月'], ['school', '学校・勉強'], ['shop', 'お店・告知']];
+const TEMPLATES_GEN = [
+  /* ---- 12か月 (laid over the current photo) ---- */
+  { id: 'gen-m01', name: '1月 初詣', cat: 'month', items: () => [
+    { t: 'text', x: .87, y: .36, text: '初詣', font: 'Yuji Syuku', size: .13, color: '#FFFFFF', outline: '#B5162B', vert: true, bold: false },
+    { t: 'deco', kind: 'round-sticker', x: .14, y: .15, s: 1.2, color: '#C8102E', color2: '#FFFFFF' },
+    { t: 'text', x: .14, y: .15, text: '福', font: 'Yuji Syuku', size: .09, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .3, y: .88, text: 'おみくじ 大吉', font: 'Shippori Mincho', size: .055, color: '#B5162B', bg: '#FFF6E0', rot: -.04 },
+    { t: 'stamp', x: .84, y: .86, ch: '⛩️', size: .12 }] },
+  { id: 'gen-m02', name: '2月 バレンタイン', cat: 'month', preset: 'soft', amt: 70, items: () => [
+    { t: 'text', x: .5, y: .13, text: 'Happy Valentine', font: 'Great Vibes', size: .12, color: '#FFFFFF', shadow: true, bold: false },
+    { t: 'deco', kind: 'heart-line', x: .13, y: .3, color: '#FF6F9C', rot: -.2 },
+    { t: 'note', x: .73, y: .75, w: .42, h: .38, shape: 'heart', color: '#FFD6E0', text: 'いつも\nありがとう', font: 'Zen Maru Gothic', tcolor: '#B23A5E', deco: 'none', rot: .06 },
+    { t: 'stamp', x: .14, y: .85, ch: '🍫', size: .11 },
+    { t: 'deco', kind: 'kira', x: .88, y: .3, color: '#FFFFFF' }] },
+  { id: 'gen-m03', name: '3月 ひなまつり', cat: 'month', preset: 'soft', amt: 60, items: () => [
+    { t: 'deco', kind: 'tape-asanoha', x: .5, y: .08, s: 1.2, color: '#FFB3C7', color2: '#FFFFFF', rot: -.02 },
+    { t: 'text', x: .5, y: .19, text: 'ひなまつり', font: 'Kaisei Decol', size: .1, color: '#FFFFFF', outline: '#E06A8E', bold: false },
+    { t: 'stamp', x: .13, y: .85, ch: '🎎', size: .13 },
+    { t: 'stamp', x: .87, y: .84, ch: '🌸', size: .1 }, { t: 'stamp', x: .76, y: .92, ch: '🌸', size: .06 },
+    { t: 'text', x: .5, y: .93, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
+  { id: 'gen-m04', name: '4月 お花見', cat: 'month', items: () => [
+    { t: 'text', x: .5, y: .12, text: 'お花見日和', font: 'Zen Maru Gothic', size: .1, color: '#FFFFFF', bg: '#F49AB5' },
+    { t: 'text', x: .5, y: .22, text: 'sakura days', font: 'Caveat', size: .085, color: '#FFFFFF', shadow: true, bold: false },
+    { t: 'stamp', x: .12, y: .3, ch: '🌸', size: .09 }, { t: 'stamp', x: .9, y: .35, ch: '🌸', size: .06 },
+    { t: 'stamp', x: .86, y: .85, ch: '🍡', size: .12 },
+    { t: 'text', x: .2, y: .92, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
+  { id: 'gen-m05', name: '5月 こどもの日', cat: 'month', preset: 'natural', amt: 70, items: () => [
+    { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.4, color: '#4FA3E0', color2: '#9BD27A' },
+    { t: 'text', x: .5, y: .21, text: 'こどもの日', font: 'Mochiy Pop One', size: .09, color: '#FFFFFF', outline: '#2F6FB0', bold: false },
+    { t: 'text', x: .62, y: .89, text: 'すくすく大きくなあれ', font: 'Kiwi Maru', size: .045, color: '#2F6FB0', bg: '#FFFFFF' },
+    { t: 'stamp', x: .14, y: .83, ch: '🎏', size: .14 }] },
+  { id: 'gen-m06', name: '6月 紫陽花と雨', cat: 'month', preset: 'cool', amt: 55, items: () => [
+    { t: 'text', x: .88, y: .34, text: '紫陽花', font: 'Shippori Mincho', size: .1, color: '#FFFFFF', shadow: true, vert: true },
+    { t: 'text', x: .3, y: .12, text: 'rainy days', font: 'Caveat', size: .12, color: '#FFFFFF', shadow: true, bold: false, rot: -.06 },
+    { t: 'stamp', x: .14, y: .84, ch: '☔', size: .12 },
+    { t: 'stamp', x: .3, y: .9, ch: '🐌', size: .07 },
+    { t: 'deco', kind: 'bubble', x: .82, y: .82, color: '#B9A7E8' }] },
+  { id: 'gen-m07', name: '7月 七夕', cat: 'month', preset: 'night', amt: 40, items: () => [
+    { t: 'text', x: .12, y: .33, text: '七夕', font: 'Yuji Syuku', size: .12, color: '#FFFFFF', shadow: true, vert: true, bold: false },
+    { t: 'note', x: .8, y: .36, w: .14, h: .5, shape: 'square', color: '#FFE3EC', text: '', deco: 'pin', rot: .05 },
+    { t: 'text', x: .8, y: .39, text: '願いが叶いますように', font: 'Klee One', size: .036, color: '#6B3FA0', vert: true, rot: .05 },
+    { t: 'deco', kind: 'kira3', x: .4, y: .12, color: '#FFE66D' },
+    { t: 'stamp', x: .86, y: .86, ch: '🎋', size: .13 },
+    { t: 'deco', kind: 'star', x: .16, y: .85, s: .8, color: '#FFE66D' }] },
+  { id: 'gen-m08', name: '8月 夏祭り・花火', cat: 'month', items: () => [
+    { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.4, color: '#E8382F', color2: '#FFFFFF' },
+    { t: 'text', x: .5, y: .2, text: '夏祭り', font: 'Darumadrop One', size: .13, color: '#FFFFFF', outline: '#E8382F', bold: false },
+    { t: 'stamp', x: .13, y: .84, ch: '🏮', size: .12 },
+    { t: 'stamp', x: .87, y: .36, ch: '🎆', size: .12 },
+    { t: 'stamp', x: .86, y: .86, ch: '🍧', size: .1 },
+    { t: 'text', x: .5, y: .93, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
+  { id: 'gen-m09', name: '9月 お月見', cat: 'month', preset: 'dusk', amt: 50, items: () => [
+    { t: 'text', x: .87, y: .38, text: 'お月見', font: 'Hina Mincho', size: .11, color: '#FFF3C4', shadow: true, vert: true, bold: false },
+    { t: 'stamp', x: .15, y: .15, ch: '🌕', size: .13 },
+    { t: 'text', x: .45, y: .13, text: 'moon night', font: 'Cinzel', size: .065, color: '#FFF3C4', shadow: true, bold: false },
+    { t: 'stamp', x: .14, y: .85, ch: '🐇', size: .11 }, { t: 'stamp', x: .3, y: .88, ch: '🍡', size: .08 }] },
+  { id: 'gen-m10', name: '10月 紅葉狩り', cat: 'month', preset: 'warm', amt: 60, items: () => [
+    { t: 'text', x: .5, y: .13, text: '紅葉狩り', font: 'Shippori Mincho', size: .11, color: '#FFFFFF', outline: '#A33B1E' },
+    { t: 'text', x: .5, y: .235, text: 'autumn leaves', font: 'Caveat', size: .08, color: '#FFE0B5', shadow: true, bold: false },
+    { t: 'stamp', x: .12, y: .3, ch: '🍁', size: .1, rot: -.3 },
+    { t: 'stamp', x: .86, y: .84, ch: '🍂', size: .12, rot: .2 }, { t: 'stamp', x: .72, y: .91, ch: '🍁', size: .07 },
+    { t: 'text', x: .2, y: .92, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
+  { id: 'gen-m11', name: '11月 読書の秋', cat: 'month', preset: 'film', amt: 55, items: () => [
+    { t: 'text', x: .5, y: .12, text: 'Book & Coffee', font: 'Playfair Display', size: .085, color: '#FFFFFF', shadow: true, italic: true },
+    { t: 'note', x: .29, y: .77, w: .46, h: .34, shape: 'torn', color: '#FBF6EC', text: '今読んでる本\n『秋の夜長』', font: 'Klee One', tcolor: '#4A3B2E', deco: 'tape', rot: -.04 },
+    { t: 'stamp', x: .85, y: .85, ch: '📚', size: .11 },
+    { t: 'stamp', x: .88, y: .26, ch: '☕', size: .09 }] },
+  { id: 'gen-m12', name: '12月 今年もありがとう', cat: 'month', preset: 'cool', amt: 40, items: () => [
+    { t: 'text', x: .5, y: .13, text: '今年もありがとう', font: 'Zen Maru Gothic', size: .085, color: '#FFFFFF', shadow: true },
+    { t: 'text', x: .5, y: .23, text: 'THANK YOU ' + new Date().getFullYear(), font: 'Bebas Neue', size: .07, color: '#CFE8FF', bold: false, shadow: true },
+    { t: 'deco', kind: 'kira', x: .86, y: .36, color: '#FFFFFF' },
+    { t: 'stamp', x: .14, y: .85, ch: '⛄', size: .13 },
+    { t: 'stamp', x: .86, y: .84, ch: '❄️', size: .08 }, { t: 'stamp', x: .76, y: .92, ch: '❄️', size: .05 }] },
+
+  /* ---- 学校・勉強 ---- */
+  { id: 'gen-sc-time', name: '時間割メモ', cat: 'school', items: () => [
+    { t: 'text', x: .5, y: .1, text: '今週の時間割', font: 'Mochiy Pop One', size: .075, color: '#FFFFFF', bg: '#4F8FD9', bold: false },
+    { t: 'note', x: .7, y: .58, w: .44, h: .56, shape: 'square', color: '#FFFFFF', pattern: 'grid', text: '月 国語・数学\n火 英語・理科\n水 社会・体育\n木 数学・音楽\n金 英語・美術', font: 'Zen Maru Gothic', tcolor: '#2A3A55', deco: 'tape', rot: .02 },
+    { t: 'stamp', x: .16, y: .86, ch: '✏️', size: .1 },
+    { t: 'deco', kind: 'check', x: .16, y: .3, color: '#FF6F61' }] },
+  { id: 'gen-sc-study', name: '勉強記録', cat: 'school', items: () => [
+    { t: 'text', x: .3, y: .1, text: 'STUDY LOG', font: 'Bebas Neue', size: .1, color: '#FFFFFF', bold: false, shadow: true },
+    { t: 'text', x: .3, y: .19, text: todayStr(), font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', bold: false, shadow: true },
+    { t: 'note', x: .71, y: .73, w: .46, h: .42, shape: 'rounded', color: '#FFFFFF', pattern: 'lines', text: '勉強時間 3h20m\n英単語 50個\n数学 p.32〜35', font: 'Klee One', tcolor: '#2A3A55', deco: 'pin' },
+    { t: 'deco', kind: 'hand-underline', x: .3, y: .24, s: .8, color: '#FFD23F' },
+    { t: 'stamp', x: .14, y: .86, ch: '📖', size: .1 }] },
+  { id: 'gen-sc-club', name: '部活おつかれ', cat: 'school', preset: 'youth', amt: 70, items: () => [
+    { t: 'text', x: .5, y: .12, text: '部活おつかれ！', font: 'RocknRoll One', size: .085, color: '#FFFFFF', outline: '#1E3A8A', bold: false },
+    { t: 'deco', kind: 'ribbon', x: .5, y: .86, s: 1.3, color: '#1E3A8A', color2: '#FFFFFF' },
+    { t: 'text', x: .5, y: .858, text: '大会まであと30日', font: 'Zen Kaku Gothic New', size: .045, color: '#FFFFFF' },
+    { t: 'stamp', x: .1, y: .26, ch: '🔥', size: .09 }, { t: 'stamp', x: .9, y: .26, ch: '🏆', size: .09 }] },
+  { id: 'gen-sc-fest', name: '文化祭', cat: 'school', items: () => [
+    { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.4, color: '#FF7AA8', color2: '#FFE66D' },
+    { t: 'text', x: .5, y: .2, text: '文化祭', font: 'Rampart One', size: .12, color: '#FFFFFF', outline: '#FF4F9A', bold: false },
+    { t: 'text', x: .6, y: .88, text: '2年3組 カフェやってます！', font: 'M PLUS Rounded 1c', size: .045, color: '#E0457B', bg: '#FFFFFF' },
+    { t: 'stamp', x: .13, y: .84, ch: '🎪', size: .12 }] },
+  { id: 'gen-sc-sports', name: '体育祭', cat: 'school', preset: 'vivid', amt: 60, items: () => [
+    { t: 'text', x: .5, y: .12, text: '体育祭', font: 'RocknRoll One', size: .12, color: '#FFFFFF', outline: '#D7263D', bold: false },
+    { t: 'deco', kind: 'ribbon', x: .5, y: .86, s: 1.2, color: '#D7263D', color2: '#FFFFFF' },
+    { t: 'text', x: .5, y: .858, text: '赤組 優勝！', font: 'Zen Kaku Gothic New', size: .05, color: '#FFFFFF' },
+    { t: 'stamp', x: .13, y: .28, ch: '🏃', size: .1 }, { t: 'stamp', x: .87, y: .28, ch: '🏅', size: .1 },
+    { t: 'deco', kind: 'kira3', x: .86, y: .66, color: '#FFE66D' }] },
+  { id: 'gen-sc-album', name: '卒アル風（6枚）', cat: 'school', canvas: [1080, 1350], bg: '#F5F1E8', items: () => [
+    { t: 'text', x: .5, y: .065, text: 'GRADUATION', font: 'Cinzel', size: .075, color: '#2B3A55' },
+    { t: 'text', x: .5, y: .12, text: 'class of ' + new Date().getFullYear() + '  ·  3年2組', font: 'Zen Kaku Gothic New', size: .032, color: '#6B7280', bold: false },
+    ...[0, 1, 2].flatMap(r => [0, 1].map(c => ({ t: 'slot', x: .28 + c * .44, y: .28 + r * .245, w: .4, h: .225, rad: 4, border: '#FFFFFF', shadow: true }))),
+    { t: 'text', x: .5, y: .945, text: 'ありがとう、また会おうね', font: 'Klee One', size: .04, color: '#2B3A55', bold: false }] },
+
+  /* ---- お店・告知 ---- */
+  { id: 'gen-shop-menu', name: '新メニュー告知', cat: 'shop', items: () => [
+    { t: 'text', x: .5, y: .11, text: 'NEW MENU', font: 'Bebas Neue', size: .14, color: '#FFFFFF', bold: false, shadow: true },
+    { t: 'text', x: .5, y: .22, text: '季節のいちごタルト', font: 'Zen Kaku Gothic New', size: .055, color: '#FFFFFF', bg: '#C0504D' },
+    { t: 'deco', kind: 'badge', x: .82, y: .82, s: 1.2, color: '#FFD23F', color2: '#FFFFFF' },
+    { t: 'text', x: .82, y: .82, text: '¥680', font: 'Oswald', size: .06, color: '#5A3A00' },
+    { t: 'text', x: .22, y: .9, text: '期間限定', font: 'Zen Kaku Gothic New', size: .05, color: '#FFFFFF', shadow: true }] },
+  { id: 'gen-shop-sale', name: 'SALE告知', cat: 'shop', items: () => [
+    { t: 'text', x: .5, y: .17, text: 'SALE', font: 'Bungee', size: .2, color: '#E8382F', outline: '#FFFFFF', bold: false },
+    { t: 'note', x: .76, y: .74, w: .36, h: .36, shape: 'sticker', color: '#FFD23F', text: '', deco: 'none', rot: .1 },
+    { t: 'text', x: .755, y: .7, text: '最大', font: 'Zen Kaku Gothic New', size: .045, color: '#C2185B', rot: .1 },
+    { t: 'text', x: .76, y: .77, text: '30%OFF', font: 'Dela Gothic One', size: .052, color: '#C2185B', bold: false, rot: .1 },
+    { t: 'text', x: .28, y: .88, text: '今週末まで', font: 'Zen Kaku Gothic New', size: .055, color: '#FFFFFF', bg: '#111111' },
+    { t: 'stamp', x: .12, y: .34, ch: '🛍️', size: .1 }] },
+  { id: 'gen-shop-hours', name: '営業時間のお知らせ', cat: 'shop', items: () => [
+    { t: 'text', x: .5, y: .1, text: 'OPEN', font: 'Oswald', size: .1, color: '#FFFFFF', shadow: true },
+    { t: 'note', x: .5, y: .64, w: .62, h: .42, shape: 'rounded', color: '#FFFFFF', text: '', deco: 'none' },
+    { t: 'text', x: .5, y: .54, text: '営業時間', font: 'Zen Kaku Gothic New', size: .045, color: '#8A7B6B' },
+    { t: 'text', x: .5, y: .64, text: '11:00 – 19:00', font: 'Oswald', size: .075, color: '#2A2724' },
+    { t: 'text', x: .5, y: .75, text: '定休日 水曜日', font: 'Zen Kaku Gothic New', size: .045, color: '#C0504D' },
+    { t: 'stamp', x: .76, y: .45, ch: '🕐', size: .09, rot: .15 },
+    { t: 'text', x: .5, y: .92, text: 'ご来店お待ちしております', font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', bold: false, shadow: true }] },
+  { id: 'gen-shop-event', name: 'イベント告知', cat: 'shop', preset: 'natural', amt: 60, items: () => [
+    { t: 'text', x: .5, y: .11, text: 'EVENT', font: 'Abril Fatface', size: .12, color: '#FFFFFF', shadow: true, bold: false },
+    { t: 'text', x: .5, y: .22, text: todayStr() + ' 13:00〜', font: 'Oswald', size: .05, color: '#2A2724', bg: '#FFFFFF' },
+    { t: 'text', x: .4, y: .78, text: '押し花ワークショップ', font: 'Zen Maru Gothic', size: .055, color: '#24543A', bg: '#DDF0D8', rot: -.03 },
+    { t: 'text', x: .4, y: .88, text: 'ご予約はDMへ', font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', shadow: true },
+    { t: 'stamp', x: .86, y: .82, ch: '🌿', size: .11 }] },
+  { id: 'gen-shop-new', name: '新商品入荷', cat: 'shop', preset: 'clear', amt: 60, items: () => [
+    { t: 'text', x: .5, y: .12, text: 'New Arrival', font: 'Playfair Display', size: .1, color: '#FFFFFF', italic: true, shadow: true },
+    { t: 'deco', kind: 'round-sticker', x: .85, y: .3, s: 1.3, color: '#2F80ED', color2: '#FFFFFF' },
+    { t: 'text', x: .85, y: .3, text: 'NEW', font: 'Bebas Neue', size: .06, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .32, y: .82, text: 'リネンシャツ', font: 'Zen Kaku Gothic New', size: .055, color: '#2A2724', bg: '#FFFFFF' },
+    { t: 'text', x: .32, y: .9, text: '¥4,980', font: 'Oswald', size: .06, color: '#FFFFFF', shadow: true }] },
+
+  /* ---- SNS ---- */
+  { id: 'gen-sns-poll', name: 'ストーリー投票風', cat: 'sns', items: () => [
+    { t: 'text', x: .5, y: .2, text: '今日のおやつどっち？', font: 'M PLUS Rounded 1c', size: .06, color: '#2A2724', bg: '#FFFFFF' },
+    { t: 'text', x: .3, y: .82, text: 'A ケーキ', font: 'M PLUS Rounded 1c', size: .06, color: '#E0457B', bg: '#FFFFFF' },
+    { t: 'text', x: .7, y: .82, text: 'B プリン', font: 'M PLUS Rounded 1c', size: .06, color: '#2F80ED', bg: '#FFFFFF' },
+    { t: 'stamp', x: .86, y: .09, ch: '🤔', size: .09 }] },
+  { id: 'gen-sns-ootd', name: '今日のコーデ', cat: 'sns', items: () => [
+    { t: 'text', x: .2, y: .1, text: 'OOTD', font: 'Bebas Neue', size: .13, color: '#FFFFFF', bold: false, shadow: true },
+    { t: 'text', x: .22, y: .2, text: '今日のコーデ', font: 'Zen Kaku Gothic New', size: .045, color: '#FFFFFF', shadow: true },
+    { t: 'text', x: .78, y: .38, text: 'tops / GU', font: 'Zen Kaku Gothic New', size: .045, color: '#2A2724', bg: '#FFFFFF', bold: false },
+    { t: 'text', x: .74, y: .64, text: 'pants / UNIQLO', font: 'Zen Kaku Gothic New', size: .045, color: '#2A2724', bg: '#FFFFFF', bold: false },
+    { t: 'text', x: .82, y: .93, text: todayStr(), font: 'Zen Kaku Gothic New', size: .035, bold: false, shadow: true }] },
+  { id: 'gen-sns-profile', name: '自己紹介カード', cat: 'sns', canvas: [1080, 1350], bg: '#FFF7F0', bgPat: { kind: 'dot', color: '#FFDCCB', color2: '#FFF7F0' }, items: () => [
+    { t: 'text', x: .5, y: .08, text: 'はじめまして', font: 'Zen Maru Gothic', size: .07, color: '#5A4636' },
+    { t: 'slot', x: .5, y: .3, w: .44, h: .352, rad: 100, border: '#FFFFFF', shadow: true },
+    { t: 'note', x: .5, y: .72, w: .8, h: .5, shape: 'rounded', color: '#FFFFFF', pattern: 'lines', text: 'なまえ：ゆい\n好き：カフェ・写真・散歩\n誕生日：4月12日\nひとこと：仲良くしてね！', font: 'Zen Maru Gothic', tcolor: '#5A4636', deco: 'tape' },
+    { t: 'deco', kind: 'heart', x: .85, y: .14, s: .8, color: '#FF9DB5' },
+    { t: 'deco', kind: 'kira', x: .16, y: .4, color: '#FFC94D' }] },
+  { id: 'gen-sns-korea', name: '韓国っぽステッカー', cat: 'sns', preset: 'korea', amt: 75, items: () => [
+    { t: 'text', x: .32, y: .12, text: 'have a nice day', font: 'Caveat', size: .075, color: '#5A4636', bg: '#FFFFFF', bold: false, rot: -.05 },
+    { t: 'deco', kind: 'tape-check', x: .82, y: .08, s: .8, color: '#C9DDF2', color2: '#FFFFFF', rot: .35 },
+    { t: 'deco', kind: 'heart-line', x: .86, y: .32, s: .8, color: '#FFFFFF' },
+    { t: 'note', x: .76, y: .8, w: .34, h: .34, shape: 'sticker', color: '#FFFFFF', text: '', deco: 'none', rot: .08 },
+    { t: 'text', x: .76, y: .8, text: 'today ♡', font: 'Caveat', size: .08, color: '#E0457B', rot: .08 },
+    { t: 'stamp', x: .14, y: .86, ch: '🤍', size: .09 }] },
+  { id: 'gen-sns-neon', name: 'ネオン風', cat: 'sns', preset: 'cyber', amt: 60, items: () => [
+    { t: 'deco', kind: 'frame-neon', x: .5, y: .5, color: '#FF4FD8' },
+    { t: 'text', x: .5, y: .16, text: 'GOOD VIBES', font: 'Monoton', size: .1, color: '#FFE3FA', shadow: true, bold: false },
+    { t: 'text', x: .5, y: .84, text: 'tonight', font: 'Pacifico', size: .08, color: '#7DF9FF', shadow: true, bold: false, rot: -.06 },
+    { t: 'deco', kind: 'kira3', x: .84, y: .3, color: '#7DF9FF' }] },
+
+  /* ---- 推し活 ---- */
+  { id: 'gen-oshi-bd2', name: '生誕祭（うちわ）', cat: 'oshi', preset: 'dreamy', amt: 60, items: () => [
+    { t: 'deco', kind: 'uchiwa', x: .8, y: .72, s: 1.1, color: '#7AB8FF', color2: '#FFFFFF', rot: .12 },
+    { t: 'text', x: .8, y: .69, text: 'おめでとう', font: 'Mochiy Pop One', size: .036, color: '#2F6FB0', rot: .12, bold: false },
+    { t: 'text', x: .5, y: .12, text: 'Happy Birthday', font: 'Pacifico', size: .1, color: '#FFFFFF', shadow: true, bold: false },
+    { t: 'text', x: .32, y: .88, text: '◯◯くん 生誕祭', font: 'Zen Maru Gothic', size: .055, color: '#2F6FB0', bg: '#FFFFFF', rot: -.03 },
+    { t: 'deco', kind: 'crown', x: .14, y: .26, color: '#FFC83D', color2: '#7AB8FF', rot: -.2 }] },
+  { id: 'gen-oshi-bd3', name: '生誕祭（ガーランド）', cat: 'oshi', items: () => [
+    { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.4, color: '#FF7AB8', color2: '#FFFFFF' },
+    { t: 'text', x: .5, y: .2, text: 'BIRTHDAY', font: 'Bebas Neue', size: .13, color: '#FFFFFF', bold: false, shadow: true },
+    { t: 'deco', kind: 'badge', x: .16, y: .82, s: 1.2, color: '#FF4F9A', color2: '#FFFFFF' },
+    { t: 'text', x: .16, y: .82, text: '祝', font: 'Yuji Syuku', size: .08, color: '#FFFFFF', bold: false },
+    { t: 'deco', kind: 'oshi-heart', x: .84, y: .84, color: '#FF4F9A', color2: '#FFFFFF' },
+    { t: 'text', x: .5, y: .93, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
+  { id: 'gen-oshi-live', name: 'ライブ参戦記録', cat: 'oshi', preset: 'night', amt: 50, items: () => [
+    { t: 'text', x: .5, y: .1, text: '参戦記録', font: 'RocknRoll One', size: .09, color: '#FFFFFF', outline: '#6B3FA0', bold: false },
+    { t: 'text', x: .5, y: .8, text: 'LIVE TOUR ' + new Date().getFullYear(), font: 'Oswald', size: .065, color: '#FFFFFF', bg: '#6B3FA0' },
+    { t: 'text', x: .5, y: .9, text: '東京ドーム  ' + todayStr(), font: 'Zen Kaku Gothic New', size: .042, color: '#FFFFFF', shadow: true },
+    { t: 'deco', kind: 'penlight', x: .1, y: .4, color: '#B47CFF', rot: -.3 },
+    { t: 'deco', kind: 'penlight', x: .9, y: .4, color: '#4FC3FF', rot: .3 },
+    { t: 'stamp', x: .5, y: .22, ch: '🎤', size: .08 }] },
+  { id: 'gen-oshi-color', name: '推しカラー', cat: 'oshi', items: () => [
+    { t: 'deco', kind: 'tape-solid', x: .2, y: .08, color: '#8FD3FF', color2: '#FFFFFF', rot: -.25 },
+    { t: 'deco', kind: 'tape-solid', x: .8, y: .92, color: '#8FD3FF', color2: '#FFFFFF', rot: -.25 },
+    { t: 'text', x: .5, y: .16, text: 'MY COLOR', font: 'Righteous', size: .09, color: '#FFFFFF', outline: '#2F80ED', bold: false },
+    { t: 'text', x: .5, y: .26, text: '推しの色で埋めたい', font: 'Zen Maru Gothic', size: .045, color: '#FFFFFF', shadow: true },
+    { t: 'deco', kind: 'oshi-heart', x: .18, y: .78, s: 1.2, color: '#4FA3FF', color2: '#FFFFFF' },
+    { t: 'deco', kind: 'heart-line', x: .85, y: .6, color: '#4FA3FF' }] },
+  { id: 'gen-oshi-altar', name: 'おうち祭壇', cat: 'oshi', preset: 'soft', amt: 60, items: () => [
+    { t: 'deco', kind: 'frame-lace', x: .5, y: .5, color: '#FFFFFF' },
+    { t: 'deco', kind: 'crown', x: .5, y: .15, s: 1.1, color: '#FFC83D', color2: '#FF4F9A' },
+    { t: 'text', x: .5, y: .26, text: 'おうち祭壇', font: 'Kaisei Decol', size: .07, color: '#FFFFFF', outline: '#D9558A', bold: false },
+    { t: 'stamp', x: .18, y: .8, ch: '💐', size: .12 }, { t: 'stamp', x: .82, y: .8, ch: '💐', size: .12 },
+    { t: 'text', x: .5, y: .86, text: 'Forever my star', font: 'Great Vibes', size: .09, color: '#FFFFFF', shadow: true, bold: false }] },
+
+  /* ---- 日記・ライフ ---- */
+  { id: 'gen-life-ticket', name: '旅のチケット', cat: 'life', items: () => [
+    { t: 'text', x: .2, y: .1, text: 'TRIP', font: 'Bebas Neue', size: .13, color: '#FFFFFF', bold: false, shadow: true },
+    { t: 'text', x: .62, y: .82, text: 'TOKYO → KYOTO', font: 'Oswald', size: .065, color: '#8A4B16', bg: '#FFF6E0', rot: -.03 },
+    { t: 'text', x: .66, y: .91, text: todayStr(), font: 'Oswald', size: .042, color: '#FFFFFF', shadow: true, bold: false },
+    { t: 'stamp', x: .86, y: .14, ch: '✈️', size: .1 },
+    { t: 'stamp', x: .14, y: .86, ch: '🧳', size: .1 }] },
+  { id: 'gen-life-tabi', name: '旅日記（縦書き）', cat: 'life', preset: 'film', amt: 70, items: () => [
+    { t: 'text', x: .88, y: .34, text: '京都 二日目', font: 'Shippori Mincho', size: .075, color: '#FFFFFF', shadow: true, vert: true },
+    { t: 'text', x: .78, y: .27, text: '朝の鴨川を散歩', font: 'Klee One', size: .04, color: '#FFFFFF', shadow: true, bold: false, vert: true },
+    { t: 'text', x: .2, y: .92, text: todayStr(), font: 'DotGothic16', size: .045, color: '#FF9500', bold: false, shadow: true },
+    { t: 'stamp', x: .12, y: .12, ch: '🗺️', size: .09 }] },
+  { id: 'gen-life-cafe', name: 'カフェ巡り', cat: 'life', preset: 'warm', amt: 50, items: () => [
+    { t: 'text', x: .5, y: .12, text: 'cafe hopping', font: 'Pacifico', size: .09, color: '#FFFFFF', shadow: true, bold: false },
+    { t: 'note', x: .76, y: .78, w: .36, h: .36, shape: 'circle', color: '#F3E5D0', text: '', deco: 'none' },
+    { t: 'text', x: .76, y: .75, text: 'ラテ', font: 'Zen Maru Gothic', size: .05, color: '#6B4A2E' },
+    { t: 'text', x: .76, y: .82, text: '★★★★☆', font: 'Zen Maru Gothic', size: .045, color: '#E0A23B' },
+    { t: 'text', x: .28, y: .9, text: 'cafe Hinata', font: 'Caveat', size: .065, color: '#FFFFFF', bg: '#6B4A2E', bold: false },
+    { t: 'stamp', x: .14, y: .26, ch: '☕', size: .09 }] },
+  { id: 'gen-life-pet', name: 'うちの子日記', cat: 'life', items: () => [
+    { t: 'text', x: .28, y: .1, text: 'うちの子', font: 'Mochiy Pop One', size: .09, color: '#FFFFFF', outline: '#C77B3B', bold: false },
+    { t: 'note', x: .71, y: .3, w: .46, h: .32, shape: 'speech', color: '#FFFFFF', text: '', deco: 'none' },
+    { t: 'text', x: .71, y: .27, text: 'おやつまだ？', font: 'M PLUS Rounded 1c', size: .055, color: '#C77B3B' },
+    { t: 'stamp', x: .12, y: .84, ch: '🐾', size: .1, rot: -.2 }, { t: 'stamp', x: .24, y: .91, ch: '🐾', size: .06, rot: .2 },
+    { t: 'text', x: .82, y: .92, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
+  { id: 'gen-life-plant', name: '植物の成長記録', cat: 'life', preset: 'natural', amt: 70, items: () => [
+    { t: 'text', x: .3, y: .1, text: 'growing log', font: 'Caveat', size: .1, color: '#FFFFFF', shadow: true, bold: false },
+    { t: 'text', x: .3, y: .19, text: todayStr(), font: 'Zen Kaku Gothic New', size: .035, color: '#FFFFFF', bold: false, shadow: true },
+    { t: 'note', x: .29, y: .77, w: .46, h: .34, shape: 'torn', color: '#F4F8EC', text: 'Day 12\n新しい葉っぱが出た', font: 'Klee One', tcolor: '#3E6B3A', deco: 'tape', rot: -.04 },
+    { t: 'stamp', x: .85, y: .14, ch: '🌱', size: .1 },
+    { t: 'stamp', x: .86, y: .85, ch: '🪴', size: .11 }] },
+  { id: 'gen-life-shop', name: '買い物メモ', cat: 'life', items: () => [
+    { t: 'note', x: .28, y: .4, w: .4, h: .52, shape: 'square', color: '#FFFDF5', pattern: 'lines', text: 'おかいもの\n□ 牛乳\n□ たまご\n□ 食パン\n□ りんご', font: 'Klee One', tcolor: '#2A2724', deco: 'tape', rot: -.03 },
+    { t: 'text', x: .68, y: .88, text: '今月の食費 ¥24,800', font: 'Zen Kaku Gothic New', size: .045, color: '#2A2724', bg: '#FFE66D' },
+    { t: 'stamp', x: .86, y: .14, ch: '🛒', size: .1 }] },
+
+  /* ---- コラージュ (new canvas) ---- */
+  { id: 'gen-col-3v', name: '3枚縦（ストーリー）', cat: 'collage', canvas: [1080, 1920], bg: '#F7F3EC', items: () => [
+    ...[0, 1, 2].map(i => ({ t: 'slot', x: .5, y: .215 + i * .28, w: .86, h: .255, rad: 6 })),
+    { t: 'text', x: .5, y: .045, text: 'my weekend', font: 'Caveat', size: .13, color: '#5A4636', bold: false },
+    { t: 'text', x: .5, y: .955, text: todayStr(), font: 'Zen Kaku Gothic New', size: .04, color: '#8A7B6B', bold: false }] },
+  { id: 'gen-col-grid4', name: '2×2 グリッド', cat: 'collage', canvas: [1080, 1080], bg: '#FFFFFF', items: () => [
+    ...[0, 1].flatMap(r => [0, 1].map(c => ({ t: 'slot', x: .26 + c * .48, y: .26 + r * .48, w: .46, h: .46, rad: 3 }))),
+    { t: 'text', x: .5, y: .5, text: monthEn().split(' ')[0], font: 'Bebas Neue', size: .06, color: '#2A2724', bg: '#FFFFFF', bold: false }] },
+  { id: 'gen-col-film', name: 'フィルムストリップ', cat: 'collage', canvas: [1920, 1080], bg: '#151515', items: () => [
+    { t: 'deco', kind: 'frame-film', x: .5, y: .5, color: '#151515', color2: '#EDE8DA' },
+    ...[0, 1, 2].map(i => ({ t: 'slot', x: .19 + i * .31, y: .5, w: .28, h: .62, rad: 2 }))] },
+  { id: 'gen-col-scrap', name: 'スクラップブック', cat: 'collage', canvas: [1080, 1350], bg: '#EADCC5', bgPat: { kind: 'grid', color: '#DCCBAE', color2: '#EADCC5' }, items: () => [
+    { t: 'slot', x: .33, y: .27, w: .5, h: .32, border: '#FFFFFF', shadow: true, rot: -.06 },
+    { t: 'slot', x: .7, y: .52, w: .46, h: .3, border: '#FFFFFF', shadow: true, rot: .05 },
+    { t: 'slot', x: .33, y: .78, w: .48, h: .3, border: '#FFFFFF', shadow: true, rot: -.03 },
+    { t: 'deco', kind: 'tape-gingham', x: .33, y: .11, s: .7, color: '#F5A3A3', color2: '#FFFFFF', rot: -.1 },
+    { t: 'deco', kind: 'tape-dot', x: .74, y: .36, s: .7, color: '#9FD8F5', color2: '#FFFFFF', rot: .2 },
+    { t: 'deco', kind: 'tape-stripe', x: .5, y: .63, s: .6, color: '#A8D8B9', color2: '#FFFFFF', rot: -.25 },
+    { t: 'text', x: .76, y: .18, text: 'little\nmemories', font: 'Caveat', size: .075, color: '#5A4636', bold: false, rot: .08 },
+    { t: 'text', x: .78, y: .88, text: todayStr(), font: 'Klee One', size: .038, color: '#5A4636', bold: false }] },
+  { id: 'gen-col-diary', name: '日記帳', cat: 'collage', canvas: [1080, 1350], bg: '#FFFFFF', bgPat: { kind: 'grid', color: '#E3EAF2', color2: '#FFFFFF' }, items: () => [
+    { t: 'text', x: .5, y: .07, text: todayStr() + '  晴れ', font: 'Klee One', size: .045, color: '#3A4A5E', bold: false },
+    { t: 'deco', kind: 'hand-underline', x: .5, y: .11, s: 1.1, color: '#9FC6E8' },
+    { t: 'slot', x: .5, y: .38, w: .82, h: .44, rad: 4 },
+    { t: 'deco', kind: 'tape-solid', x: .2, y: .17, s: .55, color: '#FFD6A5', color2: '#FFFFFF', rot: -.4 },
+    { t: 'note', x: .5, y: .8, w: .82, h: .3, shape: 'square', color: '#FFFFFF', pattern: 'lines', text: '今日はいい天気で、\n近所の公園まで散歩した。', font: 'Klee One', tcolor: '#3A4A5E', deco: 'none' },
+    { t: 'stamp', x: .88, y: .67, ch: '☀️', size: .08 }] }
+];
+//GEN-TPL-END
+Object.assign(DECO, DECO_GEN);
+DECO_CATS_GEN.forEach(c => { if (!DECO_CATS.some(d => d[0] === c[0])) DECO_CATS.push(c); });
 const PREVIEW_MAX = 2560;
 
 const I = d => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -1127,6 +2197,10 @@ const SIDE_TOOLS = new Set(['filter', 'adjust', 'cutout']), DESK_HIDE = new Set(
 const deskMQ = matchMedia('(min-width: 900px)');
 let deskOn = deskMQ.matches;
 document.documentElement.classList.toggle('desk', deskOn);
+/* tablet / landscape phone (600–899 px): phone layout, but the edit tools stand in a column on the left */
+const tabMQ = matchMedia('(min-width: 600px) and (max-width: 899px)');
+let tabOn = tabMQ.matches;
+document.documentElement.classList.toggle('tab', tabOn);
 
 /* ============================================================
    state
@@ -1247,7 +2321,7 @@ new ResizeObserver(() => {
   resizeCanvas();
   const wChanged = Math.abs(stageW - lastStageW) > 1;
   // PC: a height-only change (the top panel growing/shrinking as tools or selections change) keeps the zoom and just re-centres
-  if (deskOn && !wChanged && doc) { view.ty += (stageH - oldH) / 2; requestDraw(); }
+  if (!wChanged && doc) { view.ty += (stageH - oldH) / 2; requestDraw(); }   // PC and phone: the panel growing never re-zooms the photo
   else if (wasFit || wChanged) fitView();
   else { view.tx += (stageW - oldW) / 2; view.ty += (stageH - oldH) / 2; requestDraw(); }
   lastStageW = stageW;
@@ -1379,7 +2453,7 @@ function ptsBox(pts, pad) {
 }
 function localBox(o) {
   switch (o.type) {
-    case 'image': case 'note': case 'deco': return { x: -o.w / 2, y: -o.h / 2, w: o.w, h: o.h };
+    case 'image': case 'note': case 'deco': case 'chart': return { x: -o.w / 2, y: -o.h / 2, w: o.w, h: o.h };
     case 'text': { const L = layoutText(o), p = o.size * 0.35; return { x: -L.w / 2 - p, y: -L.h / 2 - p * 0.5, w: L.w + p * 2, h: L.h + p }; }
     case 'stamp': { const s = o.size * 0.6; return { x: -s, y: -s, w: s * 2, h: s * 2 }; }
     case 'stroke': return ptsBox(o.pts, o.width / 2);
@@ -1579,6 +2653,7 @@ function drawObject(ctx, o, scale) {
     case 'note': drawNote(ctx, o, k); break;
     case 'stamp': drawStamp(ctx, o); break;
     case 'deco': { const d = DECO[o.kind]; if (d) { ctx.save(); d.draw(ctx, o); ctx.restore(); } break; }   // unknown kinds (older / newer drafts) draw nothing
+    case 'chart': ctx.save(); try { drawChart(ctx, o); } catch (e) { } ctx.restore(); if (o.font) ensureFont(`700 20px ${famStack(o.font)}`, o.title || 'あ', o.font); break;
     case 'stroke':
       ctx.strokeStyle = o.color; ctx.lineWidth = o.width; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       if (o.mode === 'hl') { ctx.globalAlpha = o.op * 0.42; ctx.globalCompositeOperation = 'multiply'; ctx.lineCap = 'butt'; }
@@ -1891,7 +2966,8 @@ function draw() {
   // DOM overlays that follow the view
   if (editingId) placeInline();
   placeObjMore();
-  if (deskOn) { zoomPct.textContent = Math.round(view.s / fitScale * 100) + '%'; if (tool === 'select' && selId) syncNums(); }
+  if (deskOn) zoomPct.textContent = Math.round(view.s / fitScale * 100) + '%';
+  if (tool === 'select' && selId) syncNums();
 }
 /* group selection: a thin outline per object plus the dashed group box (drag inside it to move all) */
 function drawMulti(ms) {
@@ -2097,12 +3173,27 @@ cv.addEventListener('pointermove', e => {
   }
   moveSingle(p);
 });
-let objLpT = 0;
+let objLpT = 0, phTapT = 0;
+/* phone gestures: a quick 2-finger tap = 元に戻す, 3-finger tap = やり直し (設定 can turn them off) */
+let tapG = null;
+cv.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  if (!tapG || pointers.size === 0) tapG ={ t0: performance.now(), n: 0, moved: false, starts: new Map() };
+  tapG.starts.set(e.pointerId, [e.clientX, e.clientY]); tapG.n = Math.max(tapG.n, tapG.starts.size);
+}, true);
+cv.addEventListener('pointermove', e => { const s = tapG && tapG.starts.get(e.pointerId); if (s && Math.hypot(e.clientX - s[0], e.clientY - s[1]) > 12) tapG.moved = true; }, true);
+function tapGestureEnd() {
+  if (!tapG || pointers.size) return;
+  const g = tapG; tapG = null;
+  if (!UI.gest || g.moved || performance.now() - g.t0 > 320 || g.n < 2) return;
+  if (g.n === 2) { undo(); toast('元に戻しました（2本指タップ）', 1200); } else if (g.n >= 3) { redo(); toast('やり直しました（3本指タップ）', 1200); }
+}
 function onUp(e) {
   clearTimeout(objLpT);
   if (!pointers.has(e.pointerId)) return;
   const p = pt(e);
   pointers.delete(e.pointerId);
+  if (e.pointerType === 'touch') setTimeout(tapGestureEnd, 0);
   if (!G) return;
   if (G.type === 'pinchView' || G.type === 'pinchObj' || G.type === 'none') {
     if (G.type === 'pinchObj') { rememberSize(); commit(); }
@@ -2185,8 +3276,8 @@ addEventListener('keydown', e => { if (e.key === 'Alt') altDown = true; });
 addEventListener('keyup', e => { if (e.key === 'Alt') altDown = false; });
 addEventListener('blur', () => { altDown = false; });
 function snapShift(q, skip) {
-  if (altDown) return { dx: 0, dy: 0, guides: [] };
-  const thr = 6 / view.s, xs = [0, doc.w / 2, doc.w], ys = [0, doc.h / 2, doc.h];
+  if (altDown || UI.snap === 'off') return { dx: 0, dy: 0, guides: [] };
+  const thr = ({ weak: 4, normal: 6, strong: 10 }[UI.snap] || 6) * (deskOn ? 1 : 1.5) / view.s, xs = [0, doc.w / 2, doc.w], ys = [0, doc.h / 2, doc.h];
   for (const o of doc.objects) {
     if (skip.includes(o.id) || o.hidden) continue;
     const b = multiBox([o]); xs.push(b.x0, (b.x0 + b.x1) / 2, b.x1); ys.push(b.y0, (b.y0 + b.y1) / 2, b.y1);
@@ -2338,8 +3429,10 @@ function endSingle(p, cancelled) {
   switch (G.type) {
     case 'pan':
       if (!G.moved && !cancelled) {
-        if (isDoubleTap(p, 'empty')) fitView();
+        if (isDoubleTap(p, 'empty')) { clearTimeout(phTapT); fitView(); }
         else if (tool === 'select' && selId) { selId = null; refreshPanel(); requestDraw(); }
+        // phone: a single tap on empty canvas (nothing selected) folds the bottom panel / opens it again; waits so a double tap can win
+        else if (!deskOn && tool === 'select' && !multi.length) { clearTimeout(phTapT); phTapT = setTimeout(() => setPH(phNow === 's' ? phPrev : 's'), 330); }
       }
       break;
     case 'marq': {
@@ -2702,6 +3795,21 @@ function addDateStamp(i) {
   pushObj({ ...baseObj('text', c.x + j.x, c.y + j.y), text: f[1](dateParts()), font: s.font, bold: s.bold !== false, italic: false, underline: false, size: Math.round(MIN() * 0.06),
     color: s.color, outline: s.outline || 'none', bg: s.bg || 'none', align: 'center', vert: false, shadow: !!s.shadow });
 }
+function addChart(id) {
+  const p = CHART_PRESETS.find(x => x.id === id); if (!p) return;
+  const M = MIN(), c = viewCenter(), j = jitter(), { id: _i, name: _n, w, h, ...data } = p;
+  pushObj({ ...baseObj('chart', c.x + j.x, c.y + j.y), ...JSON.parse(JSON.stringify(data)), w: M * (w || .6), h: M * (h || .45) });
+}
+const chartThumbs = new Map();
+function chartThumb(id) {
+  let u = chartThumbs.get(id); if (u) return u;
+  const p = CHART_PRESETS.find(x => x.id === id); if (!p) return '';
+  const S2 = 120, c = mk(S2, S2), g = c.getContext('2d'), w = (p.w || .6) * 400, h = (p.h || .45) * 400, k = S2 * 0.9 / Math.max(w, h);
+  g.translate(S2 / 2, S2 / 2); g.scale(k, k);
+  try { drawChart(g, { ...p, w, h }); } catch (e) { }
+  u = c.toDataURL(); chartThumbs.set(id, u); return u;
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => chartThumbs.clear());   // redraw thumbnails with the real font
 function addDeco(kind) {
   const d = DECO[kind]; if (!d) return;
   const M = MIN(), c = viewCenter(), j = jitter(), seed = 1 + Math.floor(Math.random() * 9999);
@@ -2710,10 +3818,12 @@ function addDeco(kind) {
 }
 let matCat = 'emoji';
 function matCats() {
-  return [['recent', '最近'], ['emoji', 'スタンプ'], ['season', '季節・天気'], ['food', '食べ物'], ['animal', '動物'], ...DECO_CATS, ['date', '日付'], ['bg', '背景']];
+  const all = [['recent', '最近'], ['emoji', 'スタンプ'], ['season', '季節・天気'], ['food', '食べ物'], ['animal', '動物'], ...DECO_CATS, ...(CHART_PRESETS.length ? [['graph', '表・グラフ']] : []), ['date', '日付'], ['bg', '背景']];
+  return all.filter((c, i) => all.findIndex(d => d[0] === c[0]) === i);   // a generated cat may share an id (food) with an emoji set
 }
 function matItems(cat) {
   if (cat === 'recent') return UI.recentMat;
+  if (cat === 'graph') return CHART_PRESETS.map(p => 'g:' + p.id);
   if (cat === 'emoji') return STAMPS.map(e => 'e:' + e);
   if (cat === 'date') return DATE_FMTS.map((_, i) => 't:' + i);
   const deco = Object.entries(DECO).filter(([, d]) => d.cat === cat).map(([id]) => 'd:' + id);
@@ -2733,12 +3843,13 @@ function matButton(key) {
   const t = key.slice(0, 1), v = key.slice(2), a = `data-act="cmd" data-k="matAdd" data-v="${J(key)}"`;
   if (t === 'e') return `<button class="mat emo" ${a} aria-label="スタンプ ${esc(v)}">${esc(v)}</button>`;
   if (t === 'd') { const d = DECO[v]; return d ? `<button class="mat" ${a} title="${esc(d.name)}" aria-label="${esc(d.name)}"><img src="${decoThumb(v)}" alt=""></button>` : ''; }
+  if (t === 'g') { const p = CHART_PRESETS.find(x => x.id === v); return p ? `<button class="mat wide" ${a} title="${esc(p.name)}" aria-label="${esc(p.name)}"><img src="${chartThumb(v)}" alt=""><span>${esc(p.name)}</span></button>` : ''; }
   if (t === 't') { const f = DATE_FMTS[+v]; return f ? `<button class="mat date" ${a} aria-label="日付 ${esc(f[0])}"><span style="font-family:${esc(famStack(f[2].font))}">${esc(f[1](dateParts()))}</span></button>` : ''; }
   return '';
 }
 function addMat(key) {
   const t = key.slice(0, 1), v = key.slice(2);
-  if (t === 'e') addStamp(v); else if (t === 'd') addDeco(v); else if (t === 't') addDateStamp(+v); else return;
+  if (t === 'e') addStamp(v); else if (t === 'd') addDeco(v); else if (t === 't') addDateStamp(+v); else if (t === 'g') addChart(v); else return;
   UI.recentMat = [key, ...UI.recentMat.filter(k => k !== key)].slice(0, 16); saveUI();
 }
 function bgPanelHtml() {
@@ -3309,9 +4420,9 @@ function objPanel(o) {
       // icons instead of words where a symbol says it (方向・揃え), colour dots instead of colour names (縁取り・背景)
       h += row('方向', chips('o', 'vert', [[false, `${ICON.horiz}<span class="vh">横書き</span>`], [true, `${ICON.vert}<span class="vh">縦書き</span>`]], !!o.vert).replace(/class="chip/g, 'class="chip ichip'));
       if (!o.vert) h += row('揃え', chips('o', 'align', [['left', `${ICON.alL}<span class="vh">左揃え</span>`], ['center', `${ICON.alC}<span class="vh">中央</span>`], ['right', `${ICON.alR}<span class="vh">右揃え</span>`]], o.align).replace(/class="chip/g, 'class="chip ichip'));
-      h += row('縁取り', noneSw('outline', o.outline) + swatches('o', 'outline', o.outline, ['#FFFFFF', '#111111', '#FF2D92', '#007AFF', '#FFD23F', '#5E8C5F']));
-      h += row('背景', noneSw('bg', o.bg) + swatches('o', 'bg', o.bg, ['#FFFFFF', '#111111', '#FFD23F', '#FFB3C7', '#C9DBB9', 'rgba(0,0,0,0.5)']));
-      h += row('影', `<button class="chip ichip tog${o.shadow ? ' on' : ''}" aria-pressed="${!!o.shadow}" data-act="o" data-k="shadow" data-v="${!o.shadow}" title="影">${ICON.shadow}<span class="vh">影</span></button>`);
+      h += foldMore('もっと見る（縁取り・背景・影）', row('縁取り', noneSw('outline', o.outline) + swatches('o', 'outline', o.outline, ['#FFFFFF', '#111111', '#FF2D92', '#007AFF', '#FFD23F', '#5E8C5F']))
+        + row('背景', noneSw('bg', o.bg) + swatches('o', 'bg', o.bg, ['#FFFFFF', '#111111', '#FFD23F', '#FFB3C7', '#C9DBB9', 'rgba(0,0,0,0.5)']))
+        + row('影', `<button class="chip ichip tog${o.shadow ? ' on' : ''}" aria-pressed="${!!o.shadow}" data-act="o" data-k="shadow" data-v="${!o.shadow}" title="影">${ICON.shadow}<span class="vh">影</span></button>`));
       break;
     case 'note':
       h += row('形', chips('o', 'shape', NOTE_SHAPES, o.shape || 'square'));
@@ -3344,6 +4455,13 @@ function objPanel(o) {
     case 'stamp':
       if (o.kind === 'num') { h += row('番号', cmdBtn('numInc', '−', -1) + `<span style="min-width:2ch;text-align:center;font-variant-numeric:tabular-nums">${o.n}</span>` + cmdBtn('numInc', '＋', 1)); h += row('色', swatches('o', 'color', o.color)); }
       break;
+    case 'chart': {   // table / chart: edit the data as plain text (one line per item / row)
+      h += `<div class="row"><div class="rl">データ</div><div class="rc"><textarea class="chartta" data-chart="1" rows="6" spellcheck="false" aria-label="表・グラフのデータ">${esc(chartToText(o))}</textarea></div></div>`;
+      h += hint(CHART_KINDS[o.kind] && CHART_KINDS[o.kind].table ? '1行が1列分。セルは「 | 」で区切ります。1行目は見出し。' : '1行に「名前: 数字」。2本目は「名前: 12, 8」。1行目の「# 」はタイトル。');
+      h += row('色', swatches('o', 'color', o.color));
+      h += row('スタイル', chips('o', 'style', [['soft', 'やわらか'], ['bold', 'くっきり'], ['mono', 'モノトーン']], o.style || 'soft'));
+      break;
+    }
     case 'deco': {
       const d = DECO[o.kind];
       h += row('色', swatches('o', 'color', o.color));
@@ -3357,10 +4475,12 @@ function objPanel(o) {
       if (o.mode !== 'black') h += slider('o:str', '強さ', 5, 100, o.str);
       break;
   }
-  h += slider('o:op', '不透明度', 10, 100, o.op * 100, 0.01);
-  if (deskOn) h += numsRow(o) + alignRow('写真に揃える');
+  h += foldMore('詳細（不透明度・位置・整列）', slider('o:op', '不透明度', 10, 100, o.op * 100, 0.01) + numsRow(o) + alignRow('写真に揃える'));
   return h;
 }
+/* phones fold rarely used rows under a もっと見る / 詳細 toggle (its open state is remembered); PC shows them inline */
+const foldMore = (label, inner) => deskOn ? inner : `<details class="more" data-more="1"${UI.more ? ' open' : ''}><summary>${label}</summary>${inner}</details>`;
+panel.addEventListener('toggle', e => { if (e.target.dataset && e.target.dataset.more) { UI.more = e.target.open; saveUI(); } }, true);
 /* PC: numeric position / angle / scale (Figma / Canva「詳細」style); kept in step with drags by syncNums() from draw() */
 const NUMV = { x: o => Math.round(o.x), y: o => Math.round(o.y), rot: o => Math.round(((o.rot * 180 / Math.PI) % 360 + 540) % 360 - 180), sc: o => Math.round(o.sc * 100) };
 function numsRow(o) {
@@ -3396,8 +4516,9 @@ function alignObjs(ms, how) {
 }
 /* ==== layers ==== (PC inspector, select tool) top of the stack first; click selects (Shift/Ctrl adds), 👁 hides,
    🔒 locks, drag a row to restack. `hidden` objects are skipped by renderDoc / pick / marquee / guides. */
-const LAYER_IC = { image: '🖼', text: 'T', note: '🗒', stroke: '✎', shape: '◇', stamp: '★', mosaic: '▦', deco: '✿' };
+const LAYER_IC = { image: '🖼', text: 'T', note: '🗒', stroke: '✎', shape: '◇', stamp: '★', mosaic: '▦', deco: '✿', chart: '📊' };
 function layerName(o) {
+  if (o.type === 'chart') return o.title || (CHART_KINDS[o.kind] ? CHART_KINDS[o.kind].name : '表・グラフ');
   if (o.type === 'deco') return DECO[o.kind] ? DECO[o.kind].name : 'デコ';
   if (o.type === 'image' && o.slot) return o.bmp ? '写真枠' : '写真枠（空）';
   if (o.type === 'text' || o.type === 'note') { const t = (o.text || '').replace(/\s+/g, ' ').trim(); if (t) return [...t].slice(0, 16).join(''); }
@@ -3450,7 +4571,7 @@ panel.addEventListener('click', e => { const b = e.target.closest('[data-gotool]
 function multiPanel(ms) {
   return `<div class="objhead"><span class="badge">${ms.length}個を選択中</span></div>`
     + row('操作', cmdBtn('mFront', '前面へ') + cmdBtn('mBack', '背面へ') + cmdBtn('mDup', '⧉ 複製') + cmdBtn('mDel', '🗑 削除') + cmdBtn('mClear', '選択を解除'), true)
-    + (deskOn ? alignRow('揃える') : '')
+    + alignRow('揃える')
     + hint('枠の中をドラッグすると、まとめて移動できます。1つだけ選ぶときはそのオブジェクトをタップ。');
 }
 let panelKey = '';
@@ -3471,6 +4592,7 @@ const panelEl = () => deskOn && SIDE_TOOLS.has(tool) ? sidePanel : panel;
 function refreshPanel() {
   if (slActive) { slPending = true; return; }
   if (!doc) { panel.innerHTML = ''; return; }
+  if (!deskOn && phNow === 's' && (selId || multi.length || tool !== 'select')) setPH(phPrev);   // phone: something to edit → open the folded panel
   const tgt = panelEl();
   let h = '';
   switch (tool) {
@@ -3482,7 +4604,7 @@ function refreshPanel() {
         + (S.marq ? hint('⬚ 何もない所をドラッグして囲む（画面の移動は2本指）')
           : legend(deskOn ? [['👆', 'クリックで選択'], ['✋', 'ドラッグで移動'], ['↘', '角で拡大'], ['⟳', '上で回転'], ['🖱', '右クリックでメニュー'], ['⬚', 'Shift＋ドラッグで囲む']]
             : [['👆', 'タップで選択'], ['✋', 'ドラッグで移動'], ['↘', '角で拡大'], ['⟳', '上で回転'], ['🤏', '2本指でズーム'], ['⏱', '長押しでメニュー']]));
-      if (deskOn) h += layersPanel();
+      h += deskOn ? layersPanel() : foldMore('レイヤー（重なり順・表示）', layersPanel());
       break;
     }
     case 'pen':
@@ -3606,7 +4728,8 @@ function onSlider(t, final) {
 const toolsEl = $('#tools');
 /* ==== UI settings ==== per device (localStorage), never part of doc / undo history */
 const UI_KEY = 'petaphoto.ui', TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t[0], t]));
-const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [], recentMat: [] };
+const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [], recentMat: [],
+  ph: 'm', hand: 'right', gest: true, snap: 'normal', more: false };
 function loadUI() {
   let v = null; try { v = JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { }
   const u = { ...UI_DEF, ...(v && typeof v === 'object' ? v : {}) }, ids = UI_DEF.order;
@@ -3619,12 +4742,37 @@ function loadUI() {
   if (!AI_MODELS[u.aiModel]) u.aiModel = 'u2';
   u.nick = typeof u.nick === 'string' ? u.nick.slice(0, 20) : '';
   u.recent = (Array.isArray(u.recent) ? u.recent : []).filter(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).slice(0, 8);
-  u.recentMat = (Array.isArray(u.recentMat) ? u.recentMat : []).filter(k => typeof k === 'string' && /^[edt]:./.test(k)).slice(0, 16);
+  u.recentMat = (Array.isArray(u.recentMat) ? u.recentMat : []).filter(k => typeof k === 'string' && /^[edtg]:./.test(k)).slice(0, 16);
+  if (!['s', 'm', 'l'].includes(u.ph)) u.ph = 'm';
+  if (!['right', 'left'].includes(u.hand)) u.hand = 'right';
+  if (!['off', 'weak', 'normal', 'strong'].includes(u.snap)) u.snap = 'normal';
+  u.gest = u.gest !== false; u.more = !!u.more; u.seen = !!u.seen;
   return u;
 }
 const UI = loadUI();
 S.cut.model = UI.aiModel;
 function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify(UI)); } catch (e) { } }
+/* ==== phone bottom panel height ==== 小 (tools only) / 中 / 大. The grab handle cycles or drags between them; a tap on empty
+   canvas folds it to 小 and back; picking something to edit reopens it. UI.ph is only the starting height (設定). */
+const dockEl = $('.dock');
+let phNow = UI.ph, phPrev = UI.ph === 's' ? 'm' : UI.ph;
+function setPH(v) { if (v !== 's') phPrev = v; phNow = v; dockEl.dataset.ph = v; $('#pgrab').setAttribute('aria-label', `パネルの高さ：${{ s: '小', m: '中', l: '大' }[v]}（タップで切り替え）`); }
+setPH(phNow);
+(() => {
+  const g = $('#pgrab'); let y0 = null, moved = false;
+  const order = ['s', 'm', 'l'];
+  g.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false; try { g.setPointerCapture(e.pointerId); } catch (err) { } });
+  g.addEventListener('pointermove', e => {
+    if (y0 === null) return; const dy = e.clientY - y0;
+    if (Math.abs(dy) > 36) { moved = true; const i = order.indexOf(phNow) + (dy < 0 ? 1 : -1); if (i >= 0 && i < 3) setPH(order[i]); y0 = e.clientY; }
+  });
+  const end = () => { if (y0 !== null && !moved) setPH(phNow === 's' ? phPrev : phNow === 'm' ? 'l' : 'm'); y0 = null; };
+  g.addEventListener('pointerup', end); g.addEventListener('pointercancel', () => { y0 = null; });
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPH(phNow === 's' ? phPrev : phNow === 'm' ? 'l' : 'm'); } });
+})();
+/* one-handed mode: on phones the top bar's main buttons move to the chosen thumb side */
+const applyHand = () => document.documentElement.dataset.hand = UI.hand;
+applyHand();
 const applyUISize = () => { document.documentElement.dataset.ui = UI.size; };
 applyUISize();
 const buzz = ms => { if (UI.haptic && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) { } };
@@ -3647,7 +4795,7 @@ function renderTools() {
 }
 function toolEdges() { const s = toolsEl.scrollLeft, m = toolsEl.scrollWidth - toolsEl.clientWidth; toolsEl.classList.toggle('fl', s > 2); toolsEl.classList.toggle('fr', s < m - 2); }
 function toolIntoView(smooth) {
-  const b = toolsEl.querySelector('.tool.on'); if (!b || deskOn) return;   // PC column: every tool fits, no horizontal scroll
+  const b = toolsEl.querySelector('.tool.on'); if (!b || deskOn || tabOn) return;   // PC / tablet column: no horizontal scroll
   const l = b.offsetLeft, r = l + b.offsetWidth, sl = toolsEl.scrollLeft, w = toolsEl.clientWidth, pad = 34;
   const to = l - pad < sl ? l - pad : r + pad > sl + w ? r + pad - w : sl;
   if (Math.abs(to - sl) > 1) toolsEl.scrollTo({ left: Math.max(0, to), behavior: smooth ? 'smooth' : 'auto' });
@@ -3700,7 +4848,7 @@ const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
   const cur = deskOn ? sideView : (SIDE_TOOLS.has(tool) ? tool : null);
-  railEl.innerHTML = SIDE_ITEMS.map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
+  railEl.innerHTML = (deskOn ? '' : `<button class="ritem msearch" data-side="search">${ICON.search}<span>機能をさがす</span></button>`) + SIDE_ITEMS.map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
 }
 /* phone: ☰ opens the rail as a modal slide-in menu (not saved; UI.side is the PC setting) */
 let sideMob = false;
@@ -3792,6 +4940,7 @@ railEl.addEventListener('click', e => {
     else if (id === 'settings') openUISheet();
     else if (id === 'upload') { renderNB(); openSheet('#sheetNew'); }
     else if (id === 'template') openTplSheet();
+    else if (id === 'search') openCmd();
     else if (id === 'material') setTool('stamp');
     else if (SIDE_TOOLS.has(id)) setTool(id);
     return;
@@ -3890,6 +5039,8 @@ const TEMPLATES = [
     { t: 'num', x: .3, y: .3, n: 1 }, { t: 'num', x: .7, y: .62, n: 2 },
     { t: 'note', x: .8, y: .17, w: .34, h: .22, shape: 'speech', color: '#FFE66D', text: 'ここを押す', font: 'M PLUS Rounded 1c', deco: 'none' }] }
 ];
+TEMPLATES.push(...TEMPLATES_GEN.filter(t => !TEMPLATES.some(x => x.id === t.id)));
+TPL_CATS_GEN.forEach(c => { if (!TPL_CATS.some(d => d[0] === c[0])) TPL_CATS.push(c); });
 function tplObj(s) {
   const M = MIN(), X = s.x * doc.w, Y = s.y * doc.h;
   switch (s.t) {
@@ -3979,6 +5130,22 @@ function fillTplThumbs() {
   };
   step();
 }
+/* chart data textarea: live preview while typing, one history step when it loses focus */
+let chartT = 0;
+[panel, sidePanel].forEach(el => {
+  el.addEventListener('input', e => {
+    if (!e.target.dataset || !e.target.dataset.chart) return;
+    const o = selObj(); if (!o || o.type !== 'chart') return;
+    clearTimeout(chartT); const txt = e.target.value;
+    chartT = setTimeout(() => { try { Object.assign(o, chartFromText(o, txt)); invalidate(); } catch (err) { } }, 200);
+  });
+  el.addEventListener('change', e => {
+    if (!e.target.dataset || !e.target.dataset.chart) return;
+    const o = selObj(); if (!o || o.type !== 'chart') return;
+    clearTimeout(chartT); try { Object.assign(o, chartFromText(o, e.target.value)); } catch (err) { }
+    invalidate(); commit(); const n = panel.querySelector(`[data-lyr="${o.id}"] .lnm`); if (n) n.textContent = layerName(o);
+  });
+});
 /* 素材 drawer search: re-render on input and put the caret back */
 sidePanel.addEventListener('input', e => {
   if (!e.target.classList.contains('matq')) return;
@@ -4011,26 +5178,24 @@ $('#btnSide').addEventListener('click', () => {
   renderSide();
 });
 function applyDesk() {
-  deskOn = deskMQ.matches;
+  deskOn = deskMQ.matches; tabOn = tabMQ.matches;
   document.documentElement.classList.toggle('desk', deskOn);
+  document.documentElement.classList.toggle('tab', tabOn);
   if (editingId) endInlineEdit();
   closeMobSide(true);
   if (!deskOn) { sideView = null; undockSheets(); }
   placeTools(); renderTools(); syncSide(); if (deskOn) renderSide();
   refreshPanel(); requestDraw();
 }
-deskMQ.addEventListener ? deskMQ.addEventListener('change', applyDesk) : deskMQ.addListener(applyDesk);
+[deskMQ, tabMQ].forEach(mq => mq.addEventListener ? mq.addEventListener('change', applyDesk) : mq.addListener(applyDesk));
 /* PC: tools leave the bottom dock for a vertical column left of the stage, and the settings panel moves into the
    right-hand inspector (#insp); phones keep both in the dock */
 function placeTools() {
   const dock = $('.dock');
-  if (deskOn) {
-    if (toolsEl.parentElement !== $('#work')) $('#work').insertBefore(toolsEl, stage);
-    if (panel.parentElement !== $('#insp')) $('#insp').appendChild(panel);
-  } else {
-    if (panel.parentElement !== dock) dock.insertBefore(panel, dock.firstChild);
-    if (toolsEl.parentElement !== dock) dock.appendChild(toolsEl);
-  }
+  if (deskOn || tabOn) { if (toolsEl.parentElement !== $('#work')) $('#work').insertBefore(toolsEl, stage); }
+  else if (toolsEl.parentElement !== dock) dock.appendChild(toolsEl);
+  if (deskOn) { if (panel.parentElement !== $('#insp')) $('#insp').appendChild(panel); }
+  else if (panel.parentElement !== dock) dock.insertBefore(panel, $('#pgrab').nextSibling);
 }
 placeTools(); renderSide();
 /* zoom control (PC) */
@@ -4116,6 +5281,7 @@ function cmdItems() {
   Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], 'フィルター', ['filter', id, f[0]], () => { if (deskOn) setTool('filter'); runCmd('preset', id); }));
   Object.entries(DECO).forEach(([id, d]) => add('素材：' + d.name, 'デコ素材', ['deco', 'でこ', 'そざい', id, (DECO_CATS.find(c => c[0] === d.cat) || ['', ''])[1]], () => addDeco(id)));
   DATE_FMTS.forEach((f, i) => add('日付：' + f[0], '今日の日付を入れる', ['date', 'ひづけ', 'きょう'], () => addDateStamp(i)));
+  CHART_PRESETS.forEach(p => add('素材：' + p.name, '表・グラフ', ['chart', 'graph', 'table', 'ひょう', 'ぐらふ', p.kind], () => addChart(p.id)));
   {
     add('テンプレート一覧', '写真に重ねるデザイン・コラージュ', ['template', 'てんぷれーと', 'デザイン', 'こらーじゅ'], () => deskOn ? openInDrawer('template') : openTplSheet());
     TEMPLATES.forEach(t => add('テンプレート：' + t.name, 'テンプレート', ['template', 'てんぷれーと', t.id], () => applyTemplate(t.id)));
@@ -4459,6 +5625,11 @@ const ordIds = () => UI.order.filter(id => !(deskOn && DESK_HIDE.has(id)));
 function setOrd(list) { let k = 0; UI.order = UI.order.map(id => ordIds().includes(id) ? list[k++] : id); }
 function renderUISheet() {
   $('#uiSize').innerHTML = UI_SIZES.map(([v, l]) => `<button class="chip${UI.size === v ? ' on' : ''}" data-uis="${v}">${l}</button>`).join('');
+  const opt = (k, list) => `<div class="wrap">${list.map(([v, l]) => `<button class="chip${UI[k] === v ? ' on' : ''}" aria-pressed="${UI[k] === v}" data-uiv="${k}:${v}">${l}</button>`).join('')}</div>`;
+  $('#uiOps').innerHTML = `<div class="setlab">吸着（ピタッと整列）の強さ</div>` + opt('snap', [['off', 'オフ'], ['weak', '弱い'], ['normal', 'ふつう'], ['strong', '強い']])
+    + (deskOn ? '' : `<div class="setlab">下のパネルの最初の高さ</div>` + opt('ph', [['s', '小'], ['m', '中'], ['l', '大']])
+      + `<div class="setlab">片手モード（上のボタンを寄せる側）</div>` + opt('hand', [['right', '右手'], ['left', '左手']])
+      + setRow('gest', '2本指タップで元に戻す', '3本指タップでやり直し', UI.gest));
   $('#uiFx').innerHTML = setRow('fx', 'タップのきらめき', reduceMo.matches ? '端末の「視差効果を減らす」がオンのため表示されません' : 'ボタンを押すと小さな粒がはじけます', UI.fx)
     + (navigator.vibrate ? setRow('haptic', '振動フィードバック', 'ボタンを押すと軽く振動します（対応端末のみ）', UI.haptic) : '');
 }
@@ -4472,8 +5643,12 @@ function renderOrder() {
   }).join('');
 }
 $('#sheetUI').addEventListener('click', e => {
-  const s = e.target.closest('[data-uis]'), k = e.target.closest('[data-uik]');
-  if (s) {
+  const s = e.target.closest('[data-uis]'), k = e.target.closest('[data-uik]'), ov = e.target.closest('[data-uiv]');
+  if (ov) {
+    const [key, val] = ov.dataset.uiv.split(':'); UI[key] = val;
+    if (key === 'ph') setPH(val); if (key === 'hand') applyHand();
+    renderUISheet();
+  } else if (s) {
     UI.size = s.dataset.uis; applyUISize();
     $('#uiSize').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === s));
   } else if (k) {
@@ -5153,6 +6328,13 @@ function registerSW() {
   else if (ok === false && !doc) { loadSample(); toast('サンプル写真を表示中。左上の「開く」から写真を選べます', 4200); }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layoutMemo.clear(); invalidate(); });
   const pid = hashPost(); if (pid) openSharedPost(pid);
+  else if (!UI.seen && !navigator.webdriver) { UI.seen = true; saveUI(); setTimeout(() => openSheet('#sheetWelcome'), 400); }   // first visit: a short welcome (not in automated test browsers)
   registerSW();
 })();
+$('#sheetWelcome').addEventListener('click', e => {
+  const b = e.target.closest('[data-wl]'); if (!b) return;
+  closeSheets();
+  if (b.dataset.wl === 'open') $('#fileOpen').click();
+  else if (b.dataset.wl === 'tpl') deskOn ? openInDrawer('template') : openTplSheet();
+});
 </script>
