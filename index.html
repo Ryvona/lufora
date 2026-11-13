@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Lufora</title>
 <meta name="description" content="Lufora（ルフォラ）— Creativity grows naturally. スマホとパソコンで使える写真編集アプリ。写真の貼り付け、文字、ペン、付箋、モザイク、切り抜き、色調整。">
 <meta name="theme-color" content="#FBF8F1">
@@ -47,6 +47,7 @@ body{font-family:var(--ui);-webkit-user-select:none;user-select:none;-webkit-tap
 button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 [hidden]{display:none!important}
+input,textarea{-webkit-user-select:text;user-select:text}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 
 #app{position:fixed;inset:0;display:flex;flex-direction:column}
@@ -70,7 +71,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
   background-color:var(--stage);
   background-image:radial-gradient(rgba(70,85,60,.10) 1px,transparent 1.2px);background-size:18px 18px}
 #cv{position:absolute;left:0;top:0;touch-action:none;display:block}
-#toast{position:absolute;left:50%;top:12px;transform:translate(-50%,-10px) scale(.96);max-width:calc(100% - 32px);
+#toast{position:fixed;z-index:30;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-10px) scale(.96);max-width:calc(100% - 32px);
   background:rgba(251,248,241,.8);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);
   border:1px solid rgba(60,70,50,.08);color:var(--fg);padding:9px 16px;border-radius:14px;box-shadow:0 10px 28px -12px rgba(60,70,50,.25);
   font-size:13px;line-height:1.5;opacity:0;pointer-events:none;transition:opacity .2s,transform .4s var(--spring);text-align:center}
@@ -278,7 +279,7 @@ input[type=range]::-moz-range-thumb{width:calc(24px*var(--u));height:calc(24px*v
 .ordlist{position:relative;display:flex;flex-direction:column;gap:6px}
 .ordrow{position:relative;display:flex;align-items:center;gap:6px;min-height:calc(52px*var(--u));padding:0 4px 0 0;border-radius:12px;background:var(--chrome2);border:1px solid var(--line);transition:opacity .2s,box-shadow .2s}
 .ordrow.off{opacity:.5}
-.ordrow.off .nm{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.3)}
+.ordrow.off .nm{text-decoration:line-through;text-decoration-color:rgba(46,58,45,.45)}
 .ordrow.drag{z-index:2;box-shadow:0 14px 28px -12px rgba(60,70,50,.35),0 0 0 1.5px var(--accent);background:#FFFFFF;transition:none}
 .ordrow .hdl{flex:0 0 auto;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);touch-action:none;cursor:grab}
 .ordrow.drag .hdl{color:var(--accent);cursor:grabbing}
@@ -391,7 +392,7 @@ html.desk #panel .stamps{padding:4px 12px;flex-wrap:wrap}
 .lyr.over{box-shadow:inset 0 2px 0 var(--accent)}
 .lyr .lic{flex:0 0 22px;text-align:center;font-weight:800;color:var(--accent);font-size:13px}
 .lyr .lnm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:calc(13px*var(--u))}
-.lyr .lbtn{flex:0 0 auto;width:30px;height:30px;border-radius:8px;font-size:13px;opacity:.55}
+.lyr .lbtn{flex:0 0 auto;width:34px;height:34px;border-radius:8px;font-size:13px;opacity:.55}
 .lyr .lbtn:hover{opacity:1;background:var(--chrome2)}
 .lyr .lbtn.off,.lyr .lbtn.act{opacity:1}
 .layers .lempty{margin:6px 4px 0;font-size:calc(11.5px*var(--u));color:var(--muted)}
@@ -444,6 +445,9 @@ html.desk #cv.hscale{cursor:nwse-resize}
 html.desk #cv.hrot{cursor:alias}
 /* クイック検索 (Ctrl+K or /) */
 #sheetCmd{padding-top:12px}
+/* phone: the search sits at the top so the on-screen keyboard does not cover the results; the key hints are PC-only */
+html:not(.desk) #sheetCmd{top:calc(env(safe-area-inset-top,0px) + 8px);bottom:auto;border-radius:0 0 22px 22px}
+html:not(.desk) .cmdnote{display:none}
 html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px solid var(--line);max-height:70vh;animation:pop .22s var(--spring)}
 .cmdbox{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;background:var(--chrome2);border:1px solid var(--line)}
 .cmdbox:focus-within{border-color:var(--accent)}
@@ -459,7 +463,7 @@ html.desk #panel .legend{padding:6px 16px 10px}
 .legend span{display:flex;align-items:center;gap:7px;min-height:34px;padding:0 10px;border-radius:10px;background:var(--chrome2);font-size:calc(12px*var(--u));color:var(--fg)}
 .legend i{font-style:normal;font-size:15px;width:18px;text-align:center}
 /* phone: bottom panel with 3 heights (小・中・大) chosen with the grab handle; 小 leaves just the tools */
-#pgrab{display:flex;align-items:center;justify-content:center;height:16px;touch-action:none;cursor:grab}
+#pgrab{display:flex;align-items:center;justify-content:center;height:24px;touch-action:none;cursor:grab}
 #pgrab span{width:42px;height:5px;border-radius:3px;background:var(--line)}
 html.desk #pgrab{display:none}
 html:not(.desk) #panel{transition:max-height .28s cubic-bezier(.2,.8,.2,1),min-height .28s,padding .28s}
@@ -592,8 +596,8 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
       <button id="objMore" hidden aria-label="操作メニュー" aria-haspopup="menu" aria-expanded="false">⋯</button>
       <div id="objMenu" role="menu" hidden></div>
       <div id="objBar" role="toolbar" aria-label="選んだ物の操作" hidden></div>
-      <div id="zoomBox" aria-label="表示倍率"><button data-z="out" aria-label="縮小">−</button><button data-z="fit" id="zoomPct" aria-label="全体を表示">100%</button><button data-z="in" aria-label="拡大">＋</button><button id="zFocus" data-z="focus" aria-pressed="false" aria-label="集中モード（パネルを畳む）" title="集中モード（Ctrl+\）">⛶</button></div>
-      <div id="toast" role="status" aria-live="polite"></div></main>
+      <div id="zoomBox" role="toolbar" aria-label="表示倍率"><button data-z="out" aria-label="縮小">−</button><button data-z="fit" id="zoomPct" aria-label="全体を表示">100%</button><button data-z="in" aria-label="拡大">＋</button><button id="zFocus" data-z="focus" aria-pressed="false" aria-label="集中モード（パネルを畳む）" title="集中モード（Ctrl+\）">⛶</button></div>
+</main>
     <aside id="insp" aria-labelledby="inspTitle"><div class="ihead"><span id="inspTitle">設定</span><small id="inspSub"></small></div></aside>
   </div>
   <section class="dock">
@@ -606,6 +610,8 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
 </div>
 
 <div class="backdrop" id="backdrop" hidden></div>
+<!-- the toast lives outside #app so it shows above sheets and the backdrop -->
+<div id="toast" role="status" aria-live="polite"></div>
 
 <div class="sheet" id="sheetNew" hidden>
   <div class="grab"></div>
@@ -653,7 +659,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
   <!-- PC and phone each get their own short guide (only the matching one is shown) -->
   <div class="help-pc">
     <div class="hcards">
-      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>左：作品・アップロード・テンプレート・素材・フィルター・背景削除・調整</li><li>その右：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
+      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>左：みんなの作品・アップロード・テンプレート・素材・フィルター・背景削除・調整</li><li>その右：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
       <div class="hcard"><span class="hic">🖱️</span><b>基本の操作</b><ul><li>クリックで選択、ドラッグで移動</li><li>角の● で拡大縮小、上の● で回転</li><li>ダブルクリックで文字を書き換え</li><li>右クリックでメニュー</li></ul></div>
       <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>ドラッグ＆ドロップ、または Ctrl+V</li><li>写真枠はダブルクリックかドロップ</li></ul></div>
       <div class="hcard"><span class="hic">✨</span><b>便利な機能</b><ul><li>テンプレート・素材でかんたんデコ</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>編集は自動で下書き保存</li></ul></div>
@@ -661,7 +667,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
   </div>
   <div class="help-sp">
     <div class="hcards">
-      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>下：編集ツール（長押しで並び替え）</li><li>☰：作品・テンプレート・素材・フィルターなど</li></ul></div>
+      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>編集ツール：下（横向きのタブレットでは左）。長押しで並び替え</li><li>☰：作品・テンプレート・素材・フィルターなど</li></ul></div>
       <div class="hcard"><span class="hic">👆</span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>長押しでメニュー</li></ul></div>
       <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>「開く」から写真を選ぶ</li><li>写真枠はダブルタップ</li></ul></div>
       <div class="hcard"><span class="hic">✨</span><b>便利な機能</b><ul><li>テンプレート・素材でかんたんデコ</li><li>背景削除は AI で自動</li><li>編集は自動で下書き保存</li></ul></div>
@@ -698,7 +704,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
   <ol class="wsteps">
     <li><span class="wn">1</span><span class="wi">🖼️</span><b>写真をえらぶ</b><small>「開く」から</small></li>
     <li><span class="wn">2</span><span class="wi">✨</span><b>デコる</b><small>文字・素材・テンプレート</small></li>
-    <li><span class="wn">3</span><span class="wi">💾</span><b>保存する</b><small>右上の「保存」</small></li>
+    <li><span class="wn">3</span><span class="wi">💾</span><b>保存する</b><small>上の「保存」ボタン</small></li>
   </ol>
   <div class="actions" style="padding:14px 0 0"><button class="btn" data-wl="tpl">テンプレートを見る</button><button class="btn primary" data-wl="open">写真をえらぶ</button></div>
   <p class="note" style="text-align:center">いまはサンプル写真で試せます。使い方は「？」からいつでも。</p>
@@ -711,7 +717,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
 </div>
 
 <div class="sheet light" id="sheetCmd" hidden>
-  <h2 class="vh">クイック検索</h2>
+  <h2 class="vh">クイック検索</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
   <div class="cmdbox"><span aria-hidden="true">🔍</span><input id="cmdQ" type="text" autocomplete="off" spellcheck="false" placeholder="やりたいことを入力（例：文字、エモ、保存、背景）" aria-label="機能を検索" aria-controls="cmdList" aria-autocomplete="list"></div>
   <div id="cmdList" role="listbox" aria-label="候補"></div>
   <p class="note cmdnote">↑↓ で選んで Enter・Esc で閉じる。Ctrl+K か / でいつでも開けます。</p>
@@ -2198,7 +2204,7 @@ const deskMQ = matchMedia('(min-width: 900px)');
 let deskOn = deskMQ.matches;
 document.documentElement.classList.toggle('desk', deskOn);
 /* tablet / landscape phone (600–899 px): phone layout, but the edit tools stand in a column on the left */
-const tabMQ = matchMedia('(min-width: 600px) and (max-width: 899px)');
+const tabMQ = matchMedia('(min-width: 600px) and (not (min-width: 900px))');
 let tabOn = tabMQ.matches;
 document.documentElement.classList.toggle('tab', tabOn);
 
@@ -2273,8 +2279,10 @@ function restore(s) {
   invalidate(); if (sizeChanged) fitView();
   refreshPanel(); updateUndoUI(); scheduleSave();
 }
-function undo() { if (!hist.past.length || G) return; hist.future.push(lastSnap); lastSnap = hist.past.pop(); restore(lastSnap); }
-function redo() { if (!hist.future.length || G) return; hist.past.push(lastSnap); lastSnap = hist.future.pop(); restore(lastSnap); }
+/* an arrow-key nudge commits 400 ms later: flush it first so undo / redo don't swallow it */
+function flushNudge() { if (typeof nudgeT !== 'undefined' && nudgeT) { clearTimeout(nudgeT); nudgeT = 0; commit(); } }
+function undo() { flushNudge(); if (!hist.past.length || G) return; hist.future.push(lastSnap); lastSnap = hist.past.pop(); restore(lastSnap); }
+function redo() { flushNudge(); if (!hist.future.length || G) return; hist.past.push(lastSnap); lastSnap = hist.future.pop(); restore(lastSnap); }
 function updateUndoUI() { $('#btnUndo').disabled = !hist.past.length; $('#btnRedo').disabled = !hist.future.length; }
 /* bitmap ids referenced by each history snapshot, parsed once per snapshot (not re-scanned on every commit) */
 const snapRefs = new Map();
@@ -2322,7 +2330,8 @@ new ResizeObserver(() => {
   const wChanged = Math.abs(stageW - lastStageW) > 1;
   // PC: a height-only change (the top panel growing/shrinking as tools or selections change) keeps the zoom and just re-centres
   if (!wChanged && doc) { view.ty += (stageH - oldH) / 2; requestDraw(); }   // PC and phone: the panel growing never re-zooms the photo
-  else if (wasFit || wChanged) fitView();
+  // width change (drawer / sidebar / window): refit only if the photo was fitted; a zoom the user chose is kept and re-centred
+  else if (wasFit || !doc || !lastStageW) fitView();
   else { view.tx += (stageW - oldW) / 2; view.ty += (stageH - oldH) / 2; requestDraw(); }
   lastStageW = stageW;
 }).observe(stage);
@@ -2497,9 +2506,11 @@ function selGeom(o) {
   return { corners, top, rotH, center: docToScreen(o.x, o.y) };
 }
 function hitHandle(o, p) {
-  const g = selGeom(o);
+  const g = selGeom(o), [a, b, c2] = g.corners;
+  // small objects: shrink the corner targets so a drag inside the object still moves it instead of resizing
+  const R = clamp(Math.min(dist(a, b), dist(b, c2)) / 3, 10, 24);
   if (dist(p, g.rotH) < 24) return 'rot';
-  for (const c of g.corners) if (dist(p, c) < 24) return 'scale';
+  for (const c of g.corners) if (dist(p, c) < R) return 'scale';
   return null;
 }
 
@@ -3141,7 +3152,10 @@ function eraseAt(d) {
   const tol = 12 / view.s;
   for (let i = doc.objects.length - 1; i >= 0; i--) {
     const o = doc.objects[i];
-    if (o.type === 'stroke' && !o.locked && hitObj(o, d.x, d.y, tol)) { doc.objects.splice(i, 1); G.changed = true; invalidate(); }
+    if (o.type === 'stroke' && !o.locked && !o.hidden && hitObj(o, d.x, d.y, tol)) {
+      doc.objects.splice(i, 1); G.changed = true; invalidate();
+      if (selId === o.id) selId = null; if (multi.includes(o.id)) multi = multi.filter(id => id !== o.id);
+    }
   }
 }
 
@@ -3153,7 +3167,8 @@ cv.addEventListener('pointerdown', e => {
   try { cv.setPointerCapture(e.pointerId); } catch (err) { }
   const p = pt(e);
   pointers.set(e.pointerId, p);
-  clearTimeout(objLpT);
+  clearTimeout(objLpT); clearTimeout(phTapT);   // a new touch cancels a pending panel fold from the previous tap
+  touchG = e.pointerType !== 'mouse';
   if (pointers.size === 2) return startPinch();
   if (pointers.size > 2) return;
   startSingle(p, e.shiftKey);
@@ -3173,7 +3188,9 @@ cv.addEventListener('pointermove', e => {
   }
   moveSingle(p);
 });
-let objLpT = 0, phTapT = 0;
+let objLpT = 0, phTapT = 0, touchG = false;
+/* how far a press may wander before it counts as a drag: fingers jitter more than a mouse */
+const slop = () => touchG ? 10 : 4;
 /* phone gestures: a quick 2-finger tap = 元に戻す, 3-finger tap = やり直し (設定 can turn them off) */
 let tapG = null;
 cv.addEventListener('pointerdown', e => {
@@ -3196,8 +3213,10 @@ function onUp(e) {
   if (e.pointerType === 'touch') setTimeout(tapGestureEnd, 0);
   if (!G) return;
   if (G.type === 'pinchView' || G.type === 'pinchObj' || G.type === 'none') {
-    if (G.type === 'pinchObj') { rememberSize(); commit(); }
-    G = pointers.size ? { type: 'none' } : null;
+    if (G.type === 'pinchObj' && G.live) { rememberSize(); commit(); }
+    // lifting one finger of a view pinch: the remaining finger keeps panning
+    if (G.type === 'pinchView' && pointers.size === 1) { const q = [...pointers.values()][0]; G = { type: 'pan', p0: q, tx0: view.tx, ty0: view.ty, moved: true }; }
+    else G = pointers.size ? { type: 'none' } : null;
     requestDraw();               // lets draw() re-render the preview at the new zoom
     return;
   }
@@ -3223,8 +3242,12 @@ cv.addEventListener('pointercancel', onUp);
 cv.addEventListener('wheel', e => {
   if (!doc) return;
   e.preventDefault();
+  if (G && G.type !== 'none') return;   // zooming mid-drag would make the dragged object / view jump
+  const k = e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1;   // Firefox wheels report lines, not pixels
+  // trackpad two-finger scroll (sideways component, no Ctrl) pans; wheel and pinch (Ctrl) zoom
+  if (!e.ctrlKey && e.deltaMode === 0 && e.deltaX !== 0) { view.tx -= e.deltaX; view.ty -= e.deltaY; requestDraw(); return; }
   const p = pt(e), d = screenToDoc(p.x, p.y);
-  const s = clamp(view.s * Math.exp(-e.deltaY * 0.0015), fitScale * 0.3, Math.max(fitScale * 12, 4));
+  const s = clamp(view.s * Math.exp(-e.deltaY * k * 0.0015), fitScale * 0.3, Math.max(fitScale * 12, 4));
   view.s = s; view.tx = p.x - d.x * s; view.ty = p.y - d.y * s; requestDraw();
 }, { passive: false });
 document.addEventListener('gesturestart', e => e.preventDefault());
@@ -3234,6 +3257,7 @@ function startPinch() {
   let objMode = false;
   if (G) {
     if ((G.type === 'draw' || G.type === 'shape') && G.obj) { removeObj(G.obj.id); invalidate(); }
+    if (G.type === 'cutbrush') invalidate();   // drop the live-brush preview so the filter re-applies
     if ((G.type === 'erase' && G.changed) || G.type === 'cutbrush' || (G.type === 'gmove' && G.moved)) commit();
     if (G.type === 'marq') requestDraw();
     if (G.type === 'move' && tool === 'select') { const o = selObj(); if (o && !o.locked && o.id === G.id) objMode = true; }
@@ -3253,6 +3277,9 @@ function movePinch() {
     view.s = s; requestDraw();
   } else {
     const o = selObj(); if (!o) return;
+    // dead zone: finger jitter during a 2-finger tap (= undo) must not count as a scale / rotate step
+    if (!G.live && Math.abs(d - G.d0) < 8 && dist(mid, G.mid0) < 8 && Math.abs(ang - G.a0) < 0.05) return;
+    G.live = true;
     o.sc = clamp(G.sc0 * d / G.d0, 0.03, 60);
     o.rot = snapRot(G.rot0 + (ang - G.a0));
     o.x = G.x0 + (mid.x - G.mid0.x) / view.s; o.y = G.y0 + (mid.y - G.mid0.y) / view.s;
@@ -3305,8 +3332,9 @@ function marqPick(a, b) {
   const r = { x0: Math.min(a.x, b.x), y0: Math.min(a.y, b.y), x1: Math.max(a.x, b.x), y1: Math.max(a.y, b.y) };
   return doc.objects.filter(o => { if (o.locked || o.hidden) return false; const q = multiBox([o]); return q.x0 <= r.x1 && q.x1 >= r.x0 && q.y0 <= r.y1 && q.y1 >= r.y0; }).map(o => o.id);
 }
+let hadSel = false;   // this press cleared a group selection (so its tap must not also fold the phone panel)
 function startSingle(p, shift) {
-  const d = screenToDoc(p.x, p.y);
+  const d = screenToDoc(p.x, p.y); hadSel = false;
   if (spaceDown) { G = { type: 'pan', p0: p, tx0: view.tx, ty0: view.ty, moved: true }; return; }   // Space+drag pans with any tool
   switch (tool) {
     case 'select': {
@@ -3314,10 +3342,10 @@ function startSingle(p, shift) {
       if (ms.length) {
         const hit = pick(d.x, d.y), b = multiBox(ms), pad = 8 / view.s;
         if ((hit && multi.includes(hit.id)) || (d.x >= b.x0 - pad && d.x <= b.x1 + pad && d.y >= b.y0 - pad && d.y <= b.y1 + pad)) {
-          G = { type: 'gmove', p0: p, start: ms.map(o => [o, o.x, o.y]), hitId: hit && multi.includes(hit.id) ? hit.id : null, moved: false };
+          G = { type: 'gmove', p0: p, start: ms.filter(o => !o.locked && !o.hidden).map(o => [o, o.x, o.y]), hitId: hit && multi.includes(hit.id) ? hit.id : null, moved: false };
           return;
         }
-        multi = []; refreshPanel(); requestDraw();
+        multi = []; refreshPanel(); requestDraw(); hadSel = true;
       }
       const o = selObj();
       if (o && !o.locked) {
@@ -3374,7 +3402,7 @@ function moveSingle(p) {
   const d = screenToDoc(p.x, p.y);
   switch (G.type) {
     case 'pan': case 'cuttap':
-      if (dist(p, G.p0) > 4) G.moved = true;
+      if (dist(p, G.p0) > slop()) G.moved = true;
       if (G.moved) panTo(p);
       break;
     case 'cutbrush': {
@@ -3384,7 +3412,7 @@ function moveSingle(p) {
     }
     case 'move': {
       const o = doc.objects.find(x => x.id === G.id); if (!o) return;
-      if (dist(p, G.p0) > 4) G.moved = true;
+      if (dist(p, G.p0) > slop()) G.moved = true;
       if (!G.moved) return;
       if (o.locked) { panTo(p); return; }
       o.x = G.x0 + (p.x - G.p0.x) / view.s; o.y = G.y0 + (p.y - G.p0.y) / view.s;
@@ -3394,7 +3422,7 @@ function moveSingle(p) {
     }
     case 'marq': G.p1 = p; if (dist(p, G.p0) > 6) G.moved = true; requestDraw(); break;
     case 'gmove': {
-      if (dist(p, G.p0) > 4) G.moved = true;
+      if (dist(p, G.p0) > slop()) G.moved = true;
       if (!G.moved) return;
       const dx = (p.x - G.p0.x) / view.s, dy = (p.y - G.p0.y) / view.s;
       for (const [o, x, y] of G.start) { o.x = x + dx; o.y = y + dy; }
@@ -3432,7 +3460,7 @@ function endSingle(p, cancelled) {
         if (isDoubleTap(p, 'empty')) { clearTimeout(phTapT); fitView(); }
         else if (tool === 'select' && selId) { selId = null; refreshPanel(); requestDraw(); }
         // phone: a single tap on empty canvas (nothing selected) folds the bottom panel / opens it again; waits so a double tap can win
-        else if (!deskOn && tool === 'select' && !multi.length) { clearTimeout(phTapT); phTapT = setTimeout(() => setPH(phNow === 's' ? phPrev : 's'), 330); }
+        else if (!deskOn && tool === 'select' && !multi.length && !hadSel) { clearTimeout(phTapT); phTapT = setTimeout(() => setPH(phNow === 's' ? phPrev : 's'), 330); }
       }
       break;
     case 'marq': {
@@ -3456,7 +3484,7 @@ function endSingle(p, cancelled) {
       else if (!cancelled && isDoubleTap(p, G.id)) { const o = selObj(); if (o && o.slot && !o.locked) pickSlot(o.id); else if (o) startInlineEdit(o); }
       break;
     case 'scale': case 'rotate': rememberSize(); commit(); break;
-    case 'cutbrush': commit(); break;
+    case 'cutbrush': invalidate(); commit(); break;   // invalidate: drop the live-brush preview so the filter re-applies
     case 'cuttap': if (!G.moved && !cancelled && S.cut.mode === 'tap' && !aiBusy) cutTapAt(G.d); break;
     case 'draw': normalizePts(G.obj); invalidate(); commit(); if (tool === 'mosaic') refreshPanel(); break;
     case 'erase': if (G.changed) commit(); break;
@@ -3475,7 +3503,7 @@ function endSingle(p, cancelled) {
 let aiBusy = false, aiMsg = '';
 function cutTarget() {
   if (S.cut.target !== 'base') {
-    const o = doc.objects.find(x => x.id === S.cut.target && x.type === 'image' && x.bmp);
+    const o = doc.objects.find(x => x.id === S.cut.target && x.type === 'image' && x.bmp && !x.slot);
     if (o) return { o };
     S.cut.target = 'base';
   }
@@ -3623,6 +3651,7 @@ async function releaseModel(id) {
   try { const s = await p; if (s && s.release) await s.release(); } catch (e) { }
 }
 async function clearModelCaches() {
+  if (aiBusy) { toast('AIの処理が終わってから削除してください'); return false; }
   for (const id in modelP) await releaseModel(id);
   try {
     const keys = await idbOp('readonly', st => st.getAllKeys());
@@ -3866,8 +3895,12 @@ function matHtml(search) {
   if (search && matQ.trim()) {
     const q = kana(matQ.trim());
     const hits = [...Object.entries(DECO).filter(([id, d]) => kana(d.name + ' ' + id + ' ' + (DECO_CATS.find(c => c[0] === d.cat) || ['', ''])[1]).includes(q)).map(([id]) => 'd:' + id),
-      ...DATE_FMTS.map((f, i) => [f, i]).filter(([f]) => kana('日付 ひづけ date ' + f[0]).includes(q)).map(([, i]) => 't:' + i)];
-    return h + (hits.length ? `<div class="matgrid">${hits.map(matButton).join('')}</div>` : hint('見つかりませんでした。'));
+      ...DATE_FMTS.map((f, i) => [f, i]).filter(([f]) => kana('日付 ひづけ date ' + f[0]).includes(q)).map(([, i]) => 't:' + i),
+      ...CHART_PRESETS.filter(p => kana(p.name + ' ' + p.id + ' 表 ひょう グラフ ぐらふ chart').includes(q)).map(p => 'g:' + p.id)];
+    // a category name (スタンプ / 動物 / 食べ物 …) brings in that whole category's items
+    for (const [c, l] of cats) if (c !== 'recent' && c !== 'bg' && kana(l).includes(q)) hits.push(...matItems(c));
+    const uniq = [...new Set(hits)];
+    return h + (uniq.length ? `<div class="matgrid">${uniq.map(matButton).join('')}</div>` : hint('見つかりませんでした。'));
   }
   if (matCat === 'bg') return h + bgPanelHtml();
   if (matCat === 'emoji') h += row('番号', cmdBtn('num', `番号を追加（次は ${nextNum()}）`) + swatches('s', 'num.color', S.num.color, ['#FF3B30', '#007AFF', '#111111', '#34C759', '#FF9500']));
@@ -3876,6 +3909,14 @@ function matHtml(search) {
 }
 let matQ = '';
 function renderMaterial() { sidePanel.innerHTML = matHtml(true); }
+/* after a 素材 action: refresh the open panel and, on PC, the 素材 drawer too */
+function refreshMat() { refreshPanel(); if (sideView === 'material') renderMaterial(); }
+/* search typing: replace everything except the search box itself (rebuilding the input would break IME composition and the caret) */
+function renderMatResults() {
+  const t = document.createElement('div'); t.innerHTML = matHtml(true);
+  [...sidePanel.children].forEach(c => { if (!c.classList.contains('matsearch')) c.remove(); });
+  [...t.children].forEach(c => { if (!c.classList.contains('matsearch')) sidePanel.appendChild(c); });
+}
 /* collage slots: put a photo into slot `id` (file picker, double-click or a file dropped on the slot) */
 let slotTarget = null;
 function pickSlot(id) { slotTarget = id; $('#fileSlot').value = ''; $('#fileSlot').click(); }
@@ -3883,18 +3924,18 @@ $('#fileSlot').addEventListener('change', e => { const f = e.target.files && e.t
 async function fillSlot(id, file) {
   try {
     toast('読み込み中…');
-    const { canvas, resized } = await fileToCanvas(file, 2048);
+    const { canvas, resized, alpha } = await fileToCanvas(file, 2048);
     const o = doc && doc.objects.find(x => x.id === id); if (!o) return;
-    o.bmp = regBitmap(canvas, resized ? null : file); o.fz = 1; o.fx = 0; o.fy = 0;
+    o.bmp = regBitmap(canvas, resized ? null : file, alpha); delete o.orig; o.fz = 1; o.fx = 0; o.fy = 0;
     selId = o.id; multi = []; invalidate(); commit(); refreshPanel(); requestDraw();
-    toast('写真を入れました。右の「拡大」「左右」「上下」で見せ方を調整できます', 3200);
+    toast(`写真を入れました。${deskOn ? '右' : '下'}のパネルの「拡大」「左右」「上下」で見せ方を調整できます`, 3200);
   } catch (err) { toast(imgErr(file)); }
 }
 async function addPhoto(file) {
   try {
     toast('読み込み中…');
-    const { canvas, resized } = await fileToCanvas(file, 2048);
-    const id = regBitmap(canvas, resized ? null : file);
+    const { canvas, resized, alpha } = await fileToCanvas(file, 2048);
+    const id = regBitmap(canvas, resized ? null : file, alpha);
     const box = MIN() * 0.5, a = canvas.width / canvas.height;
     const w = a >= 1 ? box : box * a, h = a >= 1 ? box / a : box;
     const c = viewCenter();
@@ -3964,13 +4005,13 @@ ied.addEventListener('input', () => {
   o.text = ied.value; invalidate();
 });
 ied.addEventListener('keydown', e => {
+  if (e.isComposing || e.keyCode === 229) return;   // IME: Esc / Enter belong to the conversion
   if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); e.stopPropagation(); endInlineEdit(); }
 });
 ied.addEventListener('blur', () => { if (editingId) endInlineEdit(); });
 
 /* ==== object menu (⋯) ==== follows the selection; items go through doAct → runCmd like panel buttons */
 const objMore = $('#objMore'), objMenu = $('#objMenu');
-let moreX = 0, moreY = 0;
 /* PC quick-action bar above the selection: 複製・前面・背面・ロック・削除 (the ⋯ menu keeps the full list) */
 const objBar = $('#objBar');
 let objBarFor = '';
@@ -3993,7 +4034,7 @@ function placeObjBar(o) {
 objBar.addEventListener('pointerdown', e => e.stopPropagation());
 objBar.addEventListener('click', e => {
   const b = e.target.closest('[data-k]'); if (!b) return;
-  const k = b.dataset.k; runCmd(k); if (k !== 'dup' && k !== 'del') refreshPanel(); objBarFor = ''; requestDraw();
+  runCmd(b.dataset.k); objBarFor = ''; requestDraw();
 });
 /* the ⋯ button was retired: the menu now opens by long-press / right-click (objMore stays hidden in the DOM) */
 function placeObjMore() {
@@ -4006,9 +4047,9 @@ function placeObjMore() {
 let menuAt = null;   // right-click: the menu opens at the cursor instead of under ⋯
 function placeObjMenu() {
   const mw = objMenu.offsetWidth, mh = objMenu.offsetHeight;
-  let x = moreX + 36 - mw, y = moreY + 42;
-  if (menuAt) { x = menuAt.x; y = menuAt.y; if (y + mh > stageH - 6) y = menuAt.y - mh; if (x + mw > stageW - 6) x = menuAt.x - mw; }
-  else { if (x < 6) x = moreX; if (y + mh > stageH - 6) y = moreY - mh - 6; }
+  if (!menuAt) return;
+  let x = menuAt.x, y = menuAt.y;
+  if (y + mh > stageH - 6) y = menuAt.y - mh; if (x + mw > stageW - 6) x = menuAt.x - mw;
   objMenu.style.left = clamp(x, 6, Math.max(6, stageW - mw - 6)) + 'px'; objMenu.style.top = clamp(y, 6, Math.max(6, stageH - mh - 6)) + 'px';
 }
 function openObjMenu() {
@@ -4037,13 +4078,15 @@ cv.addEventListener('contextmenu', e => {
   openObjMenuAt(p);
 });
 /* the object menu opens at a point (right-click, long-press, or the keyboard's menu key at the selection's centre) */
-function openObjMenuAt(p) { requestDraw(); openObjMenu(); menuAt = { x: p.x, y: p.y }; placeObjMenu(); }
+let menuRet = null;   // element to give focus back to when the menu closes
+function openObjMenuAt(p) { requestDraw(); menuRet = document.activeElement; menuAt = { x: p.x, y: p.y }; openObjMenu(); }
 objMenu.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
-  closeObjMenu();
+  const ret = menuRet; closeObjMenu();
   doAct(b.dataset.act, b.dataset.k, undefined, true);
-  if (b.dataset.k !== 'edit' && !objMore.hidden) objMore.focus({ preventScroll: true });
+  if (b.dataset.k !== 'edit') menuFocusBack(ret);
 });
+function menuFocusBack(ret) { if (ret && ret.isConnected && ret !== document.body) ret.focus({ preventScroll: true }); else if (objMenu.contains(document.activeElement)) document.activeElement.blur(); }
 objMenu.addEventListener('keydown', e => {
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
   e.preventDefault();
@@ -4054,20 +4097,20 @@ document.addEventListener('pointerdown', e => { if (!objMenu.hidden && !objMenu.
 function runCmd(k, v, final) {
   const o = selObj();
   switch (k) {
-    case 'front': if (o) { removeObj(o.id); doc.objects.push(o); selId = o.id; invalidate(); commit(); } break;
-    case 'back': if (o) { removeObj(o.id); doc.objects.unshift(o); selId = o.id; invalidate(); commit(); } break;
+    case 'front': if (o) { removeObj(o.id); doc.objects.push(o); selId = o.id; invalidate(); commit(); refreshPanel(); } break;
+    case 'back': if (o) { removeObj(o.id); doc.objects.unshift(o); selId = o.id; invalidate(); commit(); refreshPanel(); } break;
     case 'dup': if (o) {
       const c = JSON.parse(JSON.stringify(o)); c.id = newId(); c.locked = false; c.x += MIN() * 0.04; c.y += MIN() * 0.04;
       if (c.kind === 'num') c.n = nextNum();
       pushObj(c); toast('複製しました');
     } break;
     case 'lock': if (o) { o.locked = !o.locked; commit(); refreshPanel(); requestDraw(); toast(o.locked ? 'ロックしました。動かせなくなります' : 'ロックを解除しました'); } break;
-    case 'del': if (o) { removeObj(o.id); invalidate(); commit(); refreshPanel(); } break;
+    case 'del': if (o) { if (o.locked) { toast('ロック中です。解除してから削除してください'); break; } removeObj(o.id); invalidate(); commit(); refreshPanel(); } break;
     case 'edit': if (o) startInlineEdit(o); break;
     case 'mFront': case 'mBack': {   // keeps the group's own stacking order
       const inG = x => multi.includes(x.id), g = doc.objects.filter(inG), rest = doc.objects.filter(x => !inG(x));
       if (!g.length) break;
-      doc.objects = k === 'mFront' ? [...rest, ...g] : [...g, ...rest]; invalidate(); commit();
+      doc.objects = k === 'mFront' ? [...rest, ...g] : [...g, ...rest]; invalidate(); commit(); refreshPanel();
     } break;
     case 'mDup': {
       const ids = [];
@@ -4080,30 +4123,29 @@ function runCmd(k, v, final) {
       multi = ids; invalidate(); commit(); refreshPanel(); toast(`${ids.length}個を複製しました`);
     } break;
     case 'mDel': {
-      const n = multiObjs().length; if (!n) break;
-      doc.objects = doc.objects.filter(x => !multi.includes(x.id)); multi = [];
-      invalidate(); commit(); refreshPanel(); toast(`${n}個を削除しました`);
+      const all = multiObjs(), del = all.filter(x => !x.locked), n = del.length;
+      if (!all.length) break;
+      if (!n) { toast('ロック中のものは削除できません'); break; }
+      doc.objects = doc.objects.filter(x => !del.includes(x)); multi = [];
+      invalidate(); commit(); refreshPanel(); toast(`${n}個を削除しました` + (n < all.length ? '（ロック中のものは残しました）' : ''));
     } break;
     case 'mClear': multi = []; refreshPanel(); requestDraw(); break;
     case 'decoSeed': if (o) { o.seed = (o.seed || 1) + 1 + Math.floor(Math.random() * 97); invalidate(); commit(); } break;
     case 'decoFit': if (o) { o.x = doc.w / 2; o.y = doc.h / 2; o.w = doc.w; o.h = doc.h; o.sc = 1; o.rot = 0; invalidate(); commit(); refreshPanel(); } break;
-    case 'deco': addDeco(v); break;
-    case 'dateStamp': addDateStamp(v); break;
-    case 'bgPat': doc.bgPat = v ? { kind: v, color: (doc.bgPat && doc.bgPat.color) || '#FFD6E5', color2: (doc.bgPat && doc.bgPat.color2) || '#FFFFFF' } : null; invalidate(); commit(); refreshPanel(); if (v) toast('背景の柄は、写真の透明な部分（白紙や背景を消した所）に表示されます', 3600); break;
-    case 'bgPat1': case 'bgPat2': if (doc.bgPat) { doc.bgPat = { ...doc.bgPat, [k === 'bgPat1' ? 'color' : 'color2']: v }; invalidate(); if (final !== false) { commit(); if (sideView === 'material') renderMaterial(); else refreshPanel(); } } break;
+    case 'bgPat': doc.bgPat = v ? { kind: v, color: (doc.bgPat && doc.bgPat.color) || '#FFD6E5', color2: (doc.bgPat && doc.bgPat.color2) || '#FFFFFF' } : null; invalidate(); commit(); refreshMat(); if (v) toast('背景の柄は、写真の透明な部分（白紙や背景を消した所）に表示されます', 3600); break;
+    case 'bgPat1': case 'bgPat2': if (doc.bgPat) { doc.bgPat = { ...doc.bgPat, [k === 'bgPat1' ? 'color' : 'color2']: v }; invalidate(); if (final !== false) { commit(); refreshMat(); } } break;
     case 'matAdd': addMat(v); if (sideView === 'material' && matCat === 'recent') renderMaterial(); break;
-    case 'matCat': matCat = v; refreshPanel(); if (sideView === 'material') renderMaterial(); break;
+    case 'matCat': matCat = v; if (tool === 'stamp') refreshPanel(); if (sideView === 'material') renderMaterial(); break;
     case 'slotPick': if (o && o.slot) pickSlot(o.id); break;
     case 'slotFit': if (o && o.slot) { o.fz = 1; o.fx = 0; o.fy = 0; invalidate(); commit(); refreshPanel(); } break;
     case 'align': { const ms = multiObjs(); alignObjs(ms.length ? ms : o ? [o] : [], v); } break;
     case 'numInc': if (o) { o.n = Math.max(1, o.n + v); invalidate(); commit(); refreshPanel(); } break;
-    case 'stamp': addStamp(v); break;
-    case 'num': addNum(); break;
+    case 'num': addNum(); if (sideView === 'material') renderMaterial(); break;
     case 'aspect': setAspect(v); refreshPanel(); break;
     case 'rotL': case 'rotR': case 'flipH': case 'flipV': geomOp(k); break;
     case 'cropCancel': setTool('select'); break;
     case 'cropApply': applyCrop(); break;
-    case 'preset': doc.adjust.preset = v; doc.adjust.amt = 100; invalidate(); commit(); refreshPanel(); break;
+    case 'preset': if (doc.adjust.preset !== v) doc.adjust.amt = 100; doc.adjust.preset = v; invalidate(); commit(); refreshPanel(); break;
     case 'adjReset': doc.adjust = { ...DEFAULT_ADJ, preset: doc.adjust.preset, amt: doc.adjust.amt }; invalidate(); commit(); refreshPanel(); break;
     case 'fontPicker': openFontPicker(); break;
     case 'noteRatio': if (o) {
@@ -4111,15 +4153,16 @@ function runCmd(k, v, final) {
       o.w = m * r[0]; o.h = m * r[1]; S.note.ratio = NOTE_RATIOS[v] ? v : 'square'; saveToolsSoon();
       invalidate(); commit();
     } break;
-    case 'cutThis': if (o && o.type === 'image') { S.cut.target = o.id; setTool('cutout'); } break;
+    case 'cutThis': if (o && o.type === 'image' && !o.slot) { S.cut.target = o.id; setTool('cutout'); } break;
     case 'ai': runAI(); break;
     // the colour picker fires 'input' continuously (final === false): preview only; commit + rebuild the panel on the final change
     case 'bg': doc.bg = v || null; invalidate(); if (final !== false) { commit(); refreshPanel(); } break;
-    case 'aiModel': if (AI_MODELS[v]) { S.cut.model = UI.aiModel = v; saveUI(); refreshPanel(); if (v === 'rmbg') toast('RMBG-1.4 は非商用ライセンスです。商用で使う場合は「標準」か「高精度」を選んでください', 4200); } break;
+    case 'aiModel': if (AI_MODELS[v]) { S.cut.model = UI.aiModel = v; saveUI(); refreshPanel(); } break;
     case 'cutReset': {
       const t = cutTarget();
-      if (t.o) { if (t.o.orig) { t.o.bmp = t.o.orig; delete t.o.orig; } }
-      else if (doc.baseOrig) { doc.baseId = doc.baseOrig; doc.baseOrig = null; }
+      if (t.o ? !t.o.orig : !doc.baseOrig) { toast('まだ消していません'); break; }
+      if (t.o) { t.o.bmp = t.o.orig; delete t.o.orig; }
+      else { doc.baseId = doc.baseOrig; doc.baseOrig = null; }
       bmpRev++; invalidate(); commit(); toast('元の写真に戻しました');
     } break;
     case 'cutDone': setTool('select'); break;
@@ -4127,12 +4170,12 @@ function runCmd(k, v, final) {
   }
 }
 function doAct(a, k, v, final) {
-  if (final && (a === 'o' || a === 's') && typeof v === 'string' && /color2?$|^bg$|outline|border/i.test(k)) rememberColor(v);
+  if (final !== false && typeof v === 'string' && (a === 'o' || a === 's' ? final && /color2?$|^bg$|outline|border/i.test(k) : a === 'cmd' && /^(bg|bgPat[12])$/.test(k))) rememberColor(v);
   if (a === 'cmd') return runCmd(k, v, final);
   if (a === 's') {
     setPath(S, k, v); saveToolsSoon();
     if (k === 'num.color') { const o = selObj(); if (o && o.kind === 'num') { o.color = v; invalidate(); if (final) commit(); } }
-    if (final) { refreshPanel(); requestDraw(); }
+    if (final) { refreshPanel(); if (k === 'num.color' && sideView === 'material') renderMaterial(); requestDraw(); }
     return;
   }
   if (a === 'o') {
@@ -4152,7 +4195,7 @@ function doAct(a, k, v, final) {
   }
 }
 /* properties whose change alters which rows the object panel shows */
-const REBUILD_O = new Set(['vert', 'mode', 'shape', 'kind']);
+const REBUILD_O = new Set(['vert', 'mode', 'shape']);
 function syncOChips(k, v) {
   const bs = panelEl().querySelectorAll(`button[data-act="o"][data-k="${k}"]`), js = JSON.stringify(v);
   bs.forEach(b => {
@@ -4408,8 +4451,8 @@ function objPanel(o) {
   const u = U();
   const editable = !o.locked && (o.type === 'text' || o.type === 'note');
   let h = `<div class="objhead"><span class="badge${o.locked ? ' locked' : ''}">${TYPE_NAMES[o.type]}${o.locked ? '・ロック中' : ''}</span>${editable ? cmdBtn('edit', '✎ 文字を編集') : ''}</div>`;
-  // 前面へ・複製・ロック・削除 live in the ⋯ menu next to the object
-  if (o.locked) return h + hint('ロック中です。オブジェクト横の <b>⋯</b> から解除できます。');
+  // 前面へ・複製・ロック・削除 live in the object menu (long-press / right-click)
+  if (o.locked) return h + row('', cmdBtn('lock', '🔓 ロック解除')) + hint('ロック中は動かしたり消したりできません。');
   switch (o.type) {
     case 'text':
       h += row('書体', fontButton(o.font));
@@ -4538,7 +4581,12 @@ panel.addEventListener('click', e => {
   const v = e.target.closest('[data-lv]'), l = e.target.closest('[data-ll]'), row = e.target.closest('[data-lyr]');
   if (!row) return;
   const o = doc.objects.find(x => x.id === row.dataset.lyr); if (!o) return;
-  if (v) { o.hidden = !o.hidden; if (!o.hidden) delete o.hidden; invalidate(); commit(); refreshPanel(); return; }
+  if (v) {
+    o.hidden = !o.hidden;
+    if (!o.hidden) delete o.hidden;
+    else { if (selId === o.id) selId = null; multi = multi.filter(id => id !== o.id); if (multi.length < 2) { if (multi.length === 1) selId = multi[0]; multi = []; } }
+    invalidate(); commit(); refreshPanel(); return;
+  }
   if (l) { o.locked = !o.locked; commit(); refreshPanel(); requestDraw(); return; }
   if (e.shiftKey || e.ctrlKey || e.metaKey) {   // add / remove from the selection
     const s = new Set(multi.length ? multi : selId ? [selId] : []);
@@ -4572,7 +4620,7 @@ function multiPanel(ms) {
   return `<div class="objhead"><span class="badge">${ms.length}個を選択中</span></div>`
     + row('操作', cmdBtn('mFront', '前面へ') + cmdBtn('mBack', '背面へ') + cmdBtn('mDup', '⧉ 複製') + cmdBtn('mDel', '🗑 削除') + cmdBtn('mClear', '選択を解除'), true)
     + alignRow('揃える')
-    + hint('枠の中をドラッグすると、まとめて移動できます。1つだけ選ぶときはそのオブジェクトをタップ。');
+    + hint(`枠の中をドラッグすると、まとめて移動できます。1つだけ選ぶときはそのオブジェクトを${deskOn ? 'クリック' : 'タップ'}。`);
 }
 let panelKey = '';
 /* a slider being dragged must not be replaced by a panel rebuild (its 'change' would never fire): defer the rebuild to release */
@@ -4592,7 +4640,6 @@ const panelEl = () => deskOn && SIDE_TOOLS.has(tool) ? sidePanel : panel;
 function refreshPanel() {
   if (slActive) { slPending = true; return; }
   if (!doc) { panel.innerHTML = ''; return; }
-  if (!deskOn && phNow === 's' && (selId || multi.length || tool !== 'select')) setPH(phPrev);   // phone: something to edit → open the folded panel
   const tgt = panelEl();
   let h = '';
   switch (tool) {
@@ -4601,7 +4648,7 @@ function refreshPanel() {
       if (o) h = objPanel(o);
       else if (ms.length) h = multiPanel(ms);
       else h = (deskOn ? photoCard() : '') + row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, '⬚ 囲む']], S.marq))
-        + (S.marq ? hint('⬚ 何もない所をドラッグして囲む（画面の移動は2本指）')
+        + (S.marq ? hint(deskOn ? '⬚ 何もない所をドラッグして囲む（画面の移動は Space＋ドラッグ）' : '⬚ 何もない所をドラッグして囲む（画面の移動は2本指）')
           : legend(deskOn ? [['👆', 'クリックで選択'], ['✋', 'ドラッグで移動'], ['↘', '角で拡大'], ['⟳', '上で回転'], ['🖱', '右クリックでメニュー'], ['⬚', 'Shift＋ドラッグで囲む']]
             : [['👆', 'タップで選択'], ['✋', 'ドラッグで移動'], ['↘', '角で拡大'], ['⟳', '上で回転'], ['🤏', '2本指でズーム'], ['⏱', '長押しでメニュー']]));
       h += deskOn ? layersPanel() : foldMore('レイヤー（重なり順・表示）', layersPanel());
@@ -4661,9 +4708,9 @@ function refreshPanel() {
       h += row('手動', chips('s', 'cut.mode', [['tap', '色をタップで消す'], ['erase', 'ブラシで消す'], ['restore', 'ブラシで戻す']], S.cut.mode));
       if (S.cut.mode === 'tap') h += slider('s:cut.tol', '許容範囲', 0, 100, S.cut.tol) + row('範囲', chips('s', 'cut.contig', [[true, 'つながった部分'], [false, '同じ色すべて']], S.cut.contig));
       else h += slider('s:cut.size', 'ブラシ', 3, 150, S.cut.size);
-      if (!t.o) h += row('背景色', `<button class="swb clear${!doc.bg ? ' on' : ''}" data-act="cmd" data-k="bg" data-v="null" aria-label="透明"></button>` + swatches('cmd', 'bg', doc.bg || ''));
-      h += `<div class="actions"><button class="btn" data-act="cmd" data-k="cutReset">元の写真に戻す</button><button class="btn primary" data-act="cmd" data-k="cutDone">完了</button></div>`;
-      h += hint('消したい所の色をタップすると、近い色がまとめて消えます。透明部分は PNG で保存すると透明のまま残ります。');
+      if (!t.o) h += row('背景色', `<button class="swb clear${!doc.bg ? ' on' : ''}" data-act="cmd" data-k="bg" data-v="null" aria-label="透明" title="透明" aria-pressed="${!doc.bg}"></button>` + swatches('cmd', 'bg', doc.bg || ''));
+      h += `<div class="actions"><button class="btn" data-act="cmd" data-k="cutReset">元の写真に戻す</button>${deskOn ? '' : '<button class="btn primary" data-act="cmd" data-k="cutDone">完了</button>'}</div>`;   // PC: the drawer's × closes
+      h += hint((S.cut.mode === 'tap' ? '消したい所の色をタップすると、近い色がまとめて消えます。' : '') + '透明部分は PNG で保存すると透明のまま残ります。');
       break;
     }
   }
@@ -4674,6 +4721,8 @@ function refreshPanel() {
     $('#inspSub').textContent = ms.length || so ? (so && so.locked ? 'ロック中' : '選択中') : 'ツール';
   }
   const st = tgt.scrollTop, key = tool + ':' + (tool === 'select' ? selId || (multi.length ? 'multi' : '') : '');
+  // phone: a new thing to edit (tool / selection) opens the folded panel; in-place refreshes (undo, AI done…) leave it folded
+  if (!deskOn && phNow === 's' && key !== panelKey && (selId || multi.length || tool !== 'select')) setPH(phPrev);
   if (tgt !== panel) panel.innerHTML = '';
   tgt.innerHTML = h;
   tgt.scrollTop = st;
@@ -4828,7 +4877,7 @@ toolsEl.addEventListener('click', e => {
 function setTool(t) {
   const prev = selObj();
   if (t === 'cutout' && doc) {
-    if (prev && prev.type === 'image') S.cut.target = prev.id;
+    if (prev && prev.type === 'image' && !prev.slot) S.cut.target = prev.id;
     else if (!doc.objects.some(o => o.id === S.cut.target)) S.cut.target = 'base';
   }
   tool = t;
@@ -5148,9 +5197,12 @@ let chartT = 0;
 });
 /* 素材 drawer search: re-render on input and put the caret back */
 sidePanel.addEventListener('input', e => {
+  if (!e.target.classList.contains('matq') || e.isComposing) return;
+  matQ = e.target.value; renderMatResults();
+});
+sidePanel.addEventListener('compositionend', e => {
   if (!e.target.classList.contains('matq')) return;
-  matQ = e.target.value; renderMaterial();
-  const q = sidePanel.querySelector('.matq'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+  matQ = e.target.value; renderMatResults();
 });
 sidePanel.addEventListener('click', e => {
   const t = e.target.closest('[data-tpl]'), c = e.target.closest('[data-tplc]');
@@ -5273,7 +5325,7 @@ function cmdItems() {
   add('等倍（100%）で表示', 'Ctrl+1', ['100', 'actual', 'zoom', 'とうばい'], () => zoomTo(1));
   add('選んだ物に合わせて拡大', 'Shift+2', ['zoom selection', 'ズーム', 'かくだい'], zoomToSel);
   add('集中モード', 'Ctrl+\\ ・パネルを畳む', ['focus', 'fullscreen', '全画面', 'しゅうちゅう ぜんがめん'], toggleFocusMode);
-  add('すべて選択', 'Ctrl+A', ['select all', '全選択', 'すべて ぜんせんたく'], () => { setTool('select'); const ids = doc.objects.filter(x => !x.locked).map(x => x.id); if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; } refreshPanel(); requestDraw(); });
+  add('すべて選択', 'Ctrl+A', ['select all', '全選択', 'すべて ぜんせんたく'], () => { setTool('select'); const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id); if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; } refreshPanel(); requestDraw(); });
   add('みんなの作品', 'ギャラリー', ['gallery', '投稿', '公開', 'みんなのさくひん とうこう'], () => openGallery());
   add('設定', '表示サイズ・演出', ['settings', 'size', '表示', 'せってい'], openUISheet);
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
@@ -5319,12 +5371,14 @@ document.addEventListener('paste', e => {
   e.preventDefault(); addPhoto(f.getAsFile());
 });
 /* drop photo files onto the canvas to paste them */
+// a file dropped anywhere outside the stage (or a non-image on it) must not make the browser open it in place of the app
+['dragover', 'drop'].forEach(t => document.addEventListener(t, e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); }));
 stage.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); stage.classList.add('drop'); } });
 stage.addEventListener('dragleave', e => { if (!stage.contains(e.relatedTarget)) stage.classList.remove('drop'); });
 stage.addEventListener('drop', () => stage.classList.remove('drop'), true);
 stage.addEventListener('drop', e => {
   const fs = [...(e.dataTransfer ? e.dataTransfer.files : [])].filter(f => /^image\//.test(f.type) || /\.(hei[cf]|jpe?g|png|webp|gif)$/i.test(f.name));
-  if (!fs.length || !doc) return;
+  if (!fs.length || !doc) { if (doc && e.dataTransfer && e.dataTransfer.files.length) toast('画像ファイル（JPEG・PNG など）をドロップしてください'); return; }
   e.preventDefault();
   // dropped on a collage slot: fill that slot (several files fill the empty slots in order)
   const r = cv.getBoundingClientRect(), d = screenToDoc(e.clientX - r.left, e.clientY - r.top), hit = pick(d.x, d.y);
@@ -5363,23 +5417,24 @@ async function fileToCanvas(file, max) {
     const k = Math.min(1, max / Math.max(w0, h0));
     const c = mk(w0 * k, h0 * k), g = c.getContext('2d');
     g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height);
-    return { canvas: c, resized: k0 < 1 || k < 1 };
+    // alpha: formats that can carry transparency are kept as PNG in the draft (JPEG would turn it black)
+    return { canvas: c, resized: k0 < 1 || k < 1, alpha: /png|webp|gif|avif|svg/i.test(file.type || '') };
   } finally { if (src && src.close) src.close(); URL.revokeObjectURL(url); }
 }
 function useDoc(d) {
   doc = normDoc(d); selId = null; multi = []; baseCache = { key: null, canvas: null };
   setTool('select'); fitView(); invalidate(); resetHistory();
 }
-function setDoc(canvas, blob, objects = []) {
-  useDoc({ w: canvas.width, h: canvas.height, baseId: regBitmap(canvas, blob), baseOrig: null, bg: null, adjust: { ...DEFAULT_ADJ }, objects });
+function setDoc(canvas, blob, objects = [], alpha) {
+  useDoc({ w: canvas.width, h: canvas.height, baseId: regBitmap(canvas, blob, alpha), baseOrig: null, bg: null, adjust: { ...DEFAULT_ADJ }, objects });
 }
 $('#fileOpen').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f) return;
   closeSheets(); toast('読み込み中…');
   try {
-    const { canvas, resized } = await fileToCanvas(f, 4096);
-    setDoc(canvas, resized ? null : f); scheduleSave();
+    const { canvas, resized, alpha } = await fileToCanvas(f, 4096);
+    setDoc(canvas, resized ? null : f, [], alpha); scheduleSave();
     toast('写真を開きました');
   } catch (err) { toast(imgErr(f)); }
 });
@@ -5469,7 +5524,7 @@ async function saveDraftNow() {
       let b = e.blob;
       if (!b) {
         e.dirty = false;
-        b = await toBlob(e.canvas, (id === d.baseId || id === d.baseOrig) && !e.alpha ? 'image/jpeg' : 'image/png', 0.92);
+        b = await toBlob(e.canvas, e.alpha ? 'image/png' : 'image/jpeg', 0.92);   // opaque photos as JPEG keep the draft small
         if (!b) throw new Error('toBlob failed');  // keep the previous draft rather than store a broken one
         if (!e.dirty && !e.blob) e.blob = b;        // don't cache it if the canvas was edited while encoding
       }
@@ -5482,7 +5537,7 @@ async function saveDraftNow() {
   }
 }
 // leaving the page / switching apps: write the pending draft now instead of waiting for the debounce
-document.addEventListener('visibilitychange', () => { if (document.hidden && saveTimer) saveDraft(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && (saveTimer || editingId)) saveDraft(); });   // editingId: typed text isn't committed yet
 addEventListener('pagehide', () => { if (saveTimer) saveDraft(); });
 async function blobToCanvas(blob) {
   const { canvas } = await fileToCanvas(blob, 8192);
@@ -5525,11 +5580,12 @@ const backdrop = $('#backdrop');
 });
 let sheetOpener = null;
 function openSheet(id, light) {
-  const opener = sheetOpener || document.activeElement;
+  // sheet → sheet keeps the first opener; otherwise a stale one (left by closeSheets(true)) must not be reused
+  const opener = (!backdrop.hidden && sheetOpener) || document.activeElement;
   closeSheets(true); sheetOpener = opener;
   backdrop.classList.toggle('clear', !!light); backdrop.hidden = false;
   const s = $(id); s.hidden = false;
-  requestAnimationFrame(() => { const f = s.querySelector('button:not([disabled]),input:not([type=hidden]):not(.vh),[tabindex="0"]'); (f || s).focus({ preventScroll: true }); });
+  requestAnimationFrame(() => { const f = s.querySelector('#cmdQ') || s.querySelector('button:not([disabled]),input:not([type=hidden]):not(.vh),[tabindex="0"]'); (f || s).focus({ preventScroll: true }); });
 }
 function closeSheets(keepFocus) {
   const wasFont = !$('#sheetFont').hidden, wasOpen = !backdrop.hidden;
@@ -5655,7 +5711,7 @@ $('#sheetUI').addEventListener('click', e => {
     UI[k.dataset.uik] = !UI[k.dataset.uik]; k.setAttribute('aria-checked', String(UI[k.dataset.uik]));
   } else if (e.target.closest('#uiAiClear')) {
     const b = e.target.closest('#uiAiClear'); b.disabled = true;
-    clearModelCaches().then(() => { b.disabled = false; toast('AIモデルのキャッシュを削除しました。次に使うときに再ダウンロードします'); });
+    clearModelCaches().then(ok => { b.disabled = false; if (ok !== false) toast('AIモデルのキャッシュを削除しました。次に使うときに再ダウンロードします'); });
     return;
   } else return;
   saveUI();
@@ -5782,7 +5838,7 @@ $('#sheetNew').addEventListener('click', e => {
   }
 });
 
-const EX = { fmt: 'jpeg', q: 0.92, scale: 1 };
+const EX = { fmt: 'jpeg', q: 0.95, scale: 1 };
 function renderEX() {
   $('#exFmt').innerHTML = [['jpeg', 'JPEG（写真向け・軽い）'], ['png', 'PNG（劣化なし）']].map(([v, l]) => `<button class="chip${EX.fmt === v ? ' on' : ''}" data-exf="${v}">${l}</button>`).join('');
   $('#exQ').innerHTML = EX.fmt === 'jpeg' ? [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']].map(([v, l]) => `<button class="chip${EX.q === v ? ' on' : ''}" data-exq="${v}">${l}</button>`).join('') : '';
@@ -5803,18 +5859,17 @@ function openSave() {
   renderDoc(th, Math.min(1, 640 / Math.max(doc.w, doc.h)), { cache: false });
   openSheet('#sheetSave');
 }
-const downloadsP = (window.claude && typeof window.claude.use === 'function')
-  ? Promise.resolve(window.claude.use('downloads')).catch(() => null)
-  : Promise.resolve(null);
 let exUrl = null;
+
 const EX_MAX_PX = 16e6;   // iOS Safari refuses canvases above ~16.7 MP
 /* 保存する: export first, then (if 公開設定 isn't 非公開) publish — one flow, the button stays busy until both finish */
 $('#exGo').addEventListener('click', async () => {
   const btn = $('#exGo'); if (btn.disabled) return;
   btn.disabled = true; btn.textContent = '作成中…';
-  try { await exportImage(); }
+  let ok = false;
+  try { ok = await exportImage(); }
   finally {
-    if (PUB.vis !== 'private') { btn.textContent = '公開中…'; await runPublish(); }
+    if (ok && PUB.vis !== 'private') { btn.textContent = '公開中…'; await runPublish(); }
     btn.disabled = false; btn.textContent = '保存する';
   }
 });
@@ -5829,26 +5884,25 @@ async function exportImage() {
     c.width = c.height = 1;
     if (!blob) throw new Error('blob');
     const d = new Date(), pad = n => String(n).padStart(2, '0');
-    const name = `petaphoto_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.${EX.fmt === 'png' ? 'png' : 'jpg'}`;
+    const name = `lufora_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.${EX.fmt === 'png' ? 'png' : 'jpg'}`;
     if (exUrl) URL.revokeObjectURL(exUrl);
     exUrl = URL.createObjectURL(blob);
-    const img = $('#exImg'); img.src = exUrl; img.hidden = false; $('#exThumb').hidden = true; $('#exMsg').hidden = false;
-    const dl = await downloadsP;
-    if (dl) {
-      try { await dl.save({ filename: name, data: blob }); toast('保存しました'); }
-      catch (err) { toast(err && err.code === 'declined' ? '保存をキャンセルしました' : '画像を長押しして保存してください'); }
-    } else if (!window.claude) {
-      const file = new File([blob], name, { type });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        // the share sheet can refuse once the tap's user activation has expired (fonts/encode took a while): fall back to long-press
-        try { await navigator.share({ files: [file] }); } catch (err) { if (!err || err.name !== 'AbortError') toast('画像を長押しして保存してください'); }
-      } else {
-        const a = document.createElement('a'); a.href = exUrl; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-        toast('保存しました');
-      }
-    } else toast('画像を長押しして保存してください');
+    const img = $('#exImg'); img.src = exUrl; img.hidden = false; $('#exThumb').hidden = true; $('#exMsg').hidden = deskOn;   // the 長押し hint is for phones
+    const file = new File([blob], name, { type });
+    // phones / tablets: the share sheet (写真に保存). PC: a normal download (Windows/macOS would otherwise open their share dialog)
+    if (!deskOn && matchMedia('(pointer: coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
+      const share = () => navigator.share({ files: [file] }).catch(err => { if (!err || err.name !== 'AbortError') toast('画像を長押しして保存してください'); });
+      // the share sheet refuses once the tap's user activation has expired (fonts / encode took a while): offer a fresh tap
+      try { await navigator.share({ files: [file] }); }
+      catch (err) { if (!err || err.name !== 'AbortError') toastAct('画像ができました', '共有・保存', share); }
+    } else {
+      const a = document.createElement('a'); a.href = exUrl; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      toast('保存しました');
+    }
+    return true;
   } catch (err) {
     toast('保存用の画像を作れませんでした。サイズを「1/2」にして試してください');
+    return false;
   } finally { c.width = c.height = 1; }
 }
 
@@ -6233,8 +6287,11 @@ new ResizeObserver(brandFit).observe(brandEl);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(brandFit);
 let nudgeT = 0;
 document.addEventListener('keydown', e => {
+  if (e.isComposing || e.keyCode === 229) return;   // IME conversion (Esc cancels the conversion, not the sheet)
+  // Ctrl+S anywhere (also while typing / with a sheet open) must never reach the browser's "save page"
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (backdrop.hidden && doc) { if (editingId) endInlineEdit(); $('#btnSave').click(); } return; }
   if (e.key === 'Escape' && !backdrop.hidden) { closeSheets(); return; }   // also from inside an input (e.g. 公開 title)
-  if (e.key === 'Escape' && !objMenu.hidden) { closeObjMenu(); objMore.focus({ preventScroll: true }); return; }
+  if (e.key === 'Escape' && !objMenu.hidden) { const ret = menuRet; closeObjMenu(); menuFocusBack(ret); return; }
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;   // includes the inline text editor
   if (!backdrop.hidden) return;
   const m = e.ctrlKey || e.metaKey, o = selObj(), ms = tool === 'select' ? multiObjs() : [];
@@ -6245,7 +6302,7 @@ document.addEventListener('keydown', e => {
   }
   if (m && e.key.toLowerCase() === 'a' && tool === 'select' && doc) {
     e.preventDefault();
-    const ids = doc.objects.filter(x => !x.locked).map(x => x.id);
+    const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id);
     if (ids.length === 1) { selId = ids[0]; multi = []; } else if (ids.length > 1) { selId = null; multi = ids; }
     refreshPanel(); requestDraw(); return;
   }
@@ -6256,7 +6313,7 @@ document.addEventListener('keydown', e => {
     if (e.key.startsWith('Arrow') && !m) {
       e.preventDefault();
       const st = (e.shiftKey ? 10 : 1) / view.s, k = e.key.slice(5), dx = k === 'Left' ? -st : k === 'Right' ? st : 0, dy = k === 'Up' ? -st : k === 'Down' ? st : 0;
-      for (const x of ms) { x.x += dx; x.y += dy; }
+      for (const x of ms) if (!x.locked && !x.hidden) { x.x += dx; x.y += dy; }
       invalidate(); clearTimeout(nudgeT); nudgeT = setTimeout(commit, 400); return;
     }
   }
@@ -6265,11 +6322,10 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); openObjMenuAt(docToScreen(o.x, o.y)); return;
   }
   if ((m && e.key.toLowerCase() === 'k') || (e.key === '/' && !m)) { e.preventDefault(); openCmd(); return; }   // quick search
-  if (m && e.key.toLowerCase() === 's' && doc) { e.preventDefault(); $('#btnSave').click(); return; }   // Ctrl+S: the 保存 sheet, not the browser's "save page"
   if (m && (e.key === ']' || e.key === '[') && tool === 'select') {   // Ctrl+] front / Ctrl+[ back
     e.preventDefault();
     if (ms.length) runCmd(e.key === ']' ? 'mFront' : 'mBack'); else if (o) runCmd(e.key === ']' ? 'front' : 'back');
-    refreshPanel(); return;
+    return;
   }
   if (m && (e.key === '0' || e.key === '1' || e.key === '=' || e.key === '+' || e.key === '-') && doc) {   // view: Ctrl+0 fit, Ctrl+1 100%, Ctrl+= / Ctrl+- zoom
     e.preventDefault(); if (e.key === '0') fitView(); else if (e.key === '1') zoomTo(1); else zoomBy(e.key === '-' ? 0.8 : 1.25); return;
