@@ -423,6 +423,12 @@ html.desk #side{overflow:hidden;animation:sideOpen .3s cubic-bezier(.2,.8,.2,1)}
 html.desk #side.closing{animation:sideClose .22s ease-in forwards}
 @keyframes sideOpen{from{max-width:0}to{max-width:520px}}
 @keyframes sideClose{from{max-width:520px}to{max-width:0}}
+/* narrow PC windows (900–1279px): shrink the drawer and inspector so the photo keeps a usable share of the width */
+@media (max-width:1279px){
+html.desk #drawer{width:clamp(232px,24vw,340px)}
+html.desk #insp{max-width:max(228px,25vw)}
+@keyframes sideOpen{from{max-width:0}to{max-width:440px}}
+}
 html:not(.desk) #side.mob.closing{animation:mobClose .22s ease-in forwards}
 @keyframes mobClose{to{transform:translateX(-100%)}}
 #sideScrim.closing{animation:scrimOut .22s ease-in forwards}
@@ -496,6 +502,8 @@ html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--l
 .xbtn:hover{filter:brightness(1.15)}
 .xbtn:active{transform:scale(.9)}
 .sheet h2{padding-right:46px}
+/* the sheet's × is moved to its first child at boot and sticks to the top while the sheet scrolls (zero layout height) */
+.sheet>.xbtn{position:sticky;top:4px;margin:4px -4px -40px auto}
 #drawer,.mhead{position:relative}
 /* 素材 grid (tool panel, inspector and drawer) */
 .matsearch{padding:4px 14px 8px}
@@ -659,7 +667,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
   <!-- PC and phone each get their own short guide (only the matching one is shown) -->
   <div class="help-pc">
     <div class="hcards">
-      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>左：みんなの作品・アップロード・テンプレート・素材・フィルター・背景削除・調整</li><li>その右：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
+      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>左：みんなの作品・写真・テンプレート・素材・フィルター・背景削除・調整</li><li>その右：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
       <div class="hcard"><span class="hic">🖱️</span><b>基本の操作</b><ul><li>クリックで選択、ドラッグで移動</li><li>角の● で拡大縮小、上の● で回転</li><li>ダブルクリックで文字を書き換え</li><li>右クリックでメニュー</li></ul></div>
       <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>ドラッグ＆ドロップ、または Ctrl+V</li><li>写真枠はダブルクリックかドロップ</li></ul></div>
       <div class="hcard"><span class="hic">✨</span><b>便利な機能</b><ul><li>テンプレート・素材でかんたんデコ</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>編集は自動で下書き保存</li></ul></div>
@@ -4891,13 +4899,13 @@ function setTool(t) {
 
 /* ==== sidebar (PC) ==== icon rail + drawer. フィルター・調整・背景削除 are ordinary tools whose panel renders into the drawer. */
 const sideEl = $('#side'), railEl = $('#rail'), drawer = $('#drawer'), zoomPct = $('#zoomPct');
-const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', 'アップロード', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp], ['filter', 'フィルター', ICON.filter],
+const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', '写真', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp], ['filter', 'フィルター', ICON.filter],
   ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ['settings', '設定', ICON.gear]];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
   const cur = deskOn ? sideView : (SIDE_TOOLS.has(tool) ? tool : null);
-  railEl.innerHTML = (deskOn ? '' : `<button class="ritem msearch" data-side="search">${ICON.search}<span>機能をさがす</span></button>`) + SIDE_ITEMS.map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
+  railEl.innerHTML = (deskOn ? '' : `<button class="ritem msearch" data-side="search">${ICON.search}<span>機能をさがす</span></button>`) + SIDE_ITEMS.filter(([id]) => deskOn || id !== 'upload').map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
 }
 /* phone: ☰ opens the rail as a modal slide-in menu (not saved; UI.side is the PC setting) */
 let sideMob = false;
@@ -4933,7 +4941,7 @@ function syncSide() {
   else if (SIDE_TOOLS.has(sideView)) sideView = null;
   renderSide();
 }
-/* PC: みんなの作品 and 設定 open in the drawer like アップロード (pushing the stage) instead of as bottom sheets.
+/* PC: みんなの作品 and 設定 open in the drawer like 写真 (pushing the stage) instead of as bottom sheets.
    The sheet element itself moves into #sidePanel (keeping its listeners) as .sheet.indrawer, and goes back to <body> when the drawer shows something else. */
 const DRAWER_SHEETS = { gallery: '#sheetGallery', settings: '#sheetUI' };
 function dockSheet(id) {
@@ -4973,10 +4981,9 @@ function renderSide() {
   if (sideView === 'template') renderTemplates(sidePanel);
   if (sideView === 'material') renderMaterial();
   if (sideView === 'upload') sidePanel.innerHTML = `<div class="stack">
-    <button class="bigbtn primary" data-up="open"><span>写真を開いて編集<small>今の編集内容と置き換わります</small></span></button>
-    <button class="bigbtn" data-up="add"><span>写真を貼り付ける<small>今の画像の上に重ねます</small></span></button>
-    <button class="bigbtn" data-up="new"><span>新規作成・サンプル<small>白紙やサンプル写真から始める</small></span></button></div>
-    ${hint('写真ファイルをキャンバスにドラッグ＆ドロップしても貼り付けられます。')}`;
+    <button class="bigbtn primary" data-up="add"><span>写真を重ねる<small>今の画像の上に追加します</small></span></button>
+    <button class="bigbtn" data-up="open"><span>別の写真を開く<small>今の編集内容と置き換わります</small></span></button></div>
+    ${hint('写真はキャンバスへのドラッグ＆ドロップや Ctrl+V でも追加できます。白紙・サンプルは上の「開く」から。')}`;
   renderRail();
 }
 function closeDrawer() { if (SIDE_TOOLS.has(sideView)) setTool('select'); else { sideView = null; renderSide(); } }
@@ -5313,7 +5320,7 @@ function cmdItems() {
   const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'そざい すたんぷ えもじ ばんごう でこ ますきんぐてーぷ ひづけ', filter: 'ふぃるたー', adjust: 'ちょうせい あかるさ', cutout: 'はいけいさくじょ はいけい', mosaic: 'もざいく ぼかし', crop: 'きりぬき とりみんぐ かいてん' };
   TOOLS.forEach(([id, l]) => add(l, 'ツール' + (TOOL_KEYS[id] ? '（' + TOOL_KEYS[id] + '）' : ''), [id, 'tool', YOMI[id] || ''], () => pressTool(id)));
   add('保存する', 'Ctrl+S', ['save', 'export', '書き出し', 'ダウンロード', 'jpeg', 'png', 'ほぞん かきだし'], () => $('#btnSave').click());
-  add('写真を開いて編集', 'アップロード', ['open', 'upload', '読み込み', 'ファイル', 'ひらく よみこみ しゃしん'], () => $('#fileOpen').click());
+  add('写真を開いて編集', '写真', ['open', 'upload', '読み込み', 'ファイル', 'ひらく よみこみ しゃしん'], () => $('#fileOpen').click());
   add('写真を貼り付ける', '画像を重ねる', ['add', 'image', '画像', '追加', 'paste', 'はりつけ がぞう ついか'], () => $('#fileAdd').click());
   add('新規作成・サンプル', '白紙', ['new', 'blank', '白紙', 'キャンバス', 'しんき はくし'], () => { renderNB(); openSheet('#sheetNew'); });
   add('AIで背景を自動で消す', '背景削除', ['ai', 'background', 'remove', '切り抜き', 'くりぬき はいけい けす'], () => { setTool('cutout'); runCmd('ai'); });
@@ -6369,10 +6376,15 @@ function registerSW() {
       const w = reg.installing;
       if (w) w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) ask(w); });
     });
+    // check for a new version when the app comes back to the foreground (PWA can stay open for days)
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && navigator.onLine) reg.update().catch(() => {}); });
   }).catch(e => console.warn('service worker', e));
   // reload only for an update the user asked for (the first install also changes the controller, via clients.claim)
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (!asked) return; asked = false; saveDraft().finally(() => location.reload()); });
 }
+
+// keep each sheet's × reachable on long sheets: hoist it so it can stick to the top of the scrolling sheet
+document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closest('.sheet').prepend(b));
 
 (async function boot() {
   resizeCanvas(); lastStageW = stageW;

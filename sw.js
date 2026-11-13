@@ -1,20 +1,20 @@
 /* PetaPhoto service worker.
  * - Precaches the app shell (index.html, u2netp.js, manifest, icons) into CACHE.
- * - Same-origin navigations: network-first, falling back to cached index.html (offline).
+ * - Same-origin navigations: network-first (revalidated), refreshing the cached index.html; offline falls back to it.
  * - Other same-origin GETs: cache-first, network fallback (and cached on success).
  * - Google Fonts / jsDelivr (onnxruntime-web): stale-while-revalidate in RT_CACHE.
  * - Hugging Face (RMBG model, stored in IndexedDB by the app) and Supabase are never touched.
  * - A new version waits until the page posts {type:'skipWaiting'} (after its "update available" toast).
  */
 'use strict';
-const CACHE = 'petaphoto-v19';
-const RT_CACHE = 'petaphoto-rt-v19';
+const CACHE = 'petaphoto-v20';
+const RT_CACHE = 'petaphoto-rt-v20';
 const PRECACHE = ['./', 'index.html', 'u2netp.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 const RT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE.map(u => new Request(u, { cache: 'reload' })))));
 });
 
 self.addEventListener('message', e => {
@@ -34,7 +34,10 @@ function skipHost(h) {
 
 async function networkFirstNav(req) {
   try {
-    return await fetch(req);
+    const res = await fetch(req, { cache: 'no-cache' });
+    // keep the offline copy in step with the page the user last saw online
+    if (res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then(c => c.put('index.html', copy)).catch(() => {}); }
+    return res;
   } catch (err) {
     const c = await caches.open(CACHE);
     const hit = await c.match('index.html') || await c.match('./');
