@@ -563,6 +563,18 @@ html.desk #panel .ched{padding:4px 16px 6px}
 .chtx>.chartta,.chtx>.hint{display:block;box-sizing:border-box;margin:0 14px;width:calc(100% - 28px)}
 .chtx>.hint{padding:6px 0 0}
 .mathd{padding:4px 16px 2px;font-size:12px;font-weight:700;color:var(--muted)}
+/* 素材 › AIで作る: words → a sticker */
+.aigrow{display:flex;gap:8px;padding:4px 14px 8px}
+.aiq{flex:1;min-width:0;height:calc(42px*var(--u));padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);font:inherit;font-size:16px;outline:none}
+html.desk .aiq{font-size:calc(14px*var(--u))}
+.aiq:focus{border-color:var(--accent)}
+.aigrow .aigo{flex:0 0 auto;height:calc(42px*var(--u));padding:0 calc(14px*var(--u));display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.aigrow .aigo[disabled]{opacity:.8;cursor:progress}
+.aiex{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 4px}
+html.desk .aiex .chip{height:calc(30px*var(--u));padding:0 calc(10px*var(--u));font-size:calc(12px*var(--u))}
+.aispin{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:aispin .8s linear infinite}
+@keyframes aispin{to{transform:rotate(360deg)}}
+.aiout .mat{background:repeating-conic-gradient(#E9E3D6 0 25%,#FBF8F1 0 50%) 50%/12px 12px}
 .mat.wide.chb{border-color:var(--accent);background:linear-gradient(#FFFFFF,#F3F7EF)}
 .mat.wide.chb span{color:var(--fg);font-weight:700;font-size:12px}
 .mat.wide.chb small{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -874,6 +886,8 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
   <div id="uiOps"></div>
   <h3>演出</h3>
   <div id="uiFx"></div>
+  <h3>マイ素材</h3>
+  <div id="uiLib"></div>
   <h3>AI背景削除</h3>
   <div class="setrow quiet"><span class="st">AIモデルのキャッシュ<small>高精度モデル・最大 約115MB</small></span><button class="chip" id="uiAiClear">削除</button></div>
   <p class="note">この端末だけに保存されます。ツールの並び替えはツール欄の「並び替え」から。</p>
@@ -4277,7 +4291,7 @@ function addDeco(kind) {
 }
 let matCat = 'emoji';
 function matCats() {
-  const all = [['recent', '最近'], ['lib', 'マイ素材'], ['emoji', 'スタンプ'], ['season', '季節・天気'], ['food', '食べ物'], ['animal', '動物'], ...DECO_CATS, ...(CHART_PRESETS.length ? [['graph', '表・グラフ']] : []), ['date', '日付'], ['bg', '背景']];
+  const all = [['recent', '最近'], ['lib', 'マイ素材'], ...(GEN_ON && SUPA.url ? [['ai', 'AIで作る']] : []), ['emoji', 'スタンプ'], ['season', '季節・天気'], ['food', '食べ物'], ['animal', '動物'], ...DECO_CATS, ...(CHART_PRESETS.length ? [['graph', '表・グラフ']] : []), ['date', '日付'], ['bg', '背景']];
   return all.filter((c, i) => all.findIndex(d => d[0] === c[0]) === i);   // a generated cat may share an id (food) with an emoji set
 }
 function matItems(cat) {
@@ -4333,9 +4347,10 @@ function matHtml(search) {
     const uniq = [...new Set(hits)];
     return h + (uniq.length ? `<div class="matgrid">${uniq.map(matButton).join('')}</div>` : hint('見つかりませんでした。'));
   }
+  if (matCat === 'ai') return h + genHtml();
   if (matCat === 'bg') return h + bgPanelHtml();
   if (matCat === 'graph') return h + `<div class="matgrid">${CHART_BASIC.map(p => matButton('g:' + p.id)).join('')}</div><div class="mathd">見本</div><div class="matgrid">${CHART_PRESETS.map(p => matButton('g:' + p.id)).join('')}</div>`;
-  if (matCat === 'lib') return h + libGrid() + (libList && libList.length ? hint(`${deskOn ? 'クリック' : 'タップ'}で追加・×で削除。自分で入れた写真がこの端末に残ります（最大${LIB_MAX}枚）。`) : '');
+  if (matCat === 'lib') return h + libGrid() + (libList && libList.length ? hint(`${deskOn ? 'クリック' : 'タップ'}で追加・×で削除。${UI.libAuto ? '自分で入れた写真' : '「マイ素材に保存」したもの'}がこの端末に残ります（最大${LIB_MAX}枚）。${UI.libAuto ? '' : '自動保存はオフ（設定で変えられます）。'}`) : '');
   if (matCat === 'emoji') h += row('番号', cmdBtn('num', `番号を追加（次は ${nextNum()}）`) + swatches('s', 'num.color', S.num.color, ['#FF3B30', '#007AFF', '#111111', '#34C759', '#FF9500']));
   const items = matItems(matCat);
   return h + (items.length ? `<div class="matgrid">${items.map(matButton).join('')}</div>` : hint(matCat === 'recent' ? 'まだありません。素材を使うとここに並びます。' : ''));
@@ -4349,6 +4364,109 @@ function renderMatResults() {
   const t = document.createElement('div'); t.innerHTML = matHtml(true);
   [...sidePanel.children].forEach(c => { if (!c.classList.contains('matsearch')) c.remove(); });
   [...t.children].forEach(c => { if (!c.classList.contains('matsearch')) sidePanel.appendChild(c); });
+}
+/* ==== AIで作る ==== 素材 tab: the Supabase Edge Function gen-sticker asks Claude for an SVG sticker (20 a day per user).
+   The SVG is checked again here (allow-list; anything unexpected drops the whole result), drawn at 1024 px, trimmed,
+   placed as an image object and saved to マイ素材. Typed words and this session's results live here, so panel rebuilds keep them;
+   while busy only the button and the results area are updated in place (never the input, so IME composition survives). */
+/* turn on once the gen-sticker Edge Function is deployed (supabase/DEPLOY-gen-sticker.md) */
+const GEN_ON = false;
+const GEN_EX = ['ピンクの王冠', '手書き風の太陽', '猫のシルエット', '花のリース', '吹き出しのハート', '虹と雲'];
+const GEN_EL = new Set(['svg', 'g', 'path', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'title']);
+const GEN_ERR = { offline: 'オフラインのため作れません', limit: '今日はここまで（1日20回）', prompt: '言葉を入れてください' };
+let genQ = '', genBusy = false, genLeft = null, genRes = [];
+const genBtn = () => genBusy ? '<span class="aispin" aria-hidden="true"></span>作っています…' : '✨ 作る';
+const genOut = () => hint('AI（Claude）が作ります・1日20回まで' + (genLeft != null ? `（今日はあと<b>${genLeft}</b>回）` : ''))
+  + (genRes.length ? `<div class="mathd">さっき作った素材</div><div class="matgrid">${genRes.map((r, i) => `<button class="mat" data-act="cmd" data-k="genAdd" data-v="${i}" title="${esc(r.p)}" aria-label="${esc(r.p)}をもう一度追加"><img src="${r.u}" alt="" draggable="false"></button>`).join('')}</div>` : '');
+function genHtml() {
+  return `<div class="aigen"><div class="aigrow"><input type="text" class="aiq" maxlength="100" placeholder="例：ピンクの王冠" aria-label="作りたい素材を言葉で" enterkeyhint="go" autocomplete="off" value="${esc(genQ)}">`
+    + `<button class="btn primary aigo" data-act="cmd" data-k="genGo"${genBusy ? ' disabled aria-busy="true"' : ''}>${genBtn()}</button></div>`
+    + `<div class="aiex">${GEN_EX.map(t => `<button class="chip" data-act="cmd" data-k="genEx" data-v="${J(t)}">${esc(t)}</button>`).join('')}</div><div class="aiout">${genOut()}</div></div>`;
+}
+function genSync(force) {
+  document.querySelectorAll('.aigen').forEach(g => {
+    const b = g.querySelector('.aigo'), q = g.querySelector('.aiq'), o = g.querySelector('.aiout');
+    if (b) { b.disabled = genBusy; b.innerHTML = genBtn(); b.setAttribute('aria-busy', String(genBusy)); }
+    if (q && (force || q !== document.activeElement)) q.value = genQ;
+    if (o) o.innerHTML = genOut();
+  });
+}
+function genFocus() { const q = [...document.querySelectorAll('.aiq')].find(x => x.offsetParent); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }
+function genOpen() {
+  if (!doc) return; matCat = 'ai'; matQ = '';
+  if (deskOn) { openInDrawer('material'); if (tool === 'stamp') refreshPanel(); } else if (tool === 'stamp') refreshPanel(); else setTool('stamp');
+  setTimeout(genFocus, 80);
+}
+/* the anonymous Supabase session's access token (shared with みんなの作品) */
+async function sbToken() {
+  const { c } = await sb(), { data: { session } } = await c.auth.getSession();
+  if (!session || !session.access_token) throw new Error('auth');
+  return session.access_token;
+}
+/* allow-list check of the server's SVG; returns the SVG text sized 1024×1024, or null */
+function genClean(txt) {
+  if (typeof txt !== 'string' || !txt.trim() || new Blob([txt]).size > 30 * 1024) return null;
+  const NS = 'http://www.w3.org/2000/svg', d = new DOMParser().parseFromString(txt, 'image/svg+xml'), r = d.documentElement;
+  if (d.doctype || d.getElementsByTagName('parsererror').length || !r || r.localName !== 'svg' || r.namespaceURI !== NS) return null;
+  const vb = (r.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+  if (vb.length !== 4 || !vb.every(Number.isFinite) || vb[2] <= 0 || vb[3] <= 0) return null;
+  for (const el of [r, ...r.querySelectorAll('*')]) {
+    if (el.namespaceURI !== NS || !GEN_EL.has(el.localName)) return null;
+    for (const a of el.attributes) {
+      const n = a.name.toLowerCase(), v = a.value.toLowerCase().replace(/[\s\u0000-\u001f]+/g, '');
+      if (n.startsWith('on') || n === 'href' || n.endsWith(':href') || /javascript:|vbscript:|data:|@import|expression\(|\\/.test(v)) return null;
+      if ((v.match(/url\(/g) || []).length !== (v.match(/url\(['"]?#[\w.-]+['"]?\)/g) || []).length) return null;   // only url(#id)
+    }
+  }
+  r.setAttribute('width', '1024'); r.setAttribute('height', '1024');
+  return new XMLSerializer().serializeToString(r);
+}
+/* draw the checked SVG on a transparent 1024 canvas and trim the empty margins (null when nothing was drawn) */
+async function genRaster(svg) {
+  const u = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  try {
+    const im = await loadImgEl(u), S2 = 1024, c = mk(S2, S2), g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(im, 0, 0, S2, S2);
+    const d = g.getImageData(0, 0, S2, S2).data; let x0 = S2, y0 = S2, x1 = -1, y1 = -1;
+    for (let y = 0; y < S2; y++) for (let x = 0, i = y * S2 * 4 + 3; x < S2; x++, i += 4) if (d[i] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; y1 = y; }
+    if (x1 < 0) return null;
+    const P = 6; x0 = Math.max(0, x0 - P); y0 = Math.max(0, y0 - P); x1 = Math.min(S2 - 1, x1 + P); y1 = Math.min(S2 - 1, y1 + P);
+    const o = mk(x1 - x0 + 1, y1 - y0 + 1); o.getContext('2d').drawImage(c, -x0, -y0); return o;
+  } finally { URL.revokeObjectURL(u); }
+}
+/* place a generated sticker (a copy, so later in-place edits never touch the session result) */
+function genPlace(src) {
+  if (!doc || !src) return;
+  const c = mk(src.width, src.height); c.getContext('2d').drawImage(src, 0, 0);
+  const box = MIN() * 0.4, a = c.width / c.height, w = a >= 1 ? box : box * a, h = a >= 1 ? box / a : box, v = viewCenter(), j = jitter();
+  pushObj({ ...baseObj('image', v.x + j.x, v.y + j.y), bmp: regBitmap(c, null, true), w, h, border: 'none', rad: 0, shadow: S.image.shadow });
+  return c;
+}
+async function genGo() {
+  if (genBusy) return;
+  const p = genQ.trim().slice(0, 100);
+  if (!p) { toast(GEN_ERR.prompt); genFocus(); return; }
+  if (!navigator.onLine) { toast(GEN_ERR.offline); return; }
+  genBusy = true; genSync();
+  const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 60000);
+  try {
+    const tok = await sbToken();
+    const r = await fetch(SUPA.url + '/functions/v1/gen-sticker', { method: 'POST', signal: ac.signal,
+      headers: { Authorization: 'Bearer ' + tok, apikey: SUPA.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: p }) });
+    let j = null; try { j = await r.json(); } catch (e) { if (e && e.name === 'AbortError') throw e; }
+    if (j && Number.isInteger(j.left)) genLeft = Math.max(0, j.left);
+    if (r.status === 429) { genLeft = 0; throw new Error('limit'); }
+    if (r.status === 400) throw new Error('prompt');
+    if (!r.ok || !j) throw new Error('http ' + r.status);
+    const svg = genClean(j.svg); if (!svg) throw new Error('unsafe svg');
+    const c = await genRaster(svg); if (!c) throw new Error('empty svg');
+    genRes = [{ p, c, u: scaledCopy(c, 120).toDataURL() }, ...genRes].slice(0, 12);
+    const placed = genPlace(c);
+    if (placed) libSave(placed, true);   // not quiet: the toast tells where to find it again
+  } catch (e) {
+    console.warn('gen-sticker', e);
+    toast(GEN_ERR[!navigator.onLine ? 'offline' : e && e.message] || 'うまく作れませんでした。もう一度お試しください');
+  } finally { clearTimeout(tm); genBusy = false; genSync(); }
 }
 /* collage slots: put a photo into slot `id` (file picker, double-click or a file dropped on the slot) */
 let slotTarget = null;
@@ -4419,7 +4537,7 @@ function libPutIdx(st, meta, rec, pos = 0) {
 }
 /* save a canvas into マイ素材 (quiet = automatic copy on import: no toast, errors only logged) */
 function libSave(src, alpha, quiet) {
-  if (!src || !src.width) return Promise.resolve(false);
+  if (!src || !src.width || (quiet && !UI.libAuto)) return Promise.resolve(false);
   return (libQ = libQ.then(() => libSaveNow(src, alpha, quiet)).catch(e => {
     console.warn('library', e);
     if (!quiet) toast('マイ素材に保存できませんでした。端末の空き容量を確認してください');
@@ -4476,7 +4594,7 @@ function libRestore() {
 function libSaveBmp(id) { const e = id && bitmaps.get(id); if (e) libSave(e.canvas, e.alpha); }
 function libGrid() {
   if (!libList) { libLoad().then(libRefresh); return hint('読み込み中…'); }
-  if (!libList.length) return hint('まだありません。写真を開いたり重ねたりすると、ここに自動で残ります（この端末の中だけに保存）。');
+  if (!libList.length) return hint(UI.libAuto ? 'まだありません。写真を開いたり重ねたりすると、ここに自動で残ります（この端末の中だけに保存）。' : 'まだありません。写真や素材は「マイ素材に保存」で残せます。自動保存はオフ（設定で変えられます）。');
   return `<div class="matgrid libgrid">${libList.map(it => `<div class="libit"><button class="mat${it.alpha ? ' al' : ''}" data-act="cmd" data-k="libAdd" data-v="${J(it.id)}" title="キャンバスに追加" aria-label="マイ素材をキャンバスに追加（${it.w}×${it.h}）"><img src="${libUrl(it)}" alt="" draggable="false"></button>`
     + `<button class="libx" data-act="cmd" data-k="libDel" data-v="${J(it.id)}" title="マイ素材から削除" aria-label="マイ素材から削除">×</button></div>`).join('')}</div>`;
 }
@@ -4486,7 +4604,7 @@ function renderUpload() {
     <button class="bigbtn primary" data-up="add"><span>写真を重ねる<small>今の画像の上に追加します</small></span></button>
     <button class="bigbtn" data-up="open"><span>別の写真を開く<small>今の編集内容と置き換わります</small></span></button></div>
     ${hint('写真はキャンバスへのドラッグ＆ドロップや Ctrl+V でも追加できます。白紙・サンプルは上の「開く」から。')}${libSection()}
-    ${libList && libList.length ? hint('クリックでキャンバスに追加。選んだ写真や切り抜いた素材は、右クリックメニューの「マイ素材に保存」で残せます。古いものから自動で消えます。') : ''}`;
+    ${libList && libList.length ? hint('クリックでキャンバスに追加。選んだ写真や切り抜いた素材は、右クリックメニューの「マイ素材に保存」で残せます。古いものから自動で消えます。' + (UI.libAuto ? '' : '自動保存はオフ（設定で変えられます）。')) : ''}`;
 }
 function openLib() {
   if (deskOn) { if (SIDE_TOOLS.has(tool)) setTool('select'); UI.side = true; saveUI(); sideView = 'upload'; renderSide(); }
@@ -4690,6 +4808,9 @@ function runCmd(k, v, final) {
     case 'chRows': case 'chCols': case 'chAdd': case 'chDel': case 'chS2': chartCmd(k, v, o); break;
     case 'slotPick': if (o && o.slot) pickSlot(o.id); break;
     case 'libAdd': libAdd(v); break;
+    case 'genGo': genGo(); break;
+    case 'genEx': genQ = v; genSync(true); genFocus(); break;
+    case 'genAdd': if (genRes[v]) genPlace(genRes[v].c); break;
     case 'libDel': libDel(v); break;
     case 'libSave': if (o && o.type === 'image' && o.bmp) libSaveBmp(o.bmp); break;
     case 'libSaveCut': libSaveBmp(tgtId(cutTarget())); break;
@@ -5354,7 +5475,7 @@ const toolsEl = $('#tools');
 /* ==== UI settings ==== per device (localStorage), never part of doc / undo history */
 const UI_KEY = 'petaphoto.ui', TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t[0], t]));
 const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [], recentMat: [],
-  ph: 'm', hand: 'right', gest: true, snap: 'normal', more: false };
+  ph: 'm', hand: 'right', gest: true, snap: 'normal', more: false, libAuto: true };
 function loadUI() {
   let v = null; try { v = JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { }
   const u = { ...UI_DEF, ...(v && typeof v === 'object' ? v : {}) }, ids = UI_DEF.order;
@@ -5371,7 +5492,7 @@ function loadUI() {
   if (!['s', 'm', 'l'].includes(u.ph)) u.ph = 'm';
   if (!['right', 'left'].includes(u.hand)) u.hand = 'right';
   if (!['off', 'weak', 'normal', 'strong'].includes(u.snap)) u.snap = 'normal';
-  u.gest = u.gest !== false; u.more = !!u.more; u.seen = !!u.seen;
+  u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.seen = !!u.seen;
   return u;
 }
 const UI = loadUI();
@@ -5784,6 +5905,10 @@ let chartT = 0;
     invalidate(); commit(); chartSync(o, 'ta');
   });
 });
+[panel, sidePanel].forEach(el => {
+  el.addEventListener('input', e => { if (e.target.classList.contains('aiq')) genQ = e.target.value; });
+  el.addEventListener('keydown', e => { if (e.target.classList.contains('aiq') && e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); genQ = e.target.value; genGo(); } });
+});
 /* 素材 drawer search: re-render on input and put the caret back */
 sidePanel.addEventListener('input', e => {
   if (!e.target.classList.contains('matq') || e.isComposing) return;
@@ -5905,6 +6030,7 @@ function cmdItems() {
   add('写真を開いて編集', '写真', ['open', 'upload', '読み込み', 'ファイル', 'ひらく よみこみ しゃしん'], () => $('#fileOpen').click());
   add('写真を貼り付ける', '画像を重ねる', ['add', 'image', '画像', '追加', 'paste', 'はりつけ がぞう ついか'], () => $('#fileAdd').click());
   add('マイ素材', '自分で入れた写真・素材', ['library', 'my', '保存', 'アップロード', '画像', 'まいそざい じぶん ほぞん しゃしん'], openLib);
+  if (GEN_ON && SUPA.url) add('AIで素材を作る', '言葉からステッカーを作る', ['ai', 'えーあい そざい つくる あい', 'sticker', 'ステッカー', 'すてっかー', 'claude'], genOpen);
   add('新規作成・サンプル', '白紙', ['new', 'blank', '白紙', 'キャンバス', 'しんき はくし'], () => { renderNB(); openSheet('#sheetNew'); });
   add('AIで背景を自動で消す', '背景削除', ['ai', 'background', 'remove', '切り抜き', 'くりぬき はいけい けす'], () => { setTool('cutout'); runCmd('ai'); });
   add('AIおまかせ補正', '色を自動で整える', ['ai', 'auto', '自動', '補正', 'おまかせ じどう ほせい'], () => runCmd('aiAuto'));
@@ -6284,6 +6410,7 @@ function renderUISheet() {
     + (deskOn ? '' : `<div class="setlab">下のパネルの最初の高さ</div>` + opt('ph', [['s', '小'], ['m', '中'], ['l', '大']])
       + `<div class="setlab">片手モード（上のボタンを寄せる側）</div>` + opt('hand', [['right', '右手'], ['left', '左手']])
       + setRow('gest', '2本指タップで元に戻す', '3本指タップでやり直し', UI.gest));
+  $('#uiLib').innerHTML = setRow('libAuto', '写真をマイ素材に自動で残す', '開いた・重ねた写真をこの端末に保存', UI.libAuto);
   $('#uiFx').innerHTML = setRow('fx', 'タップのきらめき', reduceMo.matches ? '端末の「視差効果を減らす」がオンのため表示されません' : '押すと小さな粒がはじけます', UI.fx)
     + (navigator.vibrate ? setRow('haptic', '振動フィードバック', '押すと軽く振動（対応端末のみ）', UI.haptic) : '');
 }
@@ -6307,6 +6434,7 @@ $('#sheetUI').addEventListener('click', e => {
     $('#uiSize').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === s));
   } else if (k) {
     UI[k.dataset.uik] = !UI[k.dataset.uik]; k.setAttribute('aria-checked', String(UI[k.dataset.uik]));
+    if (k.dataset.uik === 'libAuto') libRefresh();
   } else if (e.target.closest('#uiAiClear')) {
     const b = e.target.closest('#uiAiClear'); b.disabled = true;
     clearModelCaches().then(ok => { b.disabled = false; if (ok !== false) toast('AIモデルのキャッシュを削除しました。次に使うときに再ダウンロードします'); });
