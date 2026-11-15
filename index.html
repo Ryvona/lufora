@@ -5112,6 +5112,9 @@ function pushObj(o, noCommit) {
 }
 function jitter() { const n = doc.objects.length % 6; return { x: (n - 2.5) * MIN() * 0.02, y: (n - 2.5) * MIN() * 0.02 }; }
 const NOTE_RATIOS = { square: [1, 1], wide: [1, 0.62], tall: [0.72, 1] };
+/* which 縦横 chip matches a note's current shape (null after a free resize) */
+const noteRatioOf = o => { const q = Math.log(o.w / o.h); let best = null, d = 0.08; for (const [k, [w, h]] of Object.entries(NOTE_RATIOS)) { const e = Math.abs(q - Math.log(w / h)); if (e < d) { d = e; best = k; } } return best; };
+const ratioBtns = o => { const cur = noteRatioOf(o); return [['square', '正方形'], ['wide', '横長'], ['tall', '縦長']].map(([v, l]) => cmdBtn('noteRatio', l, v, cur === v ? 'on" aria-pressed="true' : '" aria-pressed="false')).join(''); };
 /* text / note start empty and go straight into inline editing; the history step is recorded when editing ends */
 function addText(text = '') {
   const c = viewCenter(), t = S.text;
@@ -5909,7 +5912,7 @@ function runCmd(k, v, final) {
     case 'noteRatio': if (o) {
       const m = Math.max(o.w, o.h), r = NOTE_RATIOS[v] || NOTE_RATIOS.square;
       o.w = m * r[0]; o.h = m * r[1]; S.note.ratio = NOTE_RATIOS[v] ? v : 'square'; saveToolsSoon();
-      invalidate(); commit();
+      invalidate(); commit(); syncRatio(o);
     } break;
     case 'cutThis': if (o && o.type === 'image' && !o.slot) { S.cut.target = o.id; setTool('cutout'); } break;
     case 'ai': runAI(); break;
@@ -6025,6 +6028,7 @@ function chips(act, k, opts, cur) {
 }
 const ichips = (act, k, opts, cur) => chips(act, k, opts, cur).replace(/class="chip/g, 'class="chip ichip');
 const togChip = (act, k, on, label) => `<button class="chip ichip tog${on ? ' on' : ''}" aria-pressed="${!!on}" data-act="${act}" data-k="${k}" data-v="${!on}">${label}</button>`;
+function syncRatio(o) { const cur = o && o.type === 'note' ? JSON.stringify(noteRatioOf(o)) : ''; document.querySelectorAll('[data-k="noteRatio"]').forEach(b => { const on = cur === b.dataset.v; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); }
 function cmdBtn(k, label, v, cls = '') { return `<button class="chip ${cls}" data-act="cmd" data-k="${k}"${v !== undefined ? ` data-v="${J(v)}"` : ''}>${label}</button>`; }
 function row(label, inner, wrap) { return `<div class="row"><div class="rl">${label}</div><div class="rc${wrap ? ' rcw' : ''}">${inner}</div></div>`; }
 /* recently picked custom colours (UI.recent, per device) are offered after the standard swatches */
@@ -6300,7 +6304,7 @@ function objPanel(o) {
         + row('文字', swatches('o', 'tcolor', o.tcolor || '#2A2724', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#1F8A4C', '#8B5CF6'])) + `</div>`;
       dt += row('柄', chips('o', 'pattern', [['plain', '無地'], ['lines', '罫線'], ['grid', '方眼'], ['dots', 'ドット']], o.pattern || (o.shape === 'torn' ? 'lines' : 'plain')));
       dt += row('飾り', chips('o', 'deco', [['tape', 'テープ'], ['pin', 'ピン'], ['none', 'なし']], o.deco || 'tape'));
-      dt += row('縦横', cmdBtn('noteRatio', '正方形', 'square') + cmdBtn('noteRatio', '横長', 'wide') + cmdBtn('noteRatio', '縦長', 'tall'));
+      dt += row('縦横', ratioBtns(o));
       h += row('書体', fontButton(o.font || 'Klee One'));
       break;
     case 'image':
@@ -6398,6 +6402,7 @@ function applyNum(t) {
 function syncNums(force) {
   const o = selObj(); if (!o) return;
   panel.querySelectorAll('[data-num]').forEach(i => { if (!force && document.activeElement === i) return; const v = String(NUMV[i.dataset.num](o)); if (i.value !== v) i.value = v; });
+  if (o.type === 'note') { const k = o.id + ':' + (o.w / o.h).toFixed(3); if (k !== syncNums.rq) { syncNums.rq = k; syncRatio(o); } }   // 縦横 chips follow a resize
 }
 /* align buttons: a single object aligns to the photo, a group aligns to its own bounding box */
 /* align icons: a bar for the edge or centre line + two boxes lined up against it */
