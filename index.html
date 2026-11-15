@@ -513,6 +513,7 @@ html.desk .projit:hover .libx,html.desk .projit:focus-within .libx{opacity:1}
 .swb.eyedrop svg{width:17px;height:17px}
 #cv.eyepick{cursor:crosshair}
 /* ==== account ==== */
+.note.legal a{color:var(--accent);font-weight:700}
 .acctrow{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);text-align:left}
 .acctrow>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .acctrow small{font-size:12px;color:var(--muted)}
@@ -993,6 +994,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <h3>AI背景削除</h3>
   <div class="setrow quiet"><span class="st">AIモデルのキャッシュ<small>高精度モデル・最大 約115MB</small></span><button class="chip" id="uiAiClear">削除</button></div>
   <p class="note">この端末だけに保存されます。ツールの並び替えはツール欄の「並び替え」から。</p>
+  <p class="note legal"><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a> ・ <a href="terms.html" target="_blank" rel="noopener">利用規約</a></p>
 </div>
 
 <div class="sheet" id="sheetOrder" hidden>
@@ -8547,7 +8549,8 @@ function acctRender() {
         <div class="acctbtns">${ACCT_PROVS.map(pv => `<button class="btn acctp" data-acct="${pv}"${dis}>${PROV_NAMES[pv]} で続ける</button>`).join('')}</div>
         <div class="acctor"><span>またはメールで</span></div>
         <form class="acctmail" id="acctMail"><input type="email" name="em" placeholder="メールアドレス" autocomplete="email" inputmode="email" aria-label="メールアドレス" required><button class="btn primary" type="submit"${dis}>${acctBusy ? '送信中…' : 'ログインリンクを送る'}</button></form>
-        <p class="note">この端末でこれまでに投稿した作品は、そのままアカウントに引き継がれます。${navigator.onLine ? '' : '<br>いまはオフラインです。'}</p>`;
+        <p class="note">この端末でこれまでに投稿した作品は、そのままアカウントに引き継がれます。${navigator.onLine ? '' : '<br>いまはオフラインです。'}</p>
+        <p class="note legal">ログインすると、<a href="terms.html" target="_blank" rel="noopener">利用規約</a>と<a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意したものとみなします。</p>`;
     return;
   }
   const st = syncState === 'busy' ? '同期しています…' : syncState === 'err' ? '同期できませんでした（あとでもう一度試します）' : syncAt ? `同期しました（${ago(syncAt)}）` : '';

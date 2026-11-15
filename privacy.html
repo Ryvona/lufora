@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プライバシーポリシー | Lufora</title>
+<meta name="robots" content="index,follow">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#F4EFE4;--card:#FBF8F1;--fg:#2A2724;--muted:#6E6A62;--line:#E2DACA;--accent:#5E8C5F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.85 "Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:28px 16px 64px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+header a{color:var(--accent);font-weight:700;text-decoration:none}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:var(--fg)}
+.brand img{width:32px;height:32px;border-radius:8px}
+article{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px}
+h1{font-size:24px;margin:0 0 4px}
+.date{color:var(--muted);font-size:13px;margin:0 0 18px}
+h2{font-size:17px;margin:28px 0 6px;padding-left:10px;border-left:4px solid var(--accent)}
+h3{font-size:15px;margin:16px 0 2px}
+p,li{font-size:15px}
+ul{padding-left:1.3em;margin:6px 0}
+.note{color:var(--muted);font-size:13px}
+footer{margin-top:22px;text-align:center;font-size:13px;color:var(--muted)}
+footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<header><a class="brand" href="./"><img src="icons/icon-192.png" alt="">Lufora</a><a href="./">アプリに戻る ›</a></header>
+<article>
+<h1>プライバシーポリシー</h1>
+<p class="date">制定日：2026年11月15日</p>
+
+<p>写真編集アプリ「Lufora（ルフォラ）」（以下「本アプリ」）の運営者 Ryvona（以下「運営者」）は、利用者の情報を次のとおり取り扱います。本アプリは、できるだけ多くの処理を利用者の端末の中だけで行う作りにしています。</p>
+
+<h2>1. 端末の中だけで扱う情報</h2>
+<p>次の情報は、利用者の端末のブラウザ内（IndexedDB・localStorage）にだけ保存され、運営者には送られません。</p>
+<ul>
+<li>編集している写真・作品、自動保存される下書き、「最近の作品」</li>
+<li>マイ素材（取り込んだ写真や保存した素材）</li>
+<li>表示サイズやツールの並びなどの設定、読み込んだフォント</li>
+</ul>
+<p>背景削除のAIも端末の中で動き、写真がサーバーに送られることはありません。これらのデータは、ブラウザの「サイトデータの削除」などで消すことができます。</p>
+
+<h2>2. サーバーに送る情報（その機能を使ったときだけ）</h2>
+<h3>(1) みんなの作品に投稿したとき</h3>
+<ul>
+<li>作品の画像（縮小版と元の大きさのもの）、タイトル、タグ、公開範囲（非公開・限定公開・公開）、ニックネーム、色味の設定（レシピ）</li>
+<li>端末ごとに自動で作られる匿名のID（投稿の持ち主を見分けるため）</li>
+<li>通報したときは、対象の投稿と通報の理由</li>
+</ul>
+<h3>(2) アカウント連携（ログイン）を使ったとき</h3>
+<ul>
+<li>Google でログインした場合：メールアドレス、名前、Google が発行する識別子</li>
+<li>メールでログインした場合：メールアドレス</li>
+<li>端末間の同期のために保存するもの：設定、マイ素材の画像と情報、作業中の作品（画像と編集内容）</li>
+</ul>
+<h3>(3) 「AIで作る」を使ったとき（提供している場合）</h3>
+<ul>
+<li>入力した言葉を、ステッカーを作るために Anthropic 社のAIへ送ります。入力にはお名前などの個人情報を含めないでください。</li>
+<li>使いすぎを防ぐため、1日の利用回数を記録します。</li>
+</ul>
+
+<h2>3. 利用している外部サービス</h2>
+<p>本アプリは次のサービスを使っています。これらのサービスには、通信の性質上、IPアドレスやブラウザの種類などが伝わります。サーバーは日本国外（主に米国）にある場合があります。</p>
+<ul>
+<li>Supabase：投稿・同期データの保存とログインの仕組み</li>
+<li>Google：Google でのログイン、書体（Google Fonts）の配信</li>
+<li>GitHub Pages：アプリの配信</li>
+<li>jsDelivr：アプリが使うプログラムの配信</li>
+<li>Hugging Face：背景削除の高精度AIモデルの配信（利用者が選んだ場合のみ）</li>
+<li>Anthropic：「AIで作る」のステッカー生成（提供している場合のみ）</li>
+</ul>
+
+<h2>4. 利用目的</h2>
+<ul>
+<li>投稿・同期・ログインなど、本アプリの機能を提供するため</li>
+<li>不正な利用の防止（利用回数の制限、通報への対応）のため</li>
+<li>お問い合わせに対応するため</li>
+</ul>
+<p>運営者は、利用者の情報を広告や行動の分析に使ったり、販売したりしません。アクセス解析ツールや広告も使っていません。</p>
+
+<h2>5. 第三者への提供</h2>
+<p>法令に基づく場合を除き、利用者の同意なく第三者に提供しません。ただし、3. の外部サービスに、機能の提供に必要な範囲で取り扱いを任せることがあります。</p>
+
+<h2>6. 保存期間と削除</h2>
+<ul>
+<li>投稿は、本アプリの「みんなの作品」からいつでも削除できます。</li>
+<li>アカウント（ログイン情報と同期データ）の削除をご希望の場合は、下記の問い合わせ先までご連絡ください。確認のうえ削除します。</li>
+<li>ログアウトしても、端末の中のデータはそのまま残ります。</li>
+</ul>
+
+<h2>7. 安全管理</h2>
+<p>通信はすべて暗号化（HTTPS）しています。同期データは非公開の保存場所に置き、ログインした本人しか読み書きできないよう設定しています。</p>
+
+<h2>8. お子さまの利用</h2>
+<p>13歳未満の方がログインや投稿をするときは、保護者の方の同意を得てからご利用ください。</p>
+
+<h2>9. このポリシーの変更</h2>
+<p>機能の追加などにあわせて、このポリシーを変更することがあります。大切な変更がある場合は、本アプリまたはこのページでお知らせします。</p>
+
+<h2>10. お問い合わせ先</h2>
+<p>運営者：Ryvona<br>メール：<span id="contact">（準備中）</span></p>
+</article>
+<footer><a href="terms.html">利用規約</a> ・ <a href="./">Lufora に戻る</a></footer>
+</main>
+</body>
+</html>
