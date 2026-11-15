@@ -8369,12 +8369,12 @@ async function acctEmail(email) {
   acctBusy = true; acctRender();
   try {
     const { c } = await sb(), { data: { session } } = await c.auth.getSession(), to = authRedirect();
-    let r = null;
-    if (session && session.user.is_anonymous) {
-      r = await c.auth.updateUser({ email }, { emailRedirectTo: to });
-      if (r.error && /email_exists|already|registered|taken/.test(errKey(r.error))) r = null;   // that address has an account: log in to it
-    }
-    if (!r || r.error) r = await c.auth.signInWithOtp({ email, options: { emailRedirectTo: to } });
+    // 1. an address that already has an account (also one made with Google): a login link for that account.
+    //    Adding it to this device's anonymous user instead would only fail at the link ("already been registered").
+    let r = await c.auth.signInWithOtp({ email, options: { emailRedirectTo: to, shouldCreateUser: false } });
+    // 2. a new address (otp_disabled = no such user): add it to this device's user so its posts carry over, or sign up
+    if (r.error && /otp_disabled|signups not allowed/.test(errKey(r.error)))
+      r = session && session.user.is_anonymous ? await c.auth.updateUser({ email }, { emailRedirectTo: to }) : await c.auth.signInWithOtp({ email, options: { emailRedirectTo: to } });
     sbOk(r); acctSent = email;
   } catch (e) { console.warn('auth', e); toast(acctErr(e)); }
   acctBusy = false; acctRender();
@@ -8393,7 +8393,9 @@ async function authReturn() {
       toast('このアカウントはほかの端末で使われています。そのアカウントでログインします', 3600);
       setTimeout(() => acctSwitch(prov), 1200); return;
     }
-    toast(/otp_expired|expired/i.test(err + desc) ? 'リンクの有効期限が切れています。もう一度送ってください' : 'ログインできませんでした' + (desc ? `（${desc.slice(0, 60)}）` : ''), 4600); return;
+    toast(/otp_expired|expired/i.test(err + desc) ? 'リンクの有効期限が切れています。もう一度送ってください'
+      : /already been registered|email_exists/i.test(err + ' ' + desc) ? 'このメールアドレスはすでに登録されています。もう一度メールアドレスを入れて送ると、ログイン用のメールが届きます'
+      : 'ログインできませんでした' + (desc ? `（${desc.slice(0, 60)}）` : ''), 5200); return;
   }
   try {
     const { c } = await sb();
