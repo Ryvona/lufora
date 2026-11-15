@@ -4062,7 +4062,7 @@ function endSingle(p, cancelled) {
         if (isDoubleTap(p, 'empty')) { clearTimeout(phTapT); fitView(); }
         else if (tool === 'select' && selId) { selId = null; refreshPanel(); requestDraw(); }
         // phone: a single tap on empty canvas (nothing selected) folds the bottom panel / opens it again; waits so a double tap can win
-        else if (!deskOn && tool === 'select' && !multi.length && !hadSel) { clearTimeout(phTapT); phTapT = setTimeout(() => setPH(phNow === 's' ? phPrev : 's'), 330); }
+        else if (!deskOn && tool === 'select' && !multi.length && !hadSel && phNow !== 's') { clearTimeout(phTapT); phTapT = setTimeout(() => setPH('s'), 330); }   // fold only; opening again is the grab handle's job
       }
       break;
     case 'marq': {
@@ -5641,7 +5641,7 @@ function multiPanel(ms) {
     + alignRow('揃える')
     + hint('✋ 枠の中をドラッグでまとめて移動');
 }
-let panelKey = '';
+let panelKey = '', panelTool = 'select';
 /* a slider being dragged must not be replaced by a panel rebuild (its 'change' would never fire): defer the rebuild to release */
 let slActive = false, slPending = false;
 const sidePanel = $('#sidePanel');
@@ -5752,8 +5752,9 @@ function refreshPanel() {
     $('#inspSub').textContent = so && so.locked ? 'ロック中' : '';
   }
   const st = tgt.scrollTop, key = tool + ':' + (tool === 'select' ? selId || (multi.length ? 'multi' : '') : '');
-  // phone: a new thing to edit (tool / selection) opens the folded panel; in-place refreshes (undo, AI done…) leave it folded
-  if (!deskOn && phNow === 's' && key !== panelKey && (selId || multi.length || tool !== 'select')) setPH(phPrev);
+  // phone: only switching to another tool (ペン, 図形…) opens the folded panel; selecting things or tapping the canvas leaves it as the user set it
+  if (!deskOn && phNow === 's' && tool !== panelTool && tool !== 'select') setPH(phPrev);
+  panelTool = tool;
   if (tgt !== panel) panel.innerHTML = '';
   tgt.innerHTML = h;
   tgt.scrollTop = st;
@@ -5902,6 +5903,7 @@ toolsEl.addEventListener('click', e => {
   if (e.target.closest('[data-tedit]')) { openOrderSheet(); return; }
   const b = e.target.closest('[data-tool]'); if (!b || !doc) return;
   const id = b.dataset.tool;
+  if (!deskOn && phNow === 's' && !b.dataset.tool.match(/^(photo|text|note)$/)) setPH(phPrev);   // a tool button is an explicit wish to use its panel
   if (id === 'photo') { $('#fileAdd').click(); return; }
   if (id === 'text') { addText(); return; }
   if (id === 'note') { addNote(); return; }
