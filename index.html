@@ -499,6 +499,19 @@ html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--l
 .chip.ichip svg{width:20px;height:20px}
 .chip.ichip .nico{width:26px;height:26px;display:block}
 .chip.ichip .nico.sico{width:30px;height:30px}
+/* ==== recent works / groups / eyedropper ==== */
+.projgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(104px*var(--u)),1fr));gap:10px;margin:2px 0 6px}
+.projit{position:relative;min-width:0}
+.projit .pj{display:flex;flex-direction:column;width:100%;padding:0 0 6px;border:1px solid var(--line);border-radius:12px;background:var(--chrome2);overflow:hidden;text-align:left;color:var(--fg)}
+.projit .pj img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#E6E0D2}
+.projit .pjn{font-size:12px;font-weight:700;margin:5px 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.projit small{font-size:11px;color:var(--muted);margin:0 8px}
+html.desk .projit .libx{opacity:0}
+html.desk .projit:hover .libx,html.desk .projit:focus-within .libx{opacity:1}
+.lgrp{display:inline-grid;place-items:center;width:15px;height:15px;margin-right:5px;border-radius:4px;background:var(--accent);color:var(--accent-ink);font-size:9.5px;font-weight:800;vertical-align:1px}
+.swb.eyedrop{display:grid;place-items:center;background:var(--chrome2);color:var(--fg)}
+.swb.eyedrop svg{width:17px;height:17px}
+#cv.eyepick{cursor:crosshair}
 /* ==== account ==== */
 .acctrow{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);text-align:left}
 .acctrow>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -803,6 +816,8 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
     <button class="bigbtn" data-nb="sample"><span>サンプル写真で試す<small>夕焼けの湖の写真が開きます</small></span></button>
     <button class="bigbtn" data-gal="open"><span>みんなの作品を見る<small>色味のレシピを参考にできます・自分の投稿の管理</small></span></button>
   </div>
+  <h3>最近の作品</h3>
+  <div id="nbProj"></div>
   <h3>白紙から作る</h3>
   <div class="wrap" id="nbSizes"></div>
   <h3>背景色</h3>
@@ -865,7 +880,7 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
       <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></dt><dd>元に戻す / やり直し</dd><dt><kbd>Ctrl</kbd>+<kbd>D</kbd></dt><dd>複製</dd>
       <dt><kbd>Delete</kbd></dt><dd>削除</dd><dt><kbd>Ctrl</kbd>+<kbd>A</kbd></dt><dd>すべて選択</dd>
       <dt><kbd>Ctrl</kbd>+<kbd>]</kbd> / <kbd>[</kbd></dt><dd>前面へ / 背面へ</dd><dt><kbd>←↑↓→</kbd></dt><dd>少し動かす（<kbd>Shift</kbd>で大きく）</dd>
-      <dt><kbd>Shift</kbd>+ドラッグ</dt><dd>囲んで選ぶ</dd><dt><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd></dt><dd>選んだ物をコピー / 切り取り / 貼り付け</dd><dt><kbd>Shift</kbd>+<kbd>H</kbd> / <kbd>V</kbd></dt><dd>左右反転 / 上下反転</dd><dt><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></dt><dd>できあがった画像をコピー</dd><dt>図形で<kbd>Shift</kbd>+ドラッグ</dt><dd>線は15°ごと・四角や丸は正方形／正円</dd><dt><kbd>Alt</kbd>+ドラッグ</dt><dd>吸着しないで動かす・描く</dd><dt><kbd>Ctrl</kbd>+<kbd>V</kbd></dt><dd>画像を貼り付け</dd><dt>右クリック</dt><dd>操作メニュー</dd>
+      <dt><kbd>Shift</kbd>+ドラッグ</dt><dd>囲んで選ぶ</dd><dt><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd></dt><dd>選んだ物をコピー / 切り取り / 貼り付け</dd><dt><kbd>Ctrl</kbd>+<kbd>G</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></dt><dd>グループにする / グループ解除</dd><dt><kbd>Shift</kbd>+<kbd>H</kbd> / <kbd>V</kbd></dt><dd>左右反転 / 上下反転</dd><dt><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></dt><dd>できあがった画像をコピー</dd><dt>図形で<kbd>Shift</kbd>+ドラッグ</dt><dd>線は15°ごと・四角や丸は正方形／正円</dd><dt><kbd>Alt</kbd>+ドラッグ</dt><dd>吸着しないで動かす・描く</dd><dt><kbd>Ctrl</kbd>+<kbd>V</kbd></dt><dd>画像を貼り付け</dd><dt>右クリック</dt><dd>操作メニュー</dd>
     </dl></div>
     <div><h4>表示</h4><dl>
       <dt><kbd>Space</kbd>+ドラッグ</dt><dd>画面を動かす</dd><dt><kbd>Ctrl</kbd>+<kbd>0</kbd></dt><dd>全体を表示</dd><dt><kbd>Ctrl</kbd>+<kbd>1</kbd></dt><dd>等倍</dd>
@@ -2570,6 +2585,10 @@ const ICON = {
 };
 /* more line icons: pen kinds, mosaic, cut-out modes, crop, the select legend, adjust sliders */
 Object.assign(ICON, {
+  group: I('<rect x="3.5" y="3.5" width="17" height="17" rx="2.5" stroke-dasharray="3 2.4"/><rect x="7" y="7" width="5.5" height="5.5" rx="1"/><rect x="11.5" y="11.5" width="5.5" height="5.5" rx="1"/>'),
+  ungroup: I('<rect x="4" y="4" width="7" height="7" rx="1.2"/><rect x="13" y="13" width="7" height="7" rx="1.2"/><path d="M15 4h5v5M4 15v5h5" stroke-dasharray="2 2"/>'),
+  dropper: I('<path d="M13.5 6.5l4 4M16.2 3.8a2.3 2.3 0 0 1 3.3 3.3l-2.3 2.3-3.3-3.3z"/><path d="M14.4 7.6L5.5 16.5 5 19l2.5-.5 8.9-8.9"/>'),
+  works: I('<rect x="3.5" y="6.5" width="13" height="13" rx="2"/><path d="M7.5 3.5h11a2 2 0 0 1 2 2v11"/><path d="M6 17l3.2-3.6 2.4 2.4 2-2.2 2.4 3.4"/>'),
   copy: I('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
   paste: I('<rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 11h6M9 15h4"/>'),
   distH: I('<path d="M4 4v16M20 4v16"/><rect x="9.5" y="8" width="5" height="8" rx="1"/>'),
@@ -2690,7 +2709,7 @@ function commit() {
   if (s === lastSnap) return;
   if (lastSnap) hist.past.push(lastSnap);
   if (hist.past.length > 50) hist.past.shift();
-  hist.future = []; lastSnap = s;
+  hist.future = []; lastSnap = s; docDirty = true;
   gcBitmaps(); updateUndoUI(); scheduleSave();
 }
 function resetHistory() { hist.past = []; hist.future = []; lastSnap = snapshot(); gcBitmaps(); updateUndoUI(); }
@@ -3635,6 +3654,30 @@ function mirrorLocal(o, axis) {
   if (o.type === 'shape' && isLineK(o.kind)) { o.bend = -(o.bend == null ? 0.3 : o.bend); if (o.wa != null) o.wa = -o.wa; }
   if (axis === 'y' && o.type === 'shape' && (o.kind === 'tri' || o.kind === 'heart')) o.rot += Math.PI;
 }
+/* ==== groups ==== objects sharing a gid select and move together. The first tap on a member selects the whole group
+   (as a multi selection); a tap on a member of the selected group then selects just that one (to edit it). */
+const newGid = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const groupOf = o => o && o.gid ? doc.objects.filter(x => x.gid === o.gid && !x.hidden) : null;
+function expandGroups(ids) {
+  const gs = new Set(ids.map(id => (doc.objects.find(o => o.id === id) || {}).gid).filter(Boolean));
+  return gs.size ? [...new Set([...ids, ...doc.objects.filter(o => gs.has(o.gid) && !o.hidden && !o.locked).map(o => o.id)])] : ids;
+}
+const isOneGroup = ms => ms.length > 1 && !!ms[0].gid && ms.every(o => o.gid === ms[0].gid);
+function groupObjs(on) {
+  const ms = multiObjs();
+  if (on) {
+    if (ms.length < 2) { toast('2つ以上選ぶと、グループにできます'); return; }
+    const g = newGid(); ms.forEach(o => { o.gid = g; });
+    commit(); refreshPanel(); toast(deskOn ? 'グループにしました（Ctrl+Shift+G で解除）' : 'グループにしました。まとめて動かせます');
+  } else {
+    const all = ms.length ? ms : groupOf(selObj()) || [];
+    if (!all.some(o => o.gid)) return;
+    all.forEach(o => { delete o.gid; });
+    commit(); refreshPanel(); toast('グループを解除しました');
+  }
+}
+/* copies get their own groups (a copied group stays a group, but not the same one) */
+function regroupCopies(cs) { const m = new Map(); for (const c of cs) if (c.gid) { if (!m.has(c.gid)) m.set(c.gid, newGid()); c.gid = m.get(c.gid); } }
 /* ==== object flip / copy & paste / distribute ==== */
 const canFlip = o => o && !o.locked && /^(image|deco|stamp|shape|stroke)$/.test(o.type) && !(o.type === 'stamp' && o.kind === 'num');   // a number would read mirrored
 function flipObjs(ms, axis) {
@@ -3667,9 +3710,10 @@ function copyObjs(cut) {
 function pasteObjs() {
   if (!clip || !doc) return false;
   clip.n++;
-  const d = MIN() * 0.03 * clip.n, ids = [];
+  const d = MIN() * 0.03 * clip.n, ids = [], gm = new Map();
   for (const src of clip.objs) {
     const c = JSON.parse(JSON.stringify(src)); c.id = newId(); c.locked = false; delete c.hidden; c.x += d; c.y += d;
+    if (c.gid) { if (!gm.has(c.gid)) gm.set(c.gid, newGid()); c.gid = gm.get(c.gid); }   // a pasted group is a new group
     for (const k of ['bmp', 'orig']) if (c[k] && !bitmaps.has(c[k])) { const e = clip.bmps.get(c[k]); c[k] = e ? regBitmap(e.canvas, e.blob, e.alpha) : null; }
     if (c.type === 'image' && !c.bmp && !c.slot) continue;
     if (c.kind === 'num') c.n = nextNum();
@@ -3761,6 +3805,7 @@ cv.addEventListener('pointerdown', e => {
   if (!doc) return;
   if (e.pointerType === 'mouse' && e.button !== 0) return;   // right / middle click: no drag gesture (right opens the context menu)
   e.preventDefault();
+  if (eyePick) { eyeAt(pt(e)); return; }   // スポイト: this tap only picks a colour
   if (editingId) endInlineEdit();   // preventDefault keeps focus in the editor, so finish it explicitly
   { const ae = document.activeElement; if (ae && ae !== ied && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) ae.blur(); }   // same for a panel field: blur fires its change (commit)
   flushNudge();   // a pending arrow-key nudge is its own history step, not part of this drag
@@ -4023,6 +4068,12 @@ function startSingle(p, shift) {
         if (h) { startHandle(o, h, p); return; }
       }
       const hit = (o && !o.hidden && hitObj(o, d.x, d.y, 10 / view.s)) ? o : pick(d.x, d.y);
+      const grp = hit && hit.gid && selId !== hit.id ? groupOf(hit) : null;
+      if (grp && grp.length > 1) {   // a grouped object: select and drag its whole group
+        selId = null; multi = grp.map(x => x.id); refreshPanel(); requestDraw();
+        G = { type: 'gmove', p0: p, start: grp.filter(x => !x.locked).map(x => [x, x.x, x.y]), hitId: null, moved: false };
+        return;
+      }
       if (hit) {
         if (selId !== hit.id) { selId = hit.id; refreshPanel(); requestDraw(); }
         G = { type: 'move', id: hit.id, p0: p, x0: hit.x, y0: hit.y, moved: false, tx0: view.tx, ty0: view.ty };
@@ -4162,7 +4213,7 @@ function endSingle(p, cancelled) {
         if (isDoubleTap(p, 'empty')) fitView(); else if (selId) { selId = null; refreshPanel(); }
         requestDraw(); break;
       }
-      const ids = marqPick(screenToDoc(G.p0.x, G.p0.y), screenToDoc(p.x, p.y));
+      const ids = expandGroups(marqPick(screenToDoc(G.p0.x, G.p0.y), screenToDoc(p.x, p.y)));
       if (ids.length === 1) { selId = ids[0]; multi = []; }
       else { selId = null; multi = ids.length > 1 ? ids : []; }
       if (ids.length > 1) toast(`${ids.length}個を選択しました`);
@@ -5170,7 +5221,7 @@ function runCmd(k, v, final) {
     case 'front': if (o) { removeObj(o.id); doc.objects.push(o); selId = o.id; invalidate(); commit(); refreshPanel(); } break;
     case 'back': if (o) { removeObj(o.id); doc.objects.unshift(o); selId = o.id; invalidate(); commit(); refreshPanel(); } break;
     case 'dup': if (o) {
-      const c = JSON.parse(JSON.stringify(o)); c.id = newId(); c.locked = false; delete c.hidden; c.x += MIN() * 0.04; c.y += MIN() * 0.04;
+      const c = JSON.parse(JSON.stringify(o)); c.id = newId(); c.locked = false; delete c.hidden; delete c.gid; c.x += MIN() * 0.04; c.y += MIN() * 0.04;
       if (c.kind === 'num') c.n = nextNum();
       pushObj(c); toast('複製しました');
     } break;
@@ -5184,6 +5235,8 @@ function runCmd(k, v, final) {
     case 'cut': copyObjs(true); break;
     case 'paste': pasteObjs(); break;
     case 'dist': distributeObjs(multiObjs(), v); break;
+    case 'group': groupObjs(true); break;
+    case 'ungroup': groupObjs(false); break;
     case 'lock': if (o) { o.locked = !o.locked; commit(); refreshPanel(); requestDraw(); toast(o.locked ? 'ロックしました。動かせなくなります' : 'ロックを解除しました'); } break;
     case 'del': if (o) { if (o.locked) { toast('ロック中です。解除してから削除してください'); break; } removeObj(o.id); invalidate(); commit(); delSel = { snap: lastSnap, ids: [o.id] }; refreshPanel(); } break;
     case 'edit': if (o) startInlineEdit(o); break;
@@ -5193,12 +5246,13 @@ function runCmd(k, v, final) {
       doc.objects = k === 'mFront' ? [...rest, ...g] : [...g, ...rest]; invalidate(); commit(); refreshPanel();
     } break;
     case 'mDup': {
-      const ids = [];
+      const ids = [], cs = [];
       for (const src of multiObjs()) {
         const c = JSON.parse(JSON.stringify(src)); c.id = newId(); c.locked = false; delete c.hidden; c.x += MIN() * 0.04; c.y += MIN() * 0.04;
         if (c.kind === 'num') c.n = nextNum();
-        doc.objects.push(c); ids.push(c.id);
+        cs.push(c);
       }
+      regroupCopies(cs); cs.forEach(c => { doc.objects.push(c); ids.push(c.id); });
       if (!ids.length) break;
       multi = ids; invalidate(); commit(); refreshPanel(); toast(`${ids.length}個を複製しました`);
     } break;
@@ -5258,7 +5312,31 @@ function runCmd(k, v, final) {
     case 'aiAuto': case 'aiLook': case 'aiRef': aiCmd(k, v); break;
   }
 }
+/* ==== eyedropper (スポイト) ==== PC browsers with EyeDropper pick from anywhere on screen; elsewhere the next tap on the
+   picture samples the rendered composite. The colour then goes through doAct like a swatch click. */
+let eyePick = null;
+async function eyeStart(act, k) {
+  if (window.EyeDropper && deskOn) {
+    try { const r = await new EyeDropper().open(); if (r && r.sRGBHex) doAct(act, k, r.sRGBHex.toUpperCase(), true); } catch (e) { }
+    return;
+  }
+  eyePick = { act, k }; cv.classList.add('eyepick');
+  toast('色を拾いたい場所をタップしてください', 3200);
+}
+function eyeCancel() { if (!eyePick) return; eyePick = null; cv.classList.remove('eyepick'); }
+function eyeAt(p) {
+  const pk = eyePick; eyeCancel();
+  const d = screenToDoc(p.x, p.y);
+  if (d.x < 0 || d.y < 0 || d.x >= doc.w || d.y >= doc.h) { toast('写真の上をタップしてください'); return; }
+  try {
+    const x = clamp(Math.floor(d.x * compSc), 0, comp.width - 1), y = clamp(Math.floor(d.y * compSc), 0, comp.height - 1);
+    const px = comp.getContext('2d').getImageData(x, y, 1, 1).data;
+    const hex = '#' + [px[0], px[1], px[2]].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+    doAct(pk.act, pk.k, hex, true); toast('色を拾いました ' + hex);
+  } catch (e) { console.warn('eyedropper', e); toast('色を拾えませんでした'); }
+}
 function doAct(a, k, v, final) {
+  if (a === 'eye') { eyeStart(v, k); return; }
   if (final !== false && typeof v === 'string' && (a === 'o' || a === 's' ? final && /color2?$|^bg$|outline|border|stroke|(^|\.)(oc|fc)$/i.test(k) : a === 'cmd' && /^(bg|bgPat[12])$/.test(k))) rememberColor(v);
   if (a === 'cmd') return runCmd(k, v, final);
   if (a === 's') {
@@ -5343,6 +5421,7 @@ function swatches(act, k, cur, list = COLORS) {
   list = [...list, ...UI.recent.filter(c => !low.includes(c.toLowerCase()))];
   const c = String(cur).toLowerCase();
   return list.map(col => `<button class="swb${col.toLowerCase() === c ? ' on' : ''}" aria-pressed="${col.toLowerCase() === c}" style="--c:${col}" data-act="${act}" data-k="${k}" data-v="${J(col)}" aria-label="色 ${col}"></button>`).join('')
+    + `<button class="swb eyedrop" data-act="eye" data-k="${k}" data-v="${J(act)}" aria-label="画面から色を拾う（スポイト）" title="スポイト：画面から色を拾う">${ICON.dropper}</button>`
     + `<label class="swb custom" aria-label="ほかの色を選ぶ"><input type="color" id="cc-${act}-${k.replace(/\W/g, '')}" value="${/^#[0-9a-f]{6}$/i.test(cur) ? cur : '#ff3b30'}" data-act="${act}" data-k="${k}"></label>`;
 }
 function slider(sl, label, min, max, val, mul = 1) {
@@ -5713,7 +5792,7 @@ function layerName(o) {
 function layersPanel() {
   const sel = new Set(multi.length ? multi : selId ? [selId] : []);
   const rows = doc.objects.slice().reverse().map(o => `<div class="lyr${sel.has(o.id) ? ' on' : ''}${o.hidden ? ' hid' : ''}" data-lyr="${o.id}" draggable="true">`
-    + `<span class="lic" aria-hidden="true">${LAYER_IC[o.type] || '•'}</span><span class="lnm">${esc(layerName(o))}</span>`
+    + `<span class="lic" aria-hidden="true">${LAYER_IC[o.type] || '•'}</span><span class="lnm">${o.gid ? '<span class="lgrp" title="グループ">G</span>' : ''}${esc(layerName(o))}</span>`
     + `<button class="lbtn${o.hidden ? ' off' : ''}" data-lv="${o.id}" aria-pressed="${!o.hidden}" aria-label="${esc(layerName(o))}を表示" title="表示・非表示">${o.hidden ? ICON.eyeOff : ICON.eye}</button>`
     + `<button class="lbtn${o.locked ? ' act' : ''}" data-ll="${o.id}" aria-pressed="${!!o.locked}" aria-label="${esc(layerName(o))}をロック" title="ロック">${o.locked ? ICON.lock : ICON.unlock}</button></div>`).join('');
   return `<div class="layers"><div class="lhead">レイヤー<small>${doc.objects.length}</small></div>${rows || '<p class="lempty">まだ何も置いていません</p>'}<p class="lempty">↑ 上ほど手前・ドラッグで入れ替え</p></div>`;
@@ -5759,12 +5838,14 @@ function photoCard() {
 }
 panel.addEventListener('click', e => { const b = e.target.closest('[data-gotool]'); if (b) setTool(b.dataset.gotool); });
 function multiPanel(ms) {
-  return `<div class="objhead"><span class="badge">${ms.length}個を選択中</span></div>`
+  const one = isOneGroup(ms);
+  return `<div class="objhead"><span class="badge">${one ? `グループ（${ms.length}個）` : `${ms.length}個を選択中`}</span></div>`
+    + row('グループ', one ? cmdBtn('ungroup', IW('ungroup', 'グループ解除')) : cmdBtn('group', IW('group', 'グループにする')))
     + row('操作', [['mFront', ICON.front, '前面へ'], ['mBack', ICON.back, '背面へ'], ['mDup', ICON.dup, '複製'], ['mDel', ICON.trash, '削除', ' danger']].map(([k, ic, t, c = '']) => `<button class="chip ichip${c}" data-act="cmd" data-k="${k}" title="${t}" aria-label="${t}">${ic}</button>`).join('') + cmdBtn('mClear', '選択を解除'), true)
     + alignRow('揃える')
     + row('等間隔', [['h', ICON.distH, '横に等間隔'], ['v', ICON.distV, '縦に等間隔']].map(([v, ic, t]) => `<button class="chip ichip" data-act="cmd" data-k="dist" data-v="${J(v)}" title="${t}" aria-label="${t}"${ms.length < 3 ? ' disabled' : ''}>${ic}</button>`).join('')
       + ['flipH', 'flipV'].map(k => `<button class="chip ichip" data-act="cmd" data-k="${k}" title="${k === 'flipH' ? '左右反転' : '上下反転'}" aria-label="${k === 'flipH' ? 'まとめて左右反転' : 'まとめて上下反転'}">${ICON[k]}</button>`).join(''))
-    + hint('✋ 枠の中をドラッグでまとめて移動');
+    + hint(one ? `✋ 枠の中をドラッグでまとめて移動。中の1つを${deskOn ? 'クリック' : 'タップ'}すると、それだけを編集できます` : '✋ 枠の中をドラッグでまとめて移動');
 }
 let panelKey = '', panelTool = 'select';
 /* a slider being dragged must not be replaced by a panel rebuild (its 'change' would never fire): defer the rebuild to release */
@@ -7319,6 +7400,9 @@ function cmdItems() {
   add('すべて選択', 'Ctrl+A', ['select all', '全選択', 'すべて ぜんせんたく'], () => { setTool('select'); const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id); if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; } refreshPanel(); requestDraw(); });
   add('みんなの作品', 'ギャラリー', ['gallery', '投稿', '公開', 'みんなのさくひん とうこう'], () => openGallery());
   add('設定', '表示サイズ・演出', ['settings', 'size', '表示', 'せってい'], openUISheet);
+  add('最近の作品', 'ほかの作品に切り替える', ['works', 'recent', 'さくひん', 'さいきん', 'きりかえ', 'したがき'], () => { renderNB(); openSheet('#sheetNew'); });
+  add('グループにする', '選んだ物をまとめる', ['group', 'ぐるーぷ', 'まとめる'], () => groupObjs(true));
+  add('グループ解除', 'グループをばらす', ['ungroup', 'ぐるーぷかいじょ'], () => groupObjs(false));
   add('画像をコピー', 'できあがりをクリップボードへ', ['copy image', 'clipboard', 'こぴー', 'がぞうをこぴー', 'くりっぷぼーど'], copyImage);
   add('左右反転', '選んだ物を反転', ['flip', 'mirror', 'さゆうはんてん', 'はんてん', 'みらー'], () => flipObjs(selList(), 'x'));
   add('上下反転', '選んだ物を反転', ['flip', 'じょうげはんてん', 'はんてん'], () => flipObjs(selList(), 'y'));
@@ -7426,8 +7510,83 @@ async function fileToCanvas(file, max) {
     return { canvas: c, resized: k0 < 1 || k < 1, alpha: /png|webp|gif|avif|svg/i.test(file.type || '') };
   } finally { if (src && src.close) src.close(); URL.revokeObjectURL(url); }
 }
+/* ==== recent works (最近の作品) ==== the work being replaced (open / new / sample / template canvas / another work) is kept
+   on this device: IndexedDB 'proj:index' = [{id, name, t, w, h, thumb}] newest first (max PROJ_MAX), 'proj:<id>' = {v, doc, blobs}.
+   Only edited work is kept (docDirty: set by commit and by a restored draft). Opening one takes it out of the list. */
+const PROJ_IDX = 'proj:index', PROJ_MAX = 20, projKey = id => 'proj:' + id;
+let docDirty = false, projQ = Promise.resolve(), projList = null, projUndo = null;
+let curProj = (() => { try { return localStorage.getItem('petaphoto.cur') || null; } catch (e) { return null; } })();
+const setCurProj = id => { curProj = id; try { if (id) localStorage.setItem('petaphoto.cur', id); else localStorage.removeItem('petaphoto.cur'); } catch (e) { } };
+const projRows = v => (Array.isArray(v) ? v : []).filter(x => x && x.id);
+function projName(d) {
+  const has = o => String(o.text || '').trim(), os = d.objects || [], t = os.find(o => o.type === 'text' && has(o)) || os.find(o => o.type === 'note' && has(o));   // a title-like text first
+  return t ? [...String(t.text).replace(/\s+/g, ' ').trim()].slice(0, 18).join('') : '';
+}
+function projStash() {
+  if (!doc) return;
+  const d = JSON.parse(snapshot()), id = curProj || 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const blobsP = docBlobs(d);   // bitmap entries are captured now, before the new document replaces them
+  const tc = mk(1, 1); try { renderDoc(tc, 240 / Math.max(doc.w, doc.h), { cache: false }); } catch (e) { }
+  const thumbP = toBlob(tc, 'image/jpeg', 0.8);
+  projQ = projQ.then(async () => {
+    const [blobs, thumb] = await Promise.all([blobsP, thumbP]);
+    const meta = { id, name: projName(d), t: Date.now(), w: d.w, h: d.h, thumb };
+    let out = null;
+    await idbOp('readwrite', st => {
+      st.put({ v: 1, doc: d, blobs }, projKey(id));
+      const rq = st.get(PROJ_IDX);
+      rq.onsuccess = () => { let ls = projRows(rq.result).filter(x => x.id !== id); ls.unshift(meta); ls.slice(PROJ_MAX).forEach(x => st.delete(projKey(x.id))); out = ls.slice(0, PROJ_MAX); st.put(out, PROJ_IDX); };
+    });
+    projList = out; projRender();
+  }).catch(e => console.warn('works', e));
+}
+async function projLoad() { try { projList = projRows(await idbOp('readonly', st => st.get(PROJ_IDX))); } catch (e) { projList = []; } return projList; }
+async function projOpen(id) {
+  try {
+    const rec = await idbOp('readonly', st => st.get(projKey(id)));
+    if (!rec) { toast('この作品は見つかりませんでした'); return; }
+    closeSheets(true); toast('開いています…');
+    const ok = await restoreDraft(rec, true);   // useDoc keeps the work that was open
+    if (!ok) { toast('開けませんでした'); return; }
+    await (projQ = projQ.then(() => idbOp('readwrite', st => { st.delete(projKey(id)); const rq = st.get(PROJ_IDX); rq.onsuccess = () => st.put(projRows(rq.result).filter(x => x.id !== id), PROJ_IDX); })).catch(e => console.warn('works', e)));
+    setCurProj(id); await projLoad(); scheduleSave(); refreshPanel(); toast('作品を開きました');
+  } catch (e) { console.warn('works', e); toast('開けませんでした'); }
+}
+function projDel(id) {
+  projQ = projQ.then(async () => {
+    let rec = null, meta = null;
+    await idbOp('readwrite', st => {
+      const r1 = st.get(projKey(id)); r1.onsuccess = () => { rec = r1.result; st.delete(projKey(id)); };
+      const rq = st.get(PROJ_IDX); rq.onsuccess = () => { const ls = projRows(rq.result); meta = ls.find(x => x.id === id); st.put(ls.filter(x => x.id !== id), PROJ_IDX); };
+    });
+    await projLoad(); projRender();
+    projUndo = rec && meta ? { rec, meta } : null;
+    if (projUndo) toastAct('作品を削除しました', '元に戻す', projRestore);
+  }).catch(e => { console.warn('works', e); toast('削除できませんでした'); });
+}
+function projRestore() {
+  const u = projUndo; projUndo = null; if (!u) return;
+  projQ = projQ.then(async () => {
+    await idbOp('readwrite', st => { st.put(u.rec, projKey(u.meta.id)); const rq = st.get(PROJ_IDX); rq.onsuccess = () => { const ls = projRows(rq.result).filter(x => x.id !== u.meta.id); ls.push(u.meta); ls.sort((a, b) => b.t - a.t); st.put(ls.slice(0, PROJ_MAX), PROJ_IDX); }; });
+    await projLoad(); projRender(); toast('元に戻しました');
+  }).catch(e => console.warn('works', e));
+}
+const projUrls = new Map();
+function projRender() {
+  const el = $('#nbProj'); if (!el) return;
+  if (!projList) { el.innerHTML = hint('読み込み中…'); projLoad().then(projRender); return; }
+  if (!projList.length) { el.innerHTML = hint('ほかの写真を開いたり新規作成したりすると、それまでの作品がここに残ります（最大' + PROJ_MAX + '件・この端末だけ）。'); return; }
+  for (const [id, u] of projUrls) if (!projList.some(x => x.id === id)) { URL.revokeObjectURL(u); projUrls.delete(id); }
+  el.innerHTML = `<div class="projgrid">${projList.map(it => {
+    let u = projUrls.get(it.id); if (!u && it.thumb) { u = URL.createObjectURL(it.thumb); projUrls.set(it.id, u); }
+    return `<div class="projit"><button class="pj" data-proj="${esc(it.id)}" aria-label="${esc(it.name || '作品')}を開く">${u ? `<img src="${u}" alt="" draggable="false">` : ''}<span class="pjn">${esc(it.name || '無題の作品')}</span><small>${ago(it.t)}</small></button>`
+      + `<button class="libx" data-projdel="${esc(it.id)}" title="この作品を削除" aria-label="この作品を削除">×</button></div>`;
+  }).join('')}</div>` + hint('ほかの写真を開くと、今の作品はここに自動で残ります（最大' + PROJ_MAX + '件・この端末だけ）。');
+}
 function useDoc(d) {
-  doc = normDoc(d); selId = null; multi = []; baseCache = { key: null, canvas: null };
+  if (doc && docDirty) projStash();   // the work being replaced goes to 最近の作品
+  if (doc) setCurProj(null);
+  doc = normDoc(d); selId = null; multi = []; baseCache = { key: null, canvas: null }; docDirty = false;
   setTool('select'); fitView(); invalidate(); resetHistory();
 }
 function setDoc(canvas, blob, objects = [], alpha) {
@@ -7517,6 +7676,17 @@ function saveDraft() {
   const gen = ++saveGen;
   return (saveQ = saveQ.then(() => gen === saveGen ? saveDraftNow() : 0));
 }
+/* the bitmaps a snapshot uses, encoded (entries are taken synchronously, so the pixels match the snapshot) */
+async function docBlobs(d) {
+  const used = new Set([d.baseId, d.baseOrig, ...d.objects.filter(o => o.type === 'image').flatMap(o => [o.bmp, o.orig])].filter(Boolean));
+  const ents = [...used].map(id => [id, bitmaps.get(id)]).filter(x => x[1]), blobs = {};
+  for (const [id, e] of ents) {
+    let b = e.blob;
+    if (!b) { b = await toBlob(e.canvas, e.alpha ? 'image/png' : 'image/jpeg', 0.92); if (!b) throw new Error('toBlob failed'); }
+    blobs[id] = b;
+  }
+  return blobs;
+}
 async function saveDraftNow() {
   if (!doc) return;
   if (G) { scheduleSave(800); return; }       // mid-gesture (e.g. a brush stroke): pixels are half-edited, try again shortly
@@ -7573,7 +7743,7 @@ async function restoreDraft(d, force) {
     d.doc.objects = d.doc.objects.filter(o => o.type !== 'image' || o.slot || bitmaps.has(o.bmp));
     d.doc.objects.forEach(o => { if (o.orig && !bitmaps.has(o.orig)) delete o.orig; });
     if (d.doc.baseOrig && !bitmaps.has(d.doc.baseOrig)) d.doc.baseOrig = null;
-    useDoc(d.doc);
+    useDoc(d.doc); docDirty = true;
     if (lost || d.doc.objects.length < n0) toast('下書きの一部の画像を復元できませんでした', 3600);
     return true;
   } catch (e) { return false; }
@@ -7838,11 +8008,15 @@ function newBlankDoc(w, h, bg, pat) {
 const NB_SIZES = [['1080x1080', '正方形'], ['1080x1350', '縦 4:5'], ['1080x1920', 'ストーリー'], ['1920x1080', '横長'], ['1240x1754', 'A4']];
 const NB_COLORS = ['#FFFFFF', '#F4EFE6', '#111111', '#FFE66D', '#FFB3C7', '#A8D8FF', '#B8EBA0'];
 function renderNB() {
+  projRender();
   $('#nbSizes').innerHTML = NB_SIZES.map(([v, l]) => `<button class="chip${NB.size === v ? ' on' : ''}" data-nbs="${v}">${l}<span style="opacity:.6;font-size:11px;margin-left:6px">${v.replace('x', '×')}</span></button>`).join('');
   $('#nbColors').innerHTML = NB_COLORS.map(c => `<button class="swb${NB.bg === c ? ' on' : ''}" style="--c:${c}" data-nbc="${c}" aria-label="背景色 ${c}"></button>`).join('');
   $('#nbPats').innerHTML = [['', 'なし'], ...BG_PATTERNS].map(([k, l]) => `<button class="chip${(NB.pat || '') === k ? ' on' : ''}" data-nbp="${k}">${l}</button>`).join('');
 }
 $('#sheetNew').addEventListener('click', e => {
+  const pj = e.target.closest('[data-proj]'), pd = e.target.closest('[data-projdel]');
+  if (pd) { projDel(pd.dataset.projdel); return; }
+  if (pj) { projOpen(pj.dataset.proj); return; }
   const s = e.target.closest('[data-nbs]'), c = e.target.closest('[data-nbc]'), a = e.target.closest('[data-nb]');
   if (s) { NB.size = s.dataset.nbs; renderNB(); }
   if (c) { NB.bg = c.dataset.nbc; renderNB(); }
@@ -8653,7 +8827,8 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); if (e.key === '0') fitView(); else if (e.key === '1') zoomTo(1); else zoomBy(e.key === '-' ? 0.8 : 1.25); return;
   }
   if (!m && e.shiftKey && e.code === 'Digit2' && doc) { e.preventDefault(); zoomToSel(); return; }   // Shift+2: zoom to selection
-  if (m && e.shiftKey && e.code === 'KeyC' && doc) { e.preventDefault(); copyImage(); return; }   // Ctrl+Shift+C: copy the finished image
+  if (m && e.shiftKey && e.code === 'KeyC' && doc) { e.preventDefault(); copyImage(); return; }
+  if (m && e.code === 'KeyG' && doc && tool === 'select') { e.preventDefault(); groupObjs(!e.shiftKey); return; }   // Ctrl+G group / Ctrl+Shift+G ungroup   // Ctrl+Shift+C: copy the finished image
   if (!m && e.shiftKey && !e.altKey && (e.code === 'KeyH' || e.code === 'KeyV') && tool === 'select' && (o || ms.length)) { e.preventDefault(); flipObjs(selList(), e.code === 'KeyH' ? 'x' : 'y'); return; }   // Shift+H / Shift+V: flip
   if (m && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
   else if (m && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
@@ -8667,6 +8842,7 @@ document.addEventListener('keydown', e => {
     if (k === 'Left') o.x -= st; else if (k === 'Right') o.x += st; else if (k === 'Up') o.y -= st; else o.y += st;
     invalidate(); clearTimeout(nudgeT); nudgeT = setTimeout(commit, 400);
   }
+  else if (e.key === 'Escape' && eyePick) eyeCancel();
   else if (e.key === 'Escape') { closeSheets(); if (selId) { selId = null; refreshPanel(); requestDraw(); } }
 });
 let toastT = null;
