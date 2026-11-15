@@ -225,6 +225,9 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
 .gbadge.pub{background:var(--accent);color:var(--accent-ink)}
 .gbadge.hid{background:#B5713A;color:#fff}
 .gwarn{padding:8px 10px;border-radius:10px;background:#F6E7D6;color:#7A4A22}
+.gwarn a,.ghid a{color:inherit;font-weight:700;overflow-wrap:anywhere}
+.ghid{margin:0;padding:6px 10px 8px;font-size:11.5px;line-height:1.5;background:#F6E7D6;color:#7A4A22}
+.galsort{display:flex;gap:6px;margin:0 0 8px}.galsort:empty{display:none}
 .grep{margin-top:10px;padding:2px 12px 12px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line)}
 .grep .pubin{margin-top:10px}
 #galAdm:not(:empty){display:flex;margin:0 0 10px}
@@ -601,6 +604,11 @@ html.desk .projit:hover .libx,html.desk .projit:focus-within .libx{opacity:1}
 .acctrow small{font-size:12px;color:var(--muted)}
 .acctlist{margin:6px 0 14px;padding-left:1.3em;line-height:1.8;font-size:14px}
 .acctbtns{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.acctdelb{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;color:var(--danger)}.acctdelb svg{width:18px;height:18px}
+.acctdel{margin-top:14px;padding:12px;border:1px solid var(--danger);border-radius:14px;background:var(--chrome)}
+.acctdel h3{margin:0 0 6px;color:var(--danger)}.acctdel ul{margin:4px 0 8px;padding-left:1.3em;font-size:13px;line-height:1.6}
+.acctdel .acts{display:flex;gap:8px;margin-top:8px}.acctdel .acts .btn{flex:1}.acctdel .btn.dng{background:var(--danger);color:#fff;border-color:var(--danger)}
+.acctdel .btn.dng:disabled{opacity:.45}.acctdel .pubin{width:100%;margin:4px 0}.acctdel .bad{color:var(--danger)}
 .acctbtns .btn,.acctmail .btn,#acctBody>.btn,.acctsent .btn{flex:none;width:100%}
 .acctor{display:flex;align-items:center;gap:10px;margin:14px 0 8px;font-size:12px;color:var(--muted)}
 .acctor::before,.acctor::after{content:'';flex:1;height:1px;background:var(--line)}
@@ -1064,6 +1072,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
     <div class="galtabs" role="tablist"><button data-gtab="public" role="tab">みんなの作品</button><button data-gtab="mine" role="tab">自分の投稿</button><button data-gtab="liked" role="tab" hidden>ハートした作品</button></div>
     <div id="galAdm"></div>
     <div id="galPub"></div>
+    <div class="galsort" id="galSort" role="radiogroup" aria-label="並び順"></div>
     <div class="fcats" id="galTags"></div>
     <div id="galGrid"></div>
   </div>
@@ -6536,7 +6545,7 @@ const toolsEl = $('#tools');
 const UI_KEY = 'petaphoto.ui', TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t[0], t]));
 const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [], recentMat: [],
   ph: 'm', hand: 'right', gest: true, snap: 'normal', more: false, libAuto: true,
-  grid: 'off', calm: false, lp: 'normal', exFmt: 'jpeg', exQ: 0.95, boot: 'resume' };
+  grid: 'off', calm: false, lp: 'normal', exFmt: 'jpeg', exQ: 0.95, boot: 'resume', galSort: 'new' };
 function loadUI() {
   let v = null; try { v = JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { }
   const u = { ...UI_DEF, ...(v && typeof v === 'object' ? v : {}) }, ids = UI_DEF.order;
@@ -6558,6 +6567,7 @@ function loadUI() {
   if (!['jpeg', 'png'].includes(u.exFmt)) u.exFmt = 'jpeg';
   u.exQ = [0.95, 0.85, 0.7].includes(+u.exQ) ? +u.exQ : 0.95;
   if (!['resume', 'new'].includes(u.boot)) u.boot = 'resume';
+  if (!['new', 'likes'].includes(u.galSort)) u.galSort = 'new';
   u.calm = !!u.calm;
   u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.seen = !!u.seen; u.visits = Math.min(99, +u.visits | 0); u.instHint = !!u.instHint;
   return u;
@@ -8842,7 +8852,7 @@ const sbDown = async (c, bucket, path) => sbOk(await c.storage.from(bucket).down
    Signed-in users sync settings (user_settings), マイ素材 (library_items + private bucket library: <uid>/<id>.<ext>, <uid>/<id>-t.<jpg|png>)
    and one cloud draft (cloud_drafts + bucket drafts: <uid>/<bitmapId>.<jpg|png>). Server side: supabase/schema_account.sql,
    setup steps for the owner: supabase/DEPLOY-account.md. RLS only lets non-anonymous users touch the sync tables. */
-const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto', 'grid', 'calm', 'lp', 'exFmt', 'exQ', 'boot'];
+const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto', 'grid', 'calm', 'lp', 'exFmt', 'exQ', 'boot', 'galSort'];
 const acctLocal = (() => { let v = null; try { v = JSON.parse(localStorage.getItem(ACCT_KEY)); } catch (e) { } v = v && typeof v === 'object' ? v : {}; v.at = v.at && typeof v.at === 'object' ? v.at : {}; if (!v.dev) v.dev = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); return v; })();
 function acctSave() { try { localStorage.setItem(ACCT_KEY, JSON.stringify(acctLocal)); } catch (e) { } }
 let acct = null, acctBusy = false, acctSent = '', syncState = '', syncAt = 0, cloudInfo = null, acctWired = false;
@@ -9200,8 +9210,89 @@ function acctRender() {
     <h3>作業中の作品</h3><p class="note">${cl}</p>
     <div class="acctbtns">${cloudInfo && !cloudInfo.mine ? '<button class="btn primary" data-acct="cloudOpen">別の端末の作品を開く</button>' : ''}<button class="btn" data-acct="cloudPush">今の作品をクラウドに保存</button></div>
     <p class="note">作業中の作品・マイ素材・設定は自動で同期します。みんなの作品の投稿は、どの端末からでも編集・削除できます。</p>
-    <button class="btn" data-acct="out">ログアウト</button>`;
+    <button class="btn" data-acct="out">ログアウト</button>${acctDelHtml(nm)}`;
 }
+/* アカウントを削除: step 1 = what goes / what stays, step 2 = type 削除. acctDelete: storage files (<uid>/ in posts, library,
+   drafts, fonts) → rpc delete_my_account (supabase/schema_account_delete.sql) → local sign-out */
+const ADL = { step: 0, busy: false, txt: '', msg: '' };
+function acctDelHtml(nm) {
+  if (!ADL.step) return `<button class="btn acctdelb" data-acct="delAsk">${ICON.trash}アカウントを削除</button>`;
+  const dis = ADL.busy ? ' disabled' : '', msg = ADL.msg ? `<p class="note bad" role="alert">${esc(ADL.msg)}</p>` : '';
+  if (ADL.step === 1) return `<div class="acctdel" role="group" aria-labelledby="acctDelH"><h3 id="acctDelH">アカウントを削除</h3>
+    <p class="note">削除すると、次のものがサーバーから消え、<b>元に戻せません</b>。</p>
+    <ul><li>ログイン情報（${esc(nm)}）とログイン方法の連携</li><li>ユーザーネーム${acctName ? '（@' + esc(acctName) + '）' : ''}</li><li>みんなの作品の投稿と、その画像（ついたハートも消えます）</li><li>あなたがほかの作品につけたハート</li><li>同期した設定・マイ素材・クラウドの作業中の作品・フォント</li></ul>
+    <p class="note">この端末に残るもの：</p>
+    <ul><li>この端末で編集中の作品と下書き</li><li>この端末のマイ素材（クラウドにだけある素材は、削除の前にこの端末へ取り込みます）</li><li>この端末のフォントと設定</li></ul>
+    <p class="note">端末のデータも消したいときは、ブラウザのサイトデータを削除してください。</p>
+    <div class="acts"><button class="btn" data-acct="delCancel">やめる</button><button class="btn dng" data-acct="delNext">削除に進む</button></div></div>`;
+  return `<div class="acctdel" role="group" aria-labelledby="acctDelH"><h3 id="acctDelH">本当に削除しますか？</h3>
+    <p class="note">${esc(nm)} のアカウントと、投稿・ハート・同期データをすべて削除します。確認のため「削除」と入力してください。</p>
+    <input id="acctDelIn" class="pubin" maxlength="10" placeholder="削除" aria-label="確認のため「削除」と入力" autocomplete="off" value="${esc(ADL.txt)}"${dis}>
+    ${msg}<div class="acts"><button class="btn" data-acct="delCancel"${dis}>やめる</button><button class="btn dng" data-acct="delGo"${ADL.busy || ADL.txt.trim() !== '削除' ? ' disabled' : ''}>${ADL.busy ? '削除しています…' : '完全に削除する'}</button></div></div>`;
+}
+const ACCT_BUCKETS = ['posts', 'library', 'drafts', 'fonts'];
+async function acctWipeFiles(c, uid) {
+  for (const bk of ACCT_BUCKETS) {
+    const st = c.storage.from(bk);
+    for (let n = 0; n < 100; n++) {
+      const r = await st.list(uid, { limit: 100 });
+      if (r.error) { if (/not.?found|does not exist/i.test(r.error.message || '')) break; throw r.error; }   // bucket not set up: nothing to delete
+      const names = (r.data || []).filter(f => f && f.name && f.id !== null).map(f => `${uid}/${f.name}`);
+      if (!names.length) break;
+      const gone = sbOk(await st.remove(names)) || [];
+      if (!gone.length) throw Object.assign(new Error('storage_left'), { code: 'storage_left' });   // not allowed to delete: stop before the account goes
+    }
+  }
+}
+/* マイ素材 that so far lived only in the cloud: bring the pictures onto this device, then forget the cloud link */
+function acctLibKeep(c, uid) {
+  const p = libQ.then(async () => {
+    await libLoad(); const out = [];
+    for (const it of (libList || []).slice()) {
+      if (it.cloud !== uid) { out.push(it); continue; }
+      let rec = null; try { rec = await idbOp('readonly', st => st.get(libKey(it.id))); } catch (e) { }
+      if (!rec) { try { const b = await sbDown(c, 'library', `${uid}/${it.id}.${it.ext || 'jpg'}`); await idbOp('readwrite', st => st.put({ blob: b }, libKey(it.id))); rec = true; } catch (e) { console.warn('library keep', e); } }
+      if (rec) { const n = { ...it }; delete n.cloud; out.push(n); }
+    }
+    await idbOp('readwrite', st => st.put(out, LIB_IDX)); libSet(out);
+  });
+  libQ = p.catch(() => { }); return p;
+}
+const rpcMissing = e => /PGRST202|42883|could not find the function|does not exist/i.test(errKey(e));
+async function acctDelete() {
+  if (ADL.busy || !acct) return;
+  if (!navigator.onLine) { ADL.msg = 'オフラインのため削除できません。インターネットにつながってから、もう一度お試しください。'; acctRender(); return; }
+  ADL.busy = true; ADL.msg = ''; acctRender();
+  let stage = 'check';
+  try {
+    const { c, uid } = await sb();
+    if (!acct || acct.id !== uid) throw new Error('not signed in');
+    const pr = await c.rpc('delete_my_account', { p_dry: true });   // the server side is set up? (nothing is deleted yet)
+    if (pr.error) throw pr.error;
+    clearTimeout(cloudT); cloudT = 0; clearTimeout(syncT); clearTimeout(setT);
+    if (syncP) await syncP.catch(() => { });
+    stage = 'files'; await acctLibKeep(c, uid); await acctWipeFiles(c, uid);
+    stage = 'rows'; sbOk(await c.rpc('delete_my_account'));
+    try { await c.auth.signOut({ scope: 'local' }); } catch (e) { }
+    try { const all = JSON.parse(localStorage.getItem(HN_KEY)) || {}; delete all[uid]; localStorage.setItem(HN_KEY, JSON.stringify(all)); } catch (e) { }
+    acctName = null; acctNameAt = 0; if (nameRequired) { nameRequired = false; closeSheets(true); }
+    acct = null; sbP = null; acctLocal.at = {}; acctLocal.sig = ''; acctLocal.libDel = []; acctSave(); cloudInfo = null; syncState = ''; syncAt = 0;
+    LK.uid = null; LK.want.clear(); LK.conf.clear(); LK.busy.clear(); LK.base.clear(); modAdm.uid = null; modAdm.v = false;
+    Object.assign(ADL, { step: 0, busy: false, txt: '', msg: '' }); acctRender();
+    toast('アカウントを削除しました。この端末の作品やマイ素材はそのまま残ります', 4200);
+  } catch (e) {
+    console.warn('account delete', e); ADL.busy = false;
+    ADL.msg = stage === 'check' && rpcMissing(e) ? `準備中です。${LF_MAIL} までご連絡ください`
+      : /anonymous/i.test(errKey(e)) ? 'ログインしていないため削除できません'
+      : /storage_left/i.test(errKey(e)) ? `画像の一部を削除できませんでした。もう一度お試しいただくか、${LF_MAIL} までご連絡ください`
+      : netErr('削除できませんでした') + `。続くときは ${LF_MAIL} までご連絡ください`;
+    acctRender();
+  }
+}
+document.addEventListener('input', e => {
+  if (e.target.id !== 'acctDelIn') return;
+  ADL.txt = e.target.value; const b = $('#acctBody [data-acct="delGo"]'); if (b) b.disabled = ADL.busy || ADL.txt.trim() !== '削除';
+});
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-acct]'); if (!b) return;
   const k = b.dataset.acct;
@@ -9213,6 +9304,12 @@ document.addEventListener('click', e => {
   else if (k === 'cloudPush') saveDraft().then(cloudPush).then(ok => toast(ok ? 'クラウドに保存しました' : 'クラウドに保存できませんでした'));
   else if (k === 'out') { e.preventDefault(); acctOut(); }
   else if (k === 'name') openNameSheet(false);
+  else if (k === 'delAsk' || k === 'delNext' || k === 'delCancel') {
+    if (ADL.busy) return;
+    Object.assign(ADL, { step: k === 'delAsk' ? 1 : k === 'delNext' ? 2 : 0, txt: '', msg: '' }); acctRender();
+    const f = $(k === 'delNext' ? '#acctDelIn' : k === 'delAsk' ? '#acctBody [data-acct="delCancel"]' : '#acctBody [data-acct="delAsk"]'); if (f) f.focus({ preventScroll: k !== 'delCancel' });
+  }
+  else if (k === 'delGo') acctDelete();
 });
 document.addEventListener('submit', e => { if (e.target.id !== 'acctMail') return; e.preventDefault(); acctEmail(e.target.elements.em.value); });
 // coming back to the app / back online: catch up (at most once a minute); leaving: push the pending cloud copy now
@@ -9225,7 +9322,7 @@ const rowItem = (r, uid) => ({
   createdAt: Date.parse(r.created_at) || 0, updatedAt: Date.parse(r.updated_at) || 0, w: r.w, h: r.h,
   thumb: r.thumb_url, full: r.full_url || null, recipe: r.recipe || {}, author: { name: r.author_name || 'ゲスト' },
   mine: !!uid && r.owner === uid,   // never trust a stored flag: ownership = the row's owner is the signed-in user
-  hidden: !!r.hidden, owner: r.owner || null,   // hidden = auto-hidden by reports / by an admin (only the owner and admins get such rows)
+  hidden: !!r.hidden, hiddenWhy: r.hidden_reason || '', owner: r.owner || null,   // hidden = auto-hidden by reports / by an admin (only the owner and admins get such rows)
   likes: Number.isFinite(r.like_count) ? r.like_count : null   // null = no like_count column yet (supabase/schema_likes.sql not run)
 });
 /* moderation (supabase/schema_moderation.sql): admin = a row in public.admins, checked once per user with rpc is_admin */
@@ -9247,9 +9344,10 @@ const RemoteGallery = {
       const items = (sbOk(r) || []).map(x => x.post && rowItem(x.post, uid)).filter(it => it && !it.hidden);
       await likeSeen(c, uid, items); return items;
     }
-    let q = c.from('posts').select('*').order('created_at', { ascending: false });
-    q = scope === 'mine' ? q.eq('owner', uid) : q.eq('visibility', 'public').limit(60);
-    const items = (sbOk(await q) || []).map(r => rowItem(r, uid)).filter(it => scope === 'mine' || !it.hidden);   // admins can read hidden rows; never list them
+    const byLk = scope === 'public' && UI.galSort === 'likes' && LK.on !== false;
+    const mkQ = lk => { let q = c.from('posts').select('*'); if (lk) q = q.order('like_count', { ascending: false, nullsFirst: false }); q = q.order('created_at', { ascending: false }); return scope === 'mine' ? q.eq('owner', uid) : q.eq('visibility', 'public').limit(60); };
+    let res = await mkQ(byLk); if (byLk && res.error && res.error.code) res = await mkQ(false);   // no like_count column yet
+    const items = (sbOk(res) || []).map(r => rowItem(r, uid)).filter(it => scope === 'mine' || !it.hidden);   // admins can read hidden rows; never list them
     await likeSeen(c, uid, items); return items;
   },
   /* ハート on / off for the signed-in uid (anonymous devices too). A duplicate insert means "already hearted": fine */
@@ -9329,7 +9427,7 @@ const Gallery = {
   get online() { return !this.adapter.local; },
   async list(scope) {
     if (scope === 'liked' && !this.adapter.like) return [];
-    const items = await this.adapter.list(scope);
+    const items = galSortItems(scope, await this.adapter.list(scope));
     // while there is no server, みんなの作品 = my public posts + built-in samples
     return scope === 'public' ? [...items, ...(this.adapter.local ? galSamples() : []), ...await aiWorks()] : items;   // AI作例 are always listed, after real posts
   },
@@ -10125,9 +10223,9 @@ function likeTabSync() { const b = $('[data-gtab="liked"]'); if (b) b.hidden = !
 function openGallery(tab) {
   GV.tab = GAL_TABS[tab] ? tab : 'public'; GV.tag = null; GV.cur = null; GV.from = 'list'; GV.newId = null; GP.open = false; GP.msg = '';
   openSheet('#sheetGallery'); $('#sheetGallery').scrollTop = 0;   // full screen on phones and PC alike
-  renderGal();
+  renderGal(); setTimeout(heartCheck, 1500);
 }
-const galCard = it => `<div class="gcard${it.id === GV.newId ? ' new' : ''}"><button class="gopen" data-gid="${esc(it.id)}"><img src="${esc(safeImg(it.thumb))}" alt="${esc(it.title || '')}" loading="lazy" ${it.w && it.h ? `width="${+it.w | 0}" height="${+it.h | 0}"` : ''}><div class="gt">${esc(it.title || '無題')}</div><div class="gm">${galBadges(it)}${esc((it.tags || []).map(t => '#' + t).join(' '))}</div></button>${heartBtn(it)}</div>`;
+const galCard = it => `<div class="gcard${it.id === GV.newId ? ' new' : ''}"><button class="gopen" data-gid="${esc(it.id)}"><img src="${esc(safeImg(it.thumb))}" alt="${esc(it.title || '')}" loading="lazy" ${it.w && it.h ? `width="${+it.w | 0}" height="${+it.h | 0}"` : ''}><div class="gt">${esc(it.title || '無題')}</div><div class="gm">${galBadges(it)}${esc((it.tags || []).map(t => '#' + t).join(' '))}</div></button>${heartBtn(it)}${it.mine && it.hidden ? hidNote(it, true) : ''}</div>`;
 /* 今の作品を公開する: thumbnail of the current document + inline form (title, tags, 公開 / 限定公開), posts through publishDoc */
 const GP = { open: false, vis: 'public', busy: false, title: '', tags: '', msg: '', thumbKey: null, thumb: '' };
 function renderGalPub() {
@@ -10164,10 +10262,61 @@ async function galPubGo() {
     renderGalPub(); const b = $('#galPub [data-gp="go"]'); if (b) b.focus({ preventScroll: true });
   }
 }
+/* ==== gallery extras ==== sort (UI.galSort: 'new' | 'likes'; AI作例 stay after real posts), why my post is hidden, heart notice */
+const LF_MAIL = 'lufora.app.info@gmail.com';
+const GAL_SORTS = [['new', '新しい順'], ['likes', 'ハートの多い順']];
+function galSortItems(scope, items) {
+  if (scope !== 'public' || UI.galSort !== 'likes') return items;
+  return items.slice().sort((a, b) => ((b.likes || 0) - (a.likes || 0)) || ((b.createdAt || 0) - (a.createdAt || 0)));
+}
+function galSortRender() {
+  const el = $('#galSort'); if (!el) return;
+  el.innerHTML = GV.tab === 'public' && Gallery.online && LK.on !== false ? GAL_SORTS.map(([v, l]) => `<button class="chip${UI.galSort === v ? ' on' : ''}" role="radio" aria-checked="${UI.galSort === v}" data-gsort="${v}">${l}</button>`).join('') : '';
+}
+$('#galSort').addEventListener('click', e => {
+  const b = e.target.closest('[data-gsort]'); if (!b || UI.galSort === b.dataset.gsort) return;
+  UI.galSort = b.dataset.gsort; saveUI(); GV.tag = null; renderGal();
+});
+const HID_WHY = { reports: '複数の通報があったため、確認が終わるまで非公開になっています', admin: '運営者が非公開にしました' };
+const hidWhy = it => HID_WHY[it.hiddenWhy] || HID_WHY.reports;
+const hidMail = () => `<a href="mailto:${LF_MAIL}">${LF_MAIL}</a>`;
+function hidNote(it, card) {
+  if (card) return `<p class="ghid">${esc(hidWhy(it))}。お問い合わせ：${hidMail()}</p>`;
+  return `${esc(hidWhy(it))}。${it.hiddenWhy === 'admin' ? '' : '確認のあと、元に戻るか削除されます。'}投稿者が自分で表示に戻すことはできません。ご質問は ${hidMail()} までお問い合わせください。`;
+}
+/* ハートのお知らせ: last-seen like_count per post id, per uid (localStorage petaphoto.hearts). The first check for a uid only
+   records the counts; later, new hearts on my posts show one quiet toast per app session (見る → 自分の投稿). No server changes. */
+const HN_KEY = 'petaphoto.hearts';
+let hnTold = false, hnBusy = false;
+function hnSeen(uid, rows) {
+  let all = {}; try { all = JSON.parse(localStorage.getItem(HN_KEY)) || {}; } catch (e) { }
+  if (!all || typeof all !== 'object' || Array.isArray(all)) all = {};
+  const old = all[uid] && typeof all[uid] === 'object' ? all[uid] : null, nx = {}; let gain = 0;
+  rows.forEach(r => { const o = old && Number.isFinite(old[r.id]) ? old[r.id] : 0; if (old && r.n > o) gain += r.n - o; nx[r.id] = r.n; });
+  all[uid] = nx; const ks = Object.keys(all); if (ks.length > 5) ks.filter(k => k !== uid).slice(0, ks.length - 5).forEach(k => delete all[k]);
+  try { localStorage.setItem(HN_KEY, JSON.stringify(all)); } catch (e) { }
+  return gain;
+}
+const hnStored = () => { try { return !!localStorage.getItem('petaphoto.sb'); } catch (e) { return false; } };
+async function heartCheck() {
+  if (hnTold || hnBusy || !Gallery.online || !navigator.onLine || LK.on === false) return;
+  hnBusy = true;
+  try {
+    const { c, uid } = await sb(), r = await c.from('posts').select('id,like_count').eq('owner', uid).limit(500);
+    if (r.error || !Array.isArray(r.data) || hnTold) return;   // no like_count column yet: nothing to tell
+    const gain = hnSeen(uid, r.data.filter(x => x && x.id).map(x => ({ id: x.id, n: Number.isFinite(x.like_count) ? x.like_count : 0 })));
+    if (gain > 0) {
+      hnTold = true;
+      const msg = `あなたの作品に新しいハートが${gain}件つきました`;
+      toastAct(msg, '見る', () => openGallery('mine'));
+      clearTimeout(toastT); toastT = setTimeout(() => { const t = $('#toast'); if (t.textContent.startsWith(msg)) t.classList.remove('show', 'act'); }, 8000);
+    }
+  } catch (e) { console.warn('hearts', e); } finally { hnBusy = false; }
+}
 async function renderGal() {
   if (GV.tab === 'liked' && LK.on === false) GV.tab = 'public';
   $('#galList').hidden = false; $('#galDetail').hidden = true; $('#galAdmin').hidden = true; GV.view = 'list'; $('#galTitle').textContent = GAL_TABS[GV.tab];
-  likeTabSync(); renderGalPub();
+  likeTabSync(); renderGalPub(); galSortRender();
   if (Gallery.online) Gallery.isAdmin().then(v => { $('#galAdm').innerHTML = v ? '<button class="chip" data-g="admin">通報の管理</button>' : ''; });
   document.querySelectorAll('[data-gtab]').forEach(b => { const on = b.dataset.gtab === GV.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   $('#galGrid').innerHTML = '<p class="gempty">読み込み中…</p>';
@@ -10182,7 +10331,8 @@ async function renderGal() {
     $('#galGrid').innerHTML = `<div class="gempty"><b>${ICON.offline}</b>${navigator.onLine ? '作品を読み込めませんでした。' : 'オフラインのため作品を読み込めません。'}<br><button class="chip" data-g="retry" style="margin-top:12px">もう一度読み込む</button></div>`;
     return;
   }
-  GV.items = items;
+  GV.items = items; galSortRender();
+  if (tab === 'mine' && Gallery.online && items.length && items[0].owner && items.every(it => it.likes !== null)) hnSeen(items[0].owner, items.map(it => ({ id: it.id, n: it.likes || 0 })));   // 自分の投稿 seen = hearts seen
   const tags = [...new Set(items.flatMap(it => Array.isArray(it.tags) ? it.tags : []))].slice(0, 20);
   if (GV.tag && !tags.includes(GV.tag)) GV.tag = null;
   $('#galTags').innerHTML = tags.length ? [`<button class="chip${!GV.tag ? ' on' : ''}" data-gtag="">すべて</button>`, ...tags.map(t => `<button class="chip${GV.tag === t ? ' on' : ''}" data-gtag="${esc(t)}">#${esc(t)}</button>`)].join('') : '';
@@ -10204,7 +10354,7 @@ function renderGalDetail(it) {
   d.innerHTML = `<img class="gdimg" src="${esc(safeImg(it.full || it.thumb))}" alt="${esc(it.title || '')}">
     <div class="gtags">${galBadges(it)}${(it.tags || []).map(t => `<span>#${esc(t)}</span>`).join('')}<span style="margin-left:auto">${esc(it.ai ? 'Lufora AI' : it.sample ? 'Lufora公式' : (it.author && it.author.name) || 'あなた')}${it.createdAt ? '・' + fmtDate(it.createdAt) : ''}</span></div>
     ${it.ai ? '<p class="note aiwork"><b>AI</b>が編集した作例です。元の写真はプログラムで描いた風景なので、著作権の心配はありません。</p>' : ''}
-    ${it.hidden ? `<p class="note gwarn">${it.mine ? '複数の通報があったため、運営が確認するまで他の人には表示されません。確認のあと、元に戻るか削除されます。' : 'この投稿は非表示中です（持ち主と管理者だけが見られます）。'}</p>` : ''}
+    ${it.hidden ? `<p class="note gwarn">${it.mine ? hidNote(it) : 'この投稿は非表示中です（持ち主と管理者だけが見られます）。'}</p>` : ''}
     <h3>この作品のレシピ</h3><div class="grecipe">${recipeText(it.recipe)}</div>
     <div class="actions" style="padding:12px 0 0">${heartBtn(it, true)}<button class="btn primary" data-g="apply">この色味を使う</button></div>
     <p class="note">今編集中の写真に、この作品のフィルター・調整をそのまま適用します。「元に戻す」で取り消せます。</p>
@@ -10560,6 +10710,7 @@ document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closes
   registerSW();
   if (SUPA.url && ACCT_ON && authInUrl()) authReturn();   // back from Google / Apple / the e-mail link
   else if (SUPA.url && ACCT_ON && acctStored() && navigator.onLine) setTimeout(() => sb().then(() => { if (acct) syncAll(); }).catch(e => console.warn('sync', e)), 1500);
+  if (Gallery.online && hnStored()) setTimeout(heartCheck, 6000);   // only devices that already have a session (no new anonymous sign-ins at start)
 })();
 $('#sheetWelcome').addEventListener('click', e => {
   const b = e.target.closest('[data-wl]'); if (!b) return;
