@@ -2790,7 +2790,7 @@ const S = {
   shape: { kind: 'line', color: '#FF3B30', width: 8, ls: 'solid', bend: 0.3, cs: 'none', ce: 'arrow', oc: '#FF3B30', fc: 'none', fa: 100, wa: 16, wl: 90 },
   mosaic: { shape: 'brush', mode: 'pixel', str: 40, size: 45 },
   text: { color: '#FFFFFF', font: 'Noto Sans JP', bold: true, italic: false, underline: false, outline: '#111111', bg: 'none', align: 'center', vert: false, shadow: false, sizeR: 0.075 },
-  note: { color: '#FFE66D', shape: 'square', deco: 'tape', pattern: 'plain', tcolor: '#2A2724', stroke: 'none', font: 'Klee One', ratio: 'square' },
+  note: { color: '#FFE66D', shape: 'square', deco: 'tape', pattern: 'plain', tcolor: '#2A2724', stroke: 'none', font: 'Klee One', ratio: 'square', tail: 'bl' },
   num: { color: '#FF3B30' },
   image: { border: 'none', shadow: true, rad: 0 },
   filterCat: 'all', fontCat: 'all', marq: false,
@@ -3002,6 +3002,8 @@ function wrapText(ctx, text, maxW) {
   return out;
 }
 /* text box per note shape, as fractions of w/h: [x0, y0, x1, y1, centred] */
+/* 吹き出し / 考え中: which way the tail points (value, name, arrow rotation from "down") */
+const NOTE_TAILS = [['bl', '左下', 45], ['b', '下', 0], ['br', '右下', -45], ['l', '左', 90], ['r', '右', -90], ['tl', '左上', 135], ['t', '上', 180], ['tr', '右上', -135]];
 const NOTE_BOX = {
   square: [0.1, 0.16, 0.9, 0.94, 0], rounded: [0.1, 0.14, 0.9, 0.9, 0], torn: [0.1, 0.16, 0.9, 0.94, 0],
   circle: [0.2, 0.22, 0.8, 0.78, 1], heart: [0.2, 0.2, 0.8, 0.66, 1], speech: [0.1, 0.1, 0.9, 0.72, 0],
@@ -3010,10 +3012,13 @@ const NOTE_BOX = {
 };
 function layoutNote(o) {
   const shape = o.shape || 'square', fam = o.font || 'Klee One';
-  const key = 'n|' + o.text + '|' + o.w + '|' + o.h + '|' + shape + '|' + fam;
+  const tl = (shape === 'speech' || shape === 'think') ? o.tail || 'bl' : '';
+  const key = 'n|' + o.text + '|' + o.w + '|' + o.h + '|' + shape + tl + '|' + fam;
   let L = layoutMemo.get(key);
   if (L) return L;
-  const b = NOTE_BOX[shape] || NOTE_BOX.square;
+  let b = NOTE_BOX[shape] || NOTE_BOX.square;
+  if (tl && tl[0] === 't') b = [b[0], 1 - b[3], b[2], 1 - b[1], b[4]];   // tail on top: the body (and text) sit lower
+  else if (tl === 'l' || tl === 'r') b = shape === 'speech' ? (tl === 'l' ? [0.28, 0.12, 0.9, 0.88, 0] : [0.1, 0.12, 0.72, 0.88, 0]) : (tl === 'l' ? [0.24, 0.2, 0.86, 0.8, 1] : [0.14, 0.2, 0.76, 0.8, 1]);
   const maxW = o.w * (b[2] - b[0]), maxH = o.h * (b[3] - b[1]);
   let fs = Math.min(o.w, o.h) * 0.11, lines = [], font = '';
   for (let i = 0; i < 14; i++) {
@@ -3390,10 +3395,19 @@ function notePath(ctx, o) {
       ctx.bezierCurveTo(1 * sx, -0.98 * sy, 0, -0.98 * sy, 0, -0.45 * sy);
       ctx.closePath(); return 'nonzero';
     }
-    case 'speech':
-      rrectPath(ctx, x, y, w, h * 0.8, m * 0.1);
-      ctx.moveTo(x + w * 0.2, y + h * 0.78); ctx.lineTo(x + w * 0.12, y + h); ctx.lineTo(x + w * 0.42, y + h * 0.78); ctx.closePath();
+    case 'speech': {   // the tail points to o.tail (bl b br / tl t tr / l r); the body leaves room on that side
+      const t = o.tail || 'bl', r = m * 0.1;
+      if (t === 'l' || t === 'r') {
+        const L = t === 'l', bx = L ? x + w * 0.22 : x + w * 0.78;
+        rrectPath(ctx, L ? x + w * 0.2 : x, y, w * 0.8, h, r);
+        ctx.moveTo(bx, y + h * 0.52); ctx.lineTo(L ? x : x + w, y + h * 0.8); ctx.lineTo(bx, y + h * 0.72); ctx.closePath();
+      } else {
+        const T = t[0] === 't', sd = t[1] || 'c', c = sd === 'l' ? 0.31 : sd === 'r' ? 0.69 : 0.5, tip = sd === 'l' ? 0.12 : sd === 'r' ? 0.88 : 0.5, by = T ? y + h * 0.22 : y + h * 0.78;
+        rrectPath(ctx, x, T ? y + h * 0.2 : y, w, h * 0.8, r);
+        ctx.moveTo(x + w * (c - 0.11), by); ctx.lineTo(x + w * tip, T ? y : y + h); ctx.lineTo(x + w * (c + 0.11), by); ctx.closePath();
+      }
       return 'nonzero';
+    }
     case 'cloud': {
       const N = 9, rx = w / 2 * 0.8, ry = h / 2 * 0.76;
       const P = i => { const a = i / N * Math.PI * 2 - Math.PI / 2; return [Math.cos(a) * rx, Math.sin(a) * ry]; };
@@ -3421,10 +3435,17 @@ function notePath(ctx, o) {
       return 'evenodd';
     }
     case 'sticker': ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2); return 'nonzero';
-    case 'think': {   // thought bubble: cloud-ish oval + two trailing dots
-      ctx.ellipse(0, -h * 0.08, w / 2, h * 0.38, 0, 0, Math.PI * 2);
-      ctx.moveTo(-w * 0.22 + h * 0.07, h * 0.38); ctx.arc(-w * 0.22, h * 0.38, h * 0.07, 0, Math.PI * 2);
-      ctx.moveTo(-w * 0.32 + h * 0.04, h * 0.47); ctx.arc(-w * 0.32, h * 0.47, h * 0.04, 0, Math.PI * 2);
+    case 'think': {   // thought bubble: cloud-ish oval + two trailing dots toward o.tail
+      const t = o.tail || 'bl', dot = (cx, cy, r) => { ctx.moveTo(cx + r, cy); ctx.arc(cx, cy, r, 0, Math.PI * 2); };
+      if (t === 'l' || t === 'r') {
+        const sx = t === 'l' ? -1 : 1;
+        ctx.ellipse(-sx * w * 0.08, 0, w * 0.38, h / 2, 0, 0, Math.PI * 2);
+        dot(sx * w * 0.38, h * 0.22, w * 0.07); dot(sx * w * 0.47, h * 0.33, w * 0.04);
+      } else {
+        const sy = t[0] === 't' ? -1 : 1, sd = t[1] || 'c', sx = sd === 'l' ? -1 : sd === 'r' ? 1 : 0;
+        ctx.ellipse(0, -sy * h * 0.08, w / 2, h * 0.38, 0, 0, Math.PI * 2);
+        dot(sx ? sx * w * 0.22 : 0, sy * h * 0.38, h * 0.07); dot(sx ? sx * w * 0.32 : -w * 0.1, sy * h * 0.47, h * 0.04);
+      }
       return 'nonzero';
     }
     case 'torn': {
@@ -4702,7 +4723,7 @@ function addText(text = '') {
 }
 function addNote(text = '') {
   const c = viewCenter(), j = jitter(), s = MIN() * 0.32, n = S.note, r = NOTE_RATIOS[n.ratio] || NOTE_RATIOS.square;
-  pushObj({ ...baseObj('note', c.x + j.x, c.y + j.y), rot: -0.04, text, color: n.color, shape: n.shape, deco: n.deco, pattern: n.pattern, tcolor: n.tcolor, stroke: n.stroke, font: n.font, w: s * r[0], h: s * r[1] }, true);
+  pushObj({ ...baseObj('note', c.x + j.x, c.y + j.y), rot: -0.04, text, color: n.color, shape: n.shape, deco: n.deco, pattern: n.pattern, tcolor: n.tcolor, stroke: n.stroke, font: n.font, tail: n.tail, w: s * r[0], h: s * r[1] }, true);
   startInlineEdit(selObj(), true);
 }
 function nextNum() { return doc.objects.filter(o => o.type === 'stamp' && o.kind === 'num').reduce((m, o) => Math.max(m, o.n), 0) + 1; }
@@ -5875,6 +5896,7 @@ function objPanel(o) {
     case 'note':
       // shapes as small pictures in the note's own colour; the three colours (塗り・枠線・文字) sit together
       h += row('形', ichips('o', 'shape', NOTE_SHAPES.map(([v, l]) => [v, `<img class="nico" src="${noteIco(v, o.color)}" alt=""><span class="vh">${l.replace(/^\S+\s/, '')}</span>`]), o.shape || 'square'), true);
+      if (o.shape === 'speech' || o.shape === 'think') h += row('しっぽ', ichips('o', 'tail', NOTE_TAILS.map(([v, l, a]) => [v, svgI(`<g transform="rotate(${a} 12 12)"><path d="M12 4v15M6.5 13.5L12 19l5.5-5.5"/></g>`, 'しっぽの向き：' + l)]), o.tail || 'bl'), true);
       h += `<div class="cgrp">` + row('塗り', swatches('o', 'color', o.color, NOTE_COLORS))
         + row('枠線', noneSw('stroke', o.stroke) + swatches('o', 'stroke', o.stroke || 'none', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#5E8C5F', '#FF8FB1']))
         + row('文字', swatches('o', 'tcolor', o.tcolor || '#2A2724', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#1F8A4C', '#8B5CF6'])) + `</div>`;
