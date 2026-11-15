@@ -764,6 +764,22 @@ html.desk #drawer{width:clamp(272px,28vw,320px)}
 html.desk:has(#insp #panel:not(:empty)) #side{overflow:visible;z-index:8}
 html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:0;bottom:0;border-right:1px solid var(--line);box-shadow:18px 0 36px -18px rgba(60,70,50,.4)}
 }
+/* ==== phone extras ==== quick actions at the right of the panel head, the long-press menu as an icon grid, the photo card */
+.qbar{display:flex;gap:4px;margin-left:auto}
+.qbar .chip.ichip{min-width:calc(40px*var(--u));padding:0 8px}
+html:not(.desk) .objhead{flex-wrap:wrap;row-gap:6px}
+html:not(.desk) #objMenu{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;width:min(calc(100% - 12px),calc(330px*var(--u)));max-height:calc(100% - 12px);overflow:auto;overscroll-behavior:contain}
+html:not(.desk) #objMenu[hidden]{display:none}
+html:not(.desk) #objMenu hr{display:none}
+html:not(.desk) #objMenu button{flex-direction:column;justify-content:center;gap:4px;min-height:calc(58px*var(--u));padding:6px 2px;font-size:calc(11px*var(--u));text-align:center;line-height:1.2}
+html:not(.desk) #objMenu .mi{width:auto}
+html:not(.desk) #objMenu .mi svg{width:21px;height:21px}
+html:not(.desk) .pcard{padding:10px}
+html:not(.desk) .pch{margin-bottom:8px}
+html:not(.desk) .pcb{grid-template-columns:repeat(4,minmax(0,1fr))}
+html:not(.desk) .lyr .lbtn{width:38px;height:38px}
+html:not(.desk) .lyr{gap:4px}
+html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
 </style>
 
 <div id="app">
@@ -865,9 +881,11 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
   <div class="help-sp">
     <div class="hcards">
       <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>編集ツール：下（横向きのタブレットでは左）。長押しで並び替え</li><li>☰：作品・テンプレート・素材・フィルターなど</li></ul></div>
-      <div class="hcard"><span class="hic">👆</span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>長押しでメニュー</li></ul></div>
-      <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>「開く」から写真を選ぶ</li><li>写真枠はダブルタップ</li></ul></div>
-      <div class="hcard"><span class="hic">✨</span><b>便利な機能</b><ul><li>テンプレート・素材でかんたんデコ</li><li>背景削除は AI で自動</li><li>編集は自動で下書き保存</li></ul></div>
+      <div class="hcard"><span class="hic">👆</span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>2本指タップで元に戻す（3本指でやり直し）</li></ul></div>
+      <div class="hcard"><span class="hic">✋</span><b>長押しメニュー</b><ul><li>物を長押し：コピー・切り取り・貼り付け・反転・複製・削除など</li><li>何もない所を長押し：貼り付け・すべて選択・全体を表示</li><li>下のパネル右上の ⋯ でも開けます</li></ul></div>
+      <div class="hcard"><span class="hic">🧩</span><b>まとめて操作</b><ul><li>メニューの「複数選択」→ 物をタップして追加</li><li>2つ以上で「グループにする」・揃える・等間隔・反転</li></ul></div>
+      <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>「開く」から写真を選ぶ。前の作品は「最近の作品」から</li><li>写真枠はダブルタップ</li><li>素材 →「マイ素材」の「写真を追加」で端末の写真をためておける</li></ul></div>
+      <div class="hcard"><span class="hic">✨</span><b>便利な機能</b><ul><li>色の横のスポイトで、写真から色を拾う</li><li>図形の「線」でくにゃくにゃ線・カギ線・矢印</li><li>背景削除は AI で自動。編集は自動で下書き保存</li><li>☰ の「機能をさがす」で何でも検索</li></ul></div>
     </div>
   </div>
   <h3 class="keysh">キーボードショートカット（パソコン）</h3>
@@ -2625,6 +2643,8 @@ Object.assign(ICON, {
   aVig: I('<rect x="3.5" y="5" width="17" height="14" rx="2.5"/><ellipse cx="12" cy="12" rx="5" ry="3.8"/>')
 });
 ICON.keep = I('<path d="M12 3.8l2.5 5.1 5.6.8-4.05 3.95.95 5.6L12 16.6l-5 2.65.95-5.6L3.9 9.7l5.6-.8z"/>');   // マイ素材に保存
+/* phone: 複数選択 (pointer + plus), ⋯ (the long-press menu), 切り取り (scissors) */
+Object.assign(ICON, { addSel: I('<path d="M5 3.5l10.5 7.2-4.6 1.2-2.3 4.5z"/><path d="M17.5 14v7M14 17.5h7"/>'), more: I('<path d="M5.5 12h.01M12 12h.01M18.5 12h.01" stroke-width="3.2"/>'), lup: I('<path d="M6.5 14.5 12 9l5.5 5.5"/>'), ldn: I('<path d="M6.5 9.5 12 15l5.5-5.5"/>'), cutObj: I('<circle cx="6.5" cy="17.5" r="2.6"/><circle cx="17.5" cy="17.5" r="2.6"/><path d="M8.4 15.6 17 3.5M15.6 15.6 7 3.5"/>') });
 /* icon + short word inside a chip */
 const IW = (ic, t) => `${ICON[ic]}<span>${t}</span>`;
 /* crop ratio as a small proportional rectangle */
@@ -3704,7 +3724,7 @@ function copyObjs(cut) {
     doc.objects = doc.objects.filter(o => !ids.has(o.id)); selId = null; multi = [];
     invalidate(); commit(); refreshPanel();
   }
-  toast(cut ? '切り取りました（Ctrl+V で貼り付け）' : deskOn ? 'コピーしました（Ctrl+V で貼り付け）' : 'コピーしました（長押しメニューの「貼り付け」で貼れます）');
+  toast(cut ? (deskOn ? '切り取りました（Ctrl+V で貼り付け）' : '切り取りました（長押しメニューの「貼り付け」で貼れます）') : deskOn ? 'コピーしました（Ctrl+V で貼り付け）' : 'コピーしました（長押しメニューの「貼り付け」で貼れます）');
   return true;
 }
 function pasteObjs() {
@@ -3819,7 +3839,9 @@ cv.addEventListener('pointerdown', e => {
   shiftNow = e.shiftKey;
   startSingle(p, e.shiftKey, e.ctrlKey || e.metaKey);
   // long-press an object (touch or mouse) → its menu at the finger, like right-click on PC
-  if (G && (G.type === 'move' || G.type === 'gmove') && e.pointerType !== 'mouse') { const g0 = G; objLpT = setTimeout(() => { if (G === g0 && !G.moved && pointers.size === 1) { G = null; buzz(15); openObjMenuAt(p); } }, 520); }
+  if (G && (G.type === 'move' || G.type === 'gmove') && e.pointerType !== 'mouse') { const g0 = G; objLpT = setTimeout(() => { if (G === g0 && !G.moved && pointers.size === 1) { G = null; buzz(15); lpHold = true; openObjMenuAt(p); } }, 520); }
+  // phone: long-press on empty canvas → 貼り付け・すべて選択・全体を表示 …
+  else if (G && G.type === 'pan' && tool === 'select' && !deskOn && e.pointerType !== 'mouse') { const g0 = G; objLpT = setTimeout(() => { if (G === g0 && !G.moved && pointers.size === 1) { G = null; buzz(15); lpHold = true; openObjMenuAt(p, true); } }, 520); }
 });
 cv.addEventListener('pointermove', e => {
   if (!pointers.has(e.pointerId)) return;
@@ -4054,7 +4076,9 @@ function startSingle(p, shift, ctrlK) {
   switch (tool) {
     case 'select': {
       // Shift / Ctrl + click: add the object (its whole group) to the selection, or take it out again
-      if (shift || ctrlK) {
+      // phone 複数選択 (S.addSel): a tap does the same; the selected object's own handles still work
+      const o0 = selObj(), addOn = S.addSel && !deskOn && !shift && !ctrlK && !(o0 && !o0.locked && !o0.hidden && hitHandle(o0, p));
+      if (shift || ctrlK || addOn) {
         const hit = pick(d.x, d.y);
         if (hit) {
           const cur = new Set(multi.length ? multi : selId ? [selId] : []), ids = hit.gid ? expandGroups([hit.id]) : [hit.id], all = ids.every(id => cur.has(id));
@@ -4067,6 +4091,10 @@ function startSingle(p, shift, ctrlK) {
           return;
         }
         if (ctrlK && !shift) { G = { type: 'none' }; return; }   // Ctrl+click on empty space: keep the selection
+        if (addOn) {   // empty space outside the group box: pan, and a tap keeps the selection
+          const ms = multiObjs(), b = ms.length ? multiBox(ms) : null, pad = 8 / view.s;
+          if (!(b && d.x >= b.x0 - pad && d.x <= b.x1 + pad && d.y >= b.y0 - pad && d.y <= b.y1 + pad)) { G = { type: 'pan', p0: p, tx0: view.tx, ty0: view.ty, moved: false, keep: true }; return; }
+        }
       }
       const ms = multiObjs();
       if (ms.length) {
@@ -4215,7 +4243,8 @@ function moveSingle(p) {
 function endSingle(p, cancelled) {
   switch (G.type) {
     case 'pan':
-      if (!G.moved && !cancelled) {
+      if (!G.moved && !cancelled && G.keep) { if (isDoubleTap(p, 'empty')) fitView(); }   // 複数選択 mode: an empty tap keeps the selection
+      else if (!G.moved && !cancelled) {
         if (isDoubleTap(p, 'empty')) { clearTimeout(phTapT); fitView(); }
         else if (tool === 'select' && selId) { selId = null; refreshPanel(); requestDraw(); }
         // phone: a single tap on empty canvas (nothing selected) folds the bottom panel / opens it again; waits so a double tap can win
@@ -5174,9 +5203,10 @@ function placeObjMore() {
   const o = tool === 'select' && !editingId && !G ? selObj() : null;
   placeObjBar(o);
   objMore.hidden = true;
-  if (!o) { if (!G && !(tool === 'select' && multi.length)) closeObjMenu(); else if (!objMenu.hidden) placeObjMenu(); return; }   // a multi selection keeps its menu
+  if (!o) { if (!G && !(tool === 'select' && multi.length) && !menuBare) closeObjMenu(); else if (!objMenu.hidden) placeObjMenu(); return; }   // a multi selection keeps its menu
   if (!objMenu.hidden) placeObjMenu();
 }
+let menuBare = false;   // phone: the empty-canvas menu stays open with nothing selected
 let menuAt = null;   // right-click: the menu opens at the cursor instead of under ⋯
 function placeObjMenu() {
   const mw = objMenu.offsetWidth, mh = objMenu.offsetHeight;
@@ -5185,15 +5215,27 @@ function placeObjMenu() {
   if (y + mh > stageH - 6) y = menuAt.y - mh; if (x + mw > stageW - 6) x = menuAt.x - mw;
   objMenu.style.left = clamp(x, 6, Math.max(6, stageW - mw - 6)) + 'px'; objMenu.style.top = clamp(y, 6, Math.max(6, stageH - mh - 6)) + 'px';
 }
-function openObjMenu() {
+function openObjMenu(bare) {
   const it = (k, ic, l, cls = '') => `<button role="menuitem" class="${cls}" data-act="cmd" data-k="${k}"><span class="mi" aria-hidden="true">${ic}</span>${l}</button>`;
+  // phone extras (PC has Ctrl+X / Shift+click / Shift+2 for these)
+  const phX = () => deskOn ? '' : it('addSel', ICON.addSel, S.addSel ? '複数選択をやめる' : '複数選択') + it('zoomSel', ICON.zoom, 'ここを拡大');
+  const cutIt = () => deskOn ? '' : it('cut', ICON.cutObj, '切り取り');
+  if (bare) {   // phone: long-press on empty canvas
+    if (deskOn) return;
+    let h = (clip ? it('paste', ICON.paste, '貼り付け') : '') + it('addPhoto', ICON.photo, '写真を重ねる');
+    if (doc.objects.some(x => !x.locked && !x.hidden)) h += it('selAll', ICON.marq, 'すべて選択') + it('addSel', ICON.addSel, S.addSel ? '複数選択をやめる' : '複数選択');
+    h += it('fit', ICON.free, '全体を表示') + it('copyImg', ICON.clip, '画像をコピー');
+    objMenu.innerHTML = h; objMenu.hidden = false; menuBare = true; placeObjMenu();
+    objMenu.querySelector('button').focus({ preventScroll: true });
+    return;
+  }
   const ms = multiObjs();
   if (ms.length) {   // several selected: group / ungroup, flip, copy, order, duplicate, delete — all at once
     let h = isOneGroup(ms) ? it('ungroup', ICON.ungroup, 'グループ解除') : it('group', ICON.group, 'グループにする');
     h += '<hr>';
     if (ms.some(canFlip)) h += it('flipH', ICON.flipH, '左右反転') + it('flipV', ICON.flipV, '上下反転') + '<hr>';
-    h += it('copy', ICON.copy, 'コピー') + (clip ? it('paste', ICON.paste, '貼り付け') : '') + '<hr>';
-    h += it('mFront', ICON.front, '前面へ') + it('mBack', ICON.back, '背面へ') + it('mDup', ICON.dup, '複製') + '<hr>' + it('mDel', ICON.trash, `${ms.length}個を削除`, 'danger');
+    h += it('copy', ICON.copy, 'コピー') + cutIt() + (clip ? it('paste', ICON.paste, '貼り付け') : '') + '<hr>';
+    h += it('mFront', ICON.front, '前面へ') + it('mBack', ICON.back, '背面へ') + it('mDup', ICON.dup, '複製') + phX() + '<hr>' + it('mDel', ICON.trash, `${ms.length}個を削除`, 'danger');
     objMenu.innerHTML = h; objMenu.hidden = false; objMore.setAttribute('aria-expanded', 'true'); placeObjMenu();
     objMenu.querySelector('button').focus({ preventScroll: true });
     return;
@@ -5207,12 +5249,12 @@ function openObjMenu() {
   if (h) h += '<hr>';
   if (o.gid && (groupOf(o) || []).length > 1) h += it('ungroup', ICON.ungroup, 'グループ解除') + '<hr>';   // one member picked out of a group
   if (canFlip(o)) h += it('flipH', ICON.flipH, '左右反転') + it('flipV', ICON.flipV, '上下反転') + '<hr>';
-  h += it('copy', ICON.copy, 'コピー') + (clip ? it('paste', ICON.paste, '貼り付け') : '') + '<hr>';
-  h += it('front', ICON.front, '前面へ') + it('back', ICON.back, '背面へ') + it('dup', ICON.dup, '複製') + it('lock', o.locked ? ICON.unlock : ICON.lock, o.locked ? 'ロック解除' : 'ロック') + '<hr>' + it('del', ICON.trash, '削除', 'danger');
+  h += it('copy', ICON.copy, 'コピー') + (o.locked ? '' : cutIt()) + (clip ? it('paste', ICON.paste, '貼り付け') : '') + '<hr>';
+  h += it('front', ICON.front, '前面へ') + it('back', ICON.back, '背面へ') + it('dup', ICON.dup, '複製') + it('lock', o.locked ? ICON.unlock : ICON.lock, o.locked ? 'ロック解除' : 'ロック') + phX() + '<hr>' + it('del', ICON.trash, '削除', 'danger');
   objMenu.innerHTML = h; objMenu.hidden = false; objMore.setAttribute('aria-expanded', 'true'); placeObjMenu();
   objMenu.querySelector('button').focus({ preventScroll: true });
 }
-function closeObjMenu() { menuAt = null; if (objMenu.hidden) return; objMenu.hidden = true; objMore.setAttribute('aria-expanded', 'false'); }
+function closeObjMenu() { menuAt = null; menuBare = false; if (objMenu.hidden) return; objMenu.hidden = true; objMore.setAttribute('aria-expanded', 'false'); }
 objMore.addEventListener('click', () => objMenu.hidden ? openObjMenu() : closeObjMenu());
 /* PC: right-click an object on the canvas → select it and open the same menu at the cursor */
 cv.addEventListener('contextmenu', e => {
@@ -5229,8 +5271,24 @@ cv.addEventListener('contextmenu', e => {
 });
 /* the object menu opens at a point (right-click, long-press, or the keyboard's menu key at the selection's centre) */
 let menuRet = null;   // element to give focus back to when the menu closes
-function openObjMenuAt(p) { requestDraw(); menuRet = document.activeElement; menuAt = { x: p.x, y: p.y }; openObjMenu(); }
+function openObjMenuAt(p, bare) {
+  requestDraw(); menuRet = document.activeElement; menuAt = { x: p.x, y: p.y }; openObjMenu(bare);
+  if (!deskOn && phNow === 'l' && !objMenu.hidden && objMenu.scrollHeight > stageH - 12) setPH('m');   // phone: a tall panel leaves no room for the menu
+}
+/* phone ⋯ button in the panel head: the same menu, at the selection's centre */
+function menuAtSel() { const ms = selList(); if (!ms.length) return; const b = multiBox(ms); openObjMenuAt(docToScreen((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2)); }
+function selectAll() {
+  if (tool !== 'select') setTool('select');
+  const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id);
+  if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; }
+  refreshPanel(); requestDraw();
+}
+/* a menu opened by a long-press can sit under the finger: the click that lifting the finger may produce must not pick an item */
+let lpHold = false, lpUpT = 0;
+document.addEventListener('pointerup', () => { if (lpHold) { lpHold = false; lpUpT = performance.now(); } }, true);
+document.addEventListener('pointercancel', () => { lpHold = false; }, true);
 objMenu.addEventListener('click', e => {
+  if (lpHold || performance.now() - lpUpT < 350) return;
   const b = e.target.closest('[data-act]'); if (!b) return;
   const ret = menuRet; closeObjMenu();
   doAct(b.dataset.act, b.dataset.k, undefined, true);
@@ -5266,6 +5324,15 @@ function runCmd(k, v, final) {
     case 'dist': distributeObjs(multiObjs(), v); break;
     case 'group': groupObjs(true); break;
     case 'ungroup': groupObjs(false); break;
+    case 'addSel':   // phone 複数選択: taps add / remove objects (Shift+click on PC)
+      S.addSel = typeof v === 'boolean' ? v : !S.addSel; if (tool !== 'select') setTool('select'); refreshPanel(); requestDraw();
+      if (S.addSel) toast('タップした物を選択に追加・外します。終わるときはもう一度押します', 3200); break;
+    case 'objMenu': menuAtSel(); break;
+    case 'selAll': selectAll(); break;
+    case 'fit': fitView(); break;
+    case 'zoomSel': zoomToSel(); break;
+    case 'copyImg': copyImage(); break;
+    case 'addPhoto': $('#fileAdd').click(); break;
     case 'lock': if (o) { o.locked = !o.locked; commit(); refreshPanel(); requestDraw(); toast(o.locked ? 'ロックしました。動かせなくなります' : 'ロックを解除しました'); } break;
     case 'del': if (o) { if (o.locked) { toast('ロック中です。解除してから削除してください'); break; } removeObj(o.id); invalidate(); commit(); delSel = { snap: lastSnap, ids: [o.id] }; refreshPanel(); } break;
     case 'edit': if (o) startInlineEdit(o); break;
@@ -5675,7 +5742,7 @@ function aiPanel(where) {
 function objPanel(o) {
   const u = U();
   const editable = !o.locked && (o.type === 'text' || o.type === 'note');
-  let h = `<div class="objhead"><span class="badge${o.locked ? ' locked' : ''}">${TYPE_NAMES[o.type]}${o.locked ? '・ロック中' : ''}</span>${editable ? cmdBtn('edit', '✎ 文字を編集') : ''}</div>`;
+  let h = `<div class="objhead"><span class="badge${o.locked ? ' locked' : ''}">${TYPE_NAMES[o.type]}${o.locked ? '・ロック中' : ''}</span>${editable ? cmdBtn('edit', '✎ 文字を編集') : ''}${deskOn ? '' : quickBar(o)}</div>`;
   // 前面へ・複製・ロック・削除 live in the object menu (long-press / right-click)
   if (o.locked) return h + row('', cmdBtn('lock', '🔓 ロック解除')) + hint('ロック中は動かしたり消したりできません。');
   switch (o.type) {
@@ -5759,6 +5826,10 @@ function objPanel(o) {
   h += foldMore('詳細（不透明度・位置・整列）', slider('o:op', '不透明度', 10, 100, o.op * 100, 0.01) + flipRow + numsRow(o) + alignRow('写真に揃える'));
   return h;
 }
+/* phones: the PC #objBar's quick actions at the right of the panel head (複製・削除・⋯ = the long-press menu); the 複数選択
+   chip shows only while that mode is on, so it can be turned off where it is seen */
+const qBtn = (k, ic, t, cls = '') => `<button class="chip ichip${cls}" data-act="cmd" data-k="${k}" title="${t}" aria-label="${t}">${ICON[ic]}</button>`;
+const quickBar = o => `<span class="qbar">${S.addSel ? togChip('cmd', 'addSel', true, ICON.addSel + '<span class="vh">複数選択</span>') : ''}${o && !o.locked ? qBtn('dup', 'dup', '複製') + qBtn('del', 'trash', '削除', ' danger') : ''}${qBtn('objMenu', 'more', 'そのほかの操作')}</span>`;
 /* phones fold rarely used rows under a もっと見る / 詳細 toggle (its open state is remembered); PC shows them inline */
 const foldMore = (label, inner) => deskOn ? inner : `<details class="more" data-more="1"${UI.more ? ' open' : ''}><summary>${label}</summary>${inner}</details>`;
 panel.addEventListener('toggle', e => { if (e.target.dataset && e.target.dataset.more) { UI.more = e.target.open; saveUI(); } }, true);
@@ -5822,15 +5893,22 @@ function layersPanel() {
   const sel = new Set(multi.length ? multi : selId ? [selId] : []);
   const rows = doc.objects.slice().reverse().map(o => `<div class="lyr${sel.has(o.id) ? ' on' : ''}${o.hidden ? ' hid' : ''}" data-lyr="${o.id}" draggable="true">`
     + `<span class="lic" aria-hidden="true">${LAYER_IC[o.type] || '•'}</span><span class="lnm">${o.gid ? '<span class="lgrp" title="グループ">G</span>' : ''}${esc(layerName(o))}</span>`
+    + (deskOn ? '' : `<button class="lbtn" data-lu="${o.id}" aria-label="${esc(layerName(o))}を一つ手前へ" title="一つ手前へ"${o === doc.objects[doc.objects.length - 1] ? ' disabled' : ''}>${ICON.lup}</button><button class="lbtn" data-ld="${o.id}" aria-label="${esc(layerName(o))}を一つ奥へ" title="一つ奥へ"${o === doc.objects[0] ? ' disabled' : ''}>${ICON.ldn}</button>`)
     + `<button class="lbtn${o.hidden ? ' off' : ''}" data-lv="${o.id}" aria-pressed="${!o.hidden}" aria-label="${esc(layerName(o))}を表示" title="表示・非表示">${o.hidden ? ICON.eyeOff : ICON.eye}</button>`
     + `<button class="lbtn${o.locked ? ' act' : ''}" data-ll="${o.id}" aria-pressed="${!!o.locked}" aria-label="${esc(layerName(o))}をロック" title="ロック">${o.locked ? ICON.lock : ICON.unlock}</button></div>`).join('');
-  return `<div class="layers"><div class="lhead">レイヤー<small>${doc.objects.length}</small></div>${rows || '<p class="lempty">まだ何も置いていません</p>'}<p class="lempty">↑ 上ほど手前・ドラッグで入れ替え</p></div>`;
+  return `<div class="layers"><div class="lhead">レイヤー<small>${doc.objects.length}</small></div>${rows || '<p class="lempty">まだ何も置いていません</p>'}<p class="lempty">${deskOn ? '↑ 上ほど手前・ドラッグで入れ替え' : '↑ 上ほど手前・∧∨で入れ替え'}</p></div>`;
 }
 panel.addEventListener('click', e => {
   const v = e.target.closest('[data-lv]'), l = e.target.closest('[data-ll]'), row = e.target.closest('[data-lyr]');
   if (!row) return;
   if (v || l) { const b = v || l; setTimeout(() => { const n = !b.isConnected && document.activeElement === document.body && sameCtl(b); if (n) n.focus({ preventScroll: true }); }); }   // 👁 / 🔒 by keyboard: keep focus on the rebuilt button
   const o = doc.objects.find(x => x.id === row.dataset.lyr); if (!o) return;
+  const mv = e.target.closest('[data-lu],[data-ld]');
+  if (mv) {   // phone: one step forward / back (a row can't be dragged by touch)
+    const a = doc.objects, i = a.indexOf(o), j = i + (mv.dataset.lu ? 1 : -1);
+    if (j >= 0 && j < a.length) { a[i] = a[j]; a[j] = o; invalidate(); commit(); }
+    refreshPanel(); return;
+  }
   if (v) {
     o.hidden = !o.hidden;
     if (!o.hidden) delete o.hidden;
@@ -5838,7 +5916,7 @@ panel.addEventListener('click', e => {
     invalidate(); commit(); refreshPanel(); return;
   }
   if (l) { o.locked = !o.locked; commit(); refreshPanel(); requestDraw(); return; }
-  if (e.shiftKey || e.ctrlKey || e.metaKey) {   // add / remove from the selection
+  if (e.shiftKey || e.ctrlKey || e.metaKey || (S.addSel && !deskOn)) {   // add / remove from the selection (phone: 複数選択 mode)
     const s = new Set(multi.length ? multi : selId ? [selId] : []);
     s.has(o.id) ? s.delete(o.id) : s.add(o.id);
     const ids = doc.objects.filter(x => s.has(x.id)).map(x => x.id);
@@ -5868,7 +5946,7 @@ function photoCard() {
 panel.addEventListener('click', e => { const b = e.target.closest('[data-gotool]'); if (b) setTool(b.dataset.gotool); });
 function multiPanel(ms) {
   const one = isOneGroup(ms);
-  return `<div class="objhead"><span class="badge">${one ? `グループ（${ms.length}個）` : `${ms.length}個を選択中`}</span></div>`
+  return `<div class="objhead"><span class="badge">${one ? `グループ（${ms.length}個）` : `${ms.length}個を選択中`}</span>${deskOn ? '' : quickBar(null)}</div>`
     + row('グループ', one ? cmdBtn('ungroup', IW('ungroup', 'グループ解除')) : cmdBtn('group', IW('group', 'グループにする')))
     + row('操作', [['mFront', ICON.front, '前面へ'], ['mBack', ICON.back, '背面へ'], ['mDup', ICON.dup, '複製'], ['mDel', ICON.trash, '削除', ' danger']].map(([k, ic, t, c = '']) => `<button class="chip ichip${c}" data-act="cmd" data-k="${k}" title="${t}" aria-label="${t}">${ic}</button>`).join('') + cmdBtn('mClear', '選択を解除'), true)
     + alignRow('揃える')
@@ -5909,10 +5987,10 @@ function refreshPanel() {
       const o = selObj(), ms = multiObjs();
       if (o) h = objPanel(o);
       else if (ms.length) h = multiPanel(ms);
-      else h = (deskOn ? photoCard() : '') + row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, IW('marq', '囲む')]], S.marq))
+      else h = photoCard() + (S.addSel && !deskOn ? row('複数選択', togChip('cmd', 'addSel', true, ICON.addSel + '<span class="vh">複数選択をやめる</span>')) + hint('タップした物が選択に加わります') : '') + row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, IW('marq', '囲む')]], S.marq))
         + (S.marq ? hint(deskOn ? '⬚ 何もない所をドラッグして囲む（画面の移動は Space＋ドラッグ）' : '⬚ 何もない所をドラッグして囲む（画面の移動は2本指）')
           : legend(deskOn ? [[ICON.select, '選ぶ', 'クリック'], [ICON.move, '動かす', 'ドラッグ'], [ICON.resize, '大きさ', '角の●'], [ICON.rotate, '回転', '上の●'], [ICON.mouse, 'メニュー', '右クリック'], [ICON.marq, '囲む', 'Shift+ドラッグ'], [ICON.select, '追加で選ぶ', 'Shift/Ctrl+クリック']]
-            : [[ICON.tap, '選ぶ', 'タップ'], [ICON.move, '動かす', 'ドラッグ'], [ICON.resize, '大きさ', '角の●'], [ICON.rotate, '回転', '上の●'], [ICON.zoom, 'ズーム', '2本指'], [ICON.hold, 'メニュー', '長押し']]));
+            : [[ICON.tap, '選ぶ', 'タップ'], [ICON.move, '動かす', 'ドラッグ'], [ICON.resize, '大きさ', '角の●'], [ICON.rotate, '回転', '上の●'], [ICON.zoom, 'ズーム', '2本指'], [ICON.hold, 'メニュー', '長押し'], [ICON.addSel, '複数選ぶ', '長押しから'], [ICON.paste, '貼り付け', '余白を長押し'], ...(UI.gest ? [[ICON.undo, '元に戻す', '2本指タップ']] : [])]));
       h += deskOn ? layersPanel() : foldMore('レイヤー（重なり順・表示）', layersPanel());
       break;
     }
@@ -7394,7 +7472,7 @@ addEventListener('keydown', e => {
 });
 /* PC 集中モード (Figma「UIを最小化」): fold the sidebar and the inspector so the photo gets the whole width */
 function toggleFocusMode() {
-  if (!deskOn) return;
+  if (!deskOn) { setPH(phNow === 's' ? phPrev : 's'); return; }   // phone: fold / unfold the bottom panel
   const on = document.documentElement.classList.toggle('focus');
   $('#zFocus').setAttribute('aria-pressed', String(on));
   toast(on ? '集中モード：Ctrl+\\ でもとに戻ります' : '集中モードを終了しました', 1800);
@@ -7408,7 +7486,8 @@ function pressTool(id) {
   if (b) b.click(); else if (id === 'photo') $('#fileAdd').click(); else setTool(id);
 }
 function cmdItems() {
-  const it = [], add = (l, sub, keys, run) => it.push({ l, sub, k: kana([l, sub, ...keys].join(' ')), run });
+  // phones have no keyboard: the shortcut part of a subtitle (Ctrl+S, （V）…) is left out there
+  const it = [], add = (l, sub, keys, run) => it.push({ l, sub: deskOn ? sub : sub.replace(/（[A-Z]）|(Ctrl|Shift)\+[^\s・]*\s*|^\?$/g, '').replace(/^\s*・\s*/, ''), k: kana([l, sub, ...keys].join(' ')), run });
   const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'そざい すたんぷ えもじ ばんごう でこ ますきんぐてーぷ ひづけ', filter: 'ふぃるたー', adjust: 'ちょうせい あかるさ', cutout: 'はいけいさくじょ はいけい', mosaic: 'もざいく ぼかし', crop: 'きりぬき とりみんぐ かいてん' };
   TOOLS.forEach(([id, l]) => add(l, 'ツール' + (TOOL_KEYS[id] ? '（' + TOOL_KEYS[id] + '）' : ''), [id, 'tool', YOMI[id] || ''], () => pressTool(id)));
   add('保存する', 'Ctrl+S', ['save', 'export', '書き出し', 'ダウンロード', 'jpeg', 'png', 'ほぞん かきだし'], () => $('#btnSave').click());
@@ -7435,6 +7514,10 @@ function cmdItems() {
   add('画像をコピー', 'できあがりをクリップボードへ', ['copy image', 'clipboard', 'こぴー', 'がぞうをこぴー', 'くりっぷぼーど'], copyImage);
   add('左右反転', '選んだ物を反転', ['flip', 'mirror', 'さゆうはんてん', 'はんてん', 'みらー'], () => flipObjs(selList(), 'x'));
   add('上下反転', '選んだ物を反転', ['flip', 'じょうげはんてん', 'はんてん'], () => flipObjs(selList(), 'y'));
+  add('コピー', 'Ctrl+C・選んだ物', ['copy', 'こぴー'], () => copyObjs(false) || toast('先に物を選んでください'));
+  add('切り取り', 'Ctrl+X・選んだ物', ['cut', 'きりとり'], () => copyObjs(true) || toast('先に物を選んでください'));
+  add('貼り付け', 'Ctrl+V・コピーした物', ['paste', 'はりつけ'], () => pasteObjs() || toast('まだ何もコピーしていません'));
+  if (!deskOn) add('複数選択', 'タップで選択に追加・外す', ['multi', 'select', 'ふくすうせんたく', 'ついか', 'まとめて'], () => runCmd('addSel'));
   if (SUPA.url && ACCT_ON) add('アカウント', 'ログイン・同期', ['account', 'login', 'ろぐいん', 'あかうんと', 'どうき', 'sync', 'google', 'apple', 'めーる'], openAccount);
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
