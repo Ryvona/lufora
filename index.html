@@ -512,6 +512,8 @@ html.desk .projit:hover .libx,html.desk .projit:focus-within .libx{opacity:1}
 .swb.eyedrop{display:grid;place-items:center;background:var(--chrome2);color:var(--fg)}
 .swb.eyedrop svg{width:17px;height:17px}
 #cv.eyepick{cursor:crosshair}
+/* phones: みんなの作品 uses the whole screen (it is a place to browse, not a quick setting) */
+html:not(.desk) #sheetGallery:not(.indrawer){top:0;max-height:none;height:100%;max-width:none;border-radius:0;border:0;padding-top:max(10px,env(safe-area-inset-top,0px))}
 /* ==== account ==== */
 .note.legal a{color:var(--accent);font-weight:700}
 .acctrow{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);text-align:left}
@@ -882,7 +884,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <div class="help-sp">
     <div class="hcards">
       <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>編集ツール：下（横向きのタブレットでは左）。長押しで並び替え</li><li>☰：作品・テンプレート・素材・フィルターなど</li></ul></div>
-      <div class="hcard"><span class="hic">👆</span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>2本指タップで元に戻す（3本指でやり直し）</li></ul></div>
+      <div class="hcard"><span class="hic">👆</span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>2本指タップで元に戻す（3本指でやり直し）</li><li>2本指で長押しすると、加工前の写真と比べられます</li></ul></div>
       <div class="hcard"><span class="hic">✋</span><b>長押しメニュー</b><ul><li>物を長押し：コピー・切り取り・貼り付け・反転・複製・削除など</li><li>何もない所を長押し：貼り付け・すべて選択・全体を表示</li><li>下のパネル右上の ⋯ でも開けます</li></ul></div>
       <div class="hcard"><span class="hic">🧩</span><b>まとめて操作</b><ul><li>メニューの「複数選択」→ 物をタップして追加</li><li>2つ以上で「グループにする」・揃える・等間隔・反転</li></ul></div>
       <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>「開く」から写真を選ぶ。前の作品は「最近の作品」から</li><li>写真枠はダブルタップ</li><li>素材 →「マイ素材」の「写真を追加」で端末の写真をためておける</li></ul></div>
@@ -3877,7 +3879,8 @@ function tapGestureEnd() {
   if (g.n === 2) { undo(); toast('元に戻しました（2本指タップ）', 1200); } else if (g.n >= 3) { redo(); toast('やり直しました（3本指タップ）', 1200); }
 }
 function onUp(e) {
-  clearTimeout(objLpT);
+  clearTimeout(objLpT); clearTimeout(cmpT); cmpT = 0;
+  if (G && G.cmp) { setCompare(false); if (tapG) tapG.moved = true; }   // end of a 2-finger hold: back to the edited view, no undo
   if (!pointers.has(e.pointerId)) return;
   const p = pt(e);
   pointers.delete(e.pointerId);
@@ -3937,9 +3940,15 @@ function startPinch() {
   const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d0 = Math.max(dist(a, b), 1), a0 = Math.atan2(b.y - a.y, b.x - a.x);
   if (objMode) { const o = selObj(); G = { type: 'pinchObj', mid0: mid, d0, a0, x0: o.x, y0: o.y, sc0: o.sc, rot0: o.rot }; }
   else G = { type: 'pinchView', mid0: mid, d0, s0: view.s, tx0: view.tx, ty0: view.ty };
+  // phones: two fingers held still ≈0.45 s = compare with the original photo until they lift (a quick 2-finger tap still undoes)
+  clearTimeout(cmpT);
+  if (!deskOn && UI.gest && G.type === 'pinchView') { const g0 = G; cmpT = setTimeout(() => { if (G === g0 && pointers.size === 2) { g0.cmp = true; setCompare(true); buzz(10); } }, 450); }
 }
+let cmpT = 0;
 function movePinch() {
   const [a, b] = [...pointers.values()];
+  if (G.cmp) return;   // comparing: the fingers only hold
+  if (G.type === 'pinchView' && cmpT) { const m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; if (dist(m, G.mid0) > 10 || Math.abs(dist(a, b) - G.d0) > 10) { clearTimeout(cmpT); cmpT = 0; } }
   const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d = Math.max(dist(a, b), 1), ang = Math.atan2(b.y - a.y, b.x - a.x);
   if (G.type === 'pinchView') {
     const s = clamp(G.s0 * d / G.d0, fitScale * 0.3, Math.max(fitScale * 12, 4));
