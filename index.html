@@ -7963,11 +7963,12 @@ $('#fileFont').addEventListener('change', async e => {
   const name = fontName(file.name.replace(/\.[^.]+$/, ''));
   try {
     await registerFont(name, file);
-    try { await idbOp('readwrite', st => st.put(customFonts.map(f => ({ name: f.name, blob: f.blob })), 'fonts')); } catch (err) { }
+    try { await fontsSave(); } catch (err) { }
     S.fontCat = 'mine'; applyFont(name); renderFontSheet();
-    toast(`フォント「${name}」を追加しました`);
+    toast(`フォント「${name}」を追加しました`); acctSyncSoon();
   } catch (err) { toast('このフォントファイルは読み込めませんでした。.ttf か .otf を選んでください'); }
 });
+const fontsSave = () => idbOp('readwrite', st => st.put(customFonts.map(f => ({ name: f.name, blob: f.blob })), 'fonts'));
 async function loadCustomFonts() {
   try {
     const list = await idbOp('readonly', st => st.get('fonts'));
@@ -8419,7 +8420,7 @@ function syncAll() {
   if (!acct || !navigator.onLine) return Promise.resolve();
   if (syncP) { syncAgain = true; return syncP; }
   syncState = 'busy'; acctRender();
-  syncP = (async () => { const { c } = await sb(); if (!acct) return; await syncSettings(c); await syncLib(c); await cloudCheck(c); })()
+  syncP = (async () => { const { c } = await sb(); if (!acct) return; await syncSettings(c); await syncLib(c); await cloudCheck(c); await syncFonts(c).catch(e => console.warn('font sync', e)); })()
     .then(() => { syncState = 'ok'; syncAt = Date.now(); }, e => { console.warn('sync', e); syncState = 'err'; syncAt = Date.now(); })
     .finally(() => { syncP = null; acctRender(); if (syncAgain) { syncAgain = false; syncAll(); } });
   return syncP;
@@ -8487,6 +8488,42 @@ async function libUp(c, it, uid) {
   sbOk(await c.storage.from('library').upload(libTPath(uid, it.id, it.alpha), it.thumb, { upsert: true, contentType: it.alpha ? 'image/png' : 'image/jpeg' }));
   sbOk(await c.from('library_items').upsert({ owner: uid, id: it.id, sig: String(it.sig || '').slice(0, 200), w: it.w | 0, h: it.h | 0, alpha: !!it.alpha, ext, t: it.t || Date.now() }));
   it.cloud = uid; it.ext = ext;
+}
+// 読み込んだフォント: user_fonts + private bucket fonts (<uid>/<id>.<ext>). The id comes from the family name, so one font imported on
+// two devices is one row. Local-only fonts go up, cloud-only fonts come down into kv 'fonts' and are registered. The app has no font
+// delete, so nothing is removed. Without supabase/schema_fonts.sql (table missing) this step is skipped for the session.
+const FONT_CLOUD_MAX = 30, FONT_CLOUD_BYTES = 25 * 1024 * 1024, FONT_MIME = { ttf: 'font/ttf', otf: 'font/otf', woff: 'font/woff', woff2: 'font/woff2' };
+let fontSyncOff = false;
+const fontId = name => { let a = 0x811c9dc5, b = 0x9747b28c; for (const ch of String(name)) { const k = ch.codePointAt(0); a = Math.imul(a ^ k, 16777619); b = Math.imul(b ^ k, 0x5bd1e995); b ^= b >>> 15; } return 'f' + (a >>> 0).toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0'); };
+async function fontExt(blob) { const s = String.fromCharCode(...new Uint8Array(await blob.slice(0, 4).arrayBuffer())); return s === 'wOFF' ? 'woff' : s === 'wOF2' ? 'woff2' : s === 'OTTO' ? 'otf' : 'ttf'; }
+const fontMissing = e => !!e && (/^(PGRST20[25]|42P01)$/.test(e.code || '') || e.status === 404 || /does not exist|schema cache/i.test(e.message || ''));
+async function syncFonts(c) {
+  if (fontSyncOff || !acct) return;
+  const uid = acct.id; let rows;
+  try { rows = sbOk(await c.from('user_fonts').select('id,family,ext,size,t').eq('owner', uid)) || []; }
+  catch (e) { if (fontMissing(e)) { fontSyncOff = true; return; } throw e; }
+  const R = new Set(rows.map(r => r.id)), have = new Set(customFonts.map(f => f.name));
+  let n = rows.length, got = 0;
+  for (const f of customFonts.slice()) {   // this device only -> cloud
+    const id = fontId(f.name); if (R.has(id) || !f.blob || f.blob.size > FONT_CLOUD_BYTES || n >= FONT_CLOUD_MAX) continue;
+    try {
+      const ext = await fontExt(f.blob);
+      sbOk(await c.storage.from('fonts').upload(`${uid}/${id}.${ext}`, f.blob, { upsert: true, contentType: FONT_MIME[ext] }));
+      sbOk(await c.from('user_fonts').upsert({ owner: uid, id, family: f.name, ext, size: f.blob.size, t: Date.now() }));
+      R.add(id); n++;
+    } catch (e) { console.warn('font sync', f.name, e); }
+    if (!acct) return;
+  }
+  for (const r of rows) {   // cloud only -> this device
+    const name = fontName(r.family); if (have.has(name) || !FONT_MIME[r.ext]) continue;
+    try { await registerFont(name, await sbDown(c, 'fonts', `${uid}/${r.id}.${r.ext}`)); have.add(name); got++; }
+    catch (e) { console.warn('font sync', r.family, e); }
+    if (!acct) break;
+  }
+  if (!got) return;
+  try { await fontsSave(); } catch (e) { console.warn('font sync', e); }
+  layoutMemo.clear(); invalidate();
+  if (!$('#sheetFont').hidden) renderFontSheet();
 }
 // 作業中の作品: one cloud copy per account, pushed a little after each local draft save; other devices are offered to open it
 let cloudT = 0, cloudBusy = false;
