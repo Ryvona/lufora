@@ -110,6 +110,8 @@ input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#FFFFFF;border:3px solid var(--accent);box-sizing:border-box;margin-top:-10px;box-shadow:0 1px 4px rgba(60,70,50,.3)}
 input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(--accent);box-sizing:border-box;border-radius:50%;background:#FFFFFF}
 .hint{padding:8px 16px;color:var(--muted);font-size:12.5px;line-height:1.7}
+.hint>svg{width:16px;height:16px;vertical-align:-3px;margin-right:4px;color:var(--accent)}
+.btn>svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px}
 .hint b{color:var(--fg);font-weight:600}
 .objhead{display:flex;align-items:center;gap:8px;padding:2px 14px 4px}
 .badge{font-size:11px;letter-spacing:.08em;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:3px 8px;font-weight:700}
@@ -239,6 +241,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
 .modbtns{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
 .gempty{text-align:center;padding:28px 12px;color:var(--muted);font-size:13px;line-height:1.8}
 .gempty b{display:block;font-size:30px;margin-bottom:6px}
+.gempty b svg{width:34px;height:34px;color:var(--accent)}
 .gdimg{display:block;width:100%;max-height:46vh;object-fit:contain;border-radius:12px;background:var(--stage)}
 .grecipe{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--chrome2);border:1px solid var(--line);font-size:13px;line-height:1.8}
 .grecipe b{color:var(--accent)}
@@ -516,6 +519,7 @@ html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px so
 #sheetCmd .cmdbox{margin-right:46px}   /* room for the sheet's × */
 .cmdbox{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;background:var(--chrome2);border:1px solid var(--line)}
 .cmdbox:focus-within{border-color:var(--accent)}
+.cmdbox .cmdic svg{display:block;width:20px;height:20px;color:var(--muted)}
 .cmdbox input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--fg);font:inherit;font-size:16px}
 #cmdList{display:flex;flex-direction:column;gap:2px;margin-top:8px;max-height:46vh;overflow-y:auto}
 #cmdList button{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:10px;text-align:left;font-size:14px}
@@ -541,7 +545,8 @@ html:not(.desk)[data-hand="left"] .topbar{flex-direction:row-reverse}
 .wsteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .wsteps li{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 6px 12px;border-radius:16px;background:var(--chrome2);border:1px solid var(--line);text-align:center}
 .wsteps .wn{position:absolute;top:6px;left:8px;font-size:11px;font-weight:800;color:var(--accent)}
-.wsteps .wi{font-size:28px;line-height:1.2}
+.wsteps .wi{display:flex;height:34px;align-items:center}
+.wsteps .wi svg{width:30px;height:30px;color:var(--accent)}
 .wsteps b{font-size:13.5px}
 .wsteps small{font-size:11px;color:var(--muted)}
 /* ==== install (PWA) ==== slim hint under the top bar (phones, takes layout space so it never covers the photo or the panel) + the steps sheet */
@@ -749,7 +754,8 @@ html.desk #sheetHelp{max-width:760px}
 html.desk .help-sp,html:not(.desk) .help-pc{display:none}
 .hcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:2px 0 6px}
 .hcard{position:relative;padding:12px 12px 10px 48px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line)}
-.hcard .hic{position:absolute;left:12px;top:11px;font-size:22px;line-height:1}
+.hcard .hic{position:absolute;left:12px;top:11px;line-height:1;color:var(--accent)}
+.hcard .hic svg{display:block;width:24px;height:24px}
 .hcard b{display:block;font-size:13.5px;margin-bottom:4px}
 .hcard ul{margin:0;padding-left:1.1em;font-size:12.5px;line-height:1.65;color:#4F5A4D}
 /* PC: sheets are centred dialogs, not phone-style bottom sheets (the 書体 picker stays at the bottom so the text stays visible) */
@@ -953,20 +959,20 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <!-- PC and phone each get their own short guide (only the matching one is shown) -->
   <div class="help-pc">
     <div class="hcards">
-      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>左：みんなの作品・写真・テンプレート・素材・フィルター・背景削除・調整</li><li>その右：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
-      <div class="hcard"><span class="hic">🖱️</span><b>基本の操作</b><ul><li>クリックで選択、ドラッグで移動</li><li>角の● で拡大縮小、上の● で回転</li><li>ダブルクリックで文字を書き換え</li><li>右クリックでメニュー</li></ul></div>
-      <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>ドラッグ＆ドロップ、または Ctrl+V</li><li>写真枠はダブルクリックかドロップ</li></ul></div>
-      <div class="hcard"><span class="hic">✨</span><b>便利な機能</b><ul><li>テンプレート・素材でかんたんデコ</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>編集は自動で下書き保存</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="layout"></span><b>画面</b><ul><li>左：みんなの作品・写真・テンプレート・素材・フィルター・背景削除・調整</li><li>その右：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="mouse"></span><b>基本の操作</b><ul><li>クリックで選択、ドラッグで移動</li><li>角の● で拡大縮小、上の● で回転</li><li>ダブルクリックで文字を書き換え</li><li>右クリックでメニュー</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="photo"></span><b>写真を入れる</b><ul><li>ドラッグ＆ドロップ、または Ctrl+V</li><li>写真枠はダブルクリックかドロップ</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>テンプレート・素材でかんたんデコ</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>編集は自動で下書き保存</li></ul></div>
     </div>
   </div>
   <div class="help-sp">
     <div class="hcards">
-      <div class="hcard"><span class="hic">🧭</span><b>画面</b><ul><li>編集ツール：下（横向きのタブレットでは左）。長押しで並び替え</li><li>☰：作品・テンプレート・素材・フィルターなど</li></ul></div>
-      <div class="hcard"><span class="hic">👆</span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>2本指タップで元に戻す（3本指でやり直し）</li><li>2本指で長押しすると、加工前の写真と比べられます</li></ul></div>
-      <div class="hcard"><span class="hic">✋</span><b>長押しメニュー</b><ul><li>物を長押し：コピー・切り取り・貼り付け・反転・複製・削除など</li><li>何もない所を長押し：貼り付け・すべて選択・全体を表示</li><li>下のパネル右上の ⋯ でも開けます</li></ul></div>
-      <div class="hcard"><span class="hic">🧩</span><b>まとめて操作</b><ul><li>メニューの「複数選択」→ 物をタップして追加</li><li>2つ以上で「グループにする」・揃える・等間隔・反転</li></ul></div>
-      <div class="hcard"><span class="hic">🖼️</span><b>写真を入れる</b><ul><li>「開く」から写真を選ぶ。前の作品は「最近の作品」から</li><li>写真枠はダブルタップ</li><li>素材 →「マイ素材」の「写真を追加」で端末の写真をためておける</li></ul></div>
-      <div class="hcard"><span class="hic">✨</span><b>便利な機能</b><ul><li>色の横のスポイトで、写真から色を拾う</li><li>図形の「線」でくにゃくにゃ線・カギ線・矢印</li><li>背景削除は AI で自動。編集は自動で下書き保存</li><li>☰ の「機能をさがす」で何でも検索</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="layout"></span><b>画面</b><ul><li>編集ツール：下（横向きのタブレットでは左）。長押しで並び替え</li><li>☰：作品・テンプレート・素材・フィルターなど</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="tap"></span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>2本指タップで元に戻す（3本指でやり直し）</li><li>2本指で長押しすると、加工前の写真と比べられます</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="hold"></span><b>長押しメニュー</b><ul><li>物を長押し：コピー・切り取り・貼り付け・反転・複製・削除など</li><li>何もない所を長押し：貼り付け・すべて選択・全体を表示</li><li>下のパネル右上の ⋯ でも開けます</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="group"></span><b>まとめて操作</b><ul><li>メニューの「複数選択」→ 物をタップして追加</li><li>2つ以上で「グループにする」・揃える・等間隔・反転</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="photo"></span><b>写真を入れる</b><ul><li>「開く」から写真を選ぶ。前の作品は「最近の作品」から</li><li>写真枠はダブルタップ</li><li>素材 →「マイ素材」の「写真を追加」で端末の写真をためておける</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>色の横のスポイトで、写真から色を拾う</li><li>図形の「線」でくにゃくにゃ線・カギ線・矢印</li><li>背景削除は AI で自動。編集は自動で下書き保存</li><li>☰ の「機能をさがす」で何でも検索</li></ul></div>
     </div>
   </div>
   <h3 class="keysh">キーボードショートカット（パソコン）</h3>
@@ -998,9 +1004,9 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <h2>ようこそ、Lufora へ</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
   <p class="wlead">Creativity grows naturally. ― 写真に、文字や素材を貼ってかわいく仕上げよう。</p>
   <ol class="wsteps">
-    <li><span class="wn">1</span><span class="wi">🖼️</span><b>写真をえらぶ</b><small>「開く」から</small></li>
-    <li><span class="wn">2</span><span class="wi">✨</span><b>デコる</b><small>文字・素材・テンプレート</small></li>
-    <li><span class="wn">3</span><span class="wi">💾</span><b>保存する</b><small>上の「保存」ボタン</small></li>
+    <li><span class="wn">1</span><span class="wi" data-ic="photo"></span><b>写真をえらぶ</b><small>「開く」から</small></li>
+    <li><span class="wn">2</span><span class="wi" data-ic="spark"></span><b>デコる</b><small>文字・素材・テンプレート</small></li>
+    <li><span class="wn">3</span><span class="wi" data-ic="save"></span><b>保存する</b><small>上の「保存」ボタン</small></li>
   </ol>
   <div class="actions" style="padding:14px 0 0"><button class="btn" data-wl="tpl">テンプレートを見る</button><button class="btn primary" data-wl="open">写真をえらぶ</button></div>
   <p class="note" style="text-align:center">いまはサンプル写真で試せます。使い方は「？」からいつでも。</p>
@@ -1037,7 +1043,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
 
 <div class="sheet light" id="sheetCmd" hidden>
   <h2 class="vh">クイック検索</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
-  <div class="cmdbox"><span aria-hidden="true">🔍</span><input id="cmdQ" type="text" autocomplete="off" spellcheck="false" placeholder="やりたいことを入力（例：文字、エモ、保存、背景）" aria-label="機能を検索" aria-controls="cmdList" aria-autocomplete="list"></div>
+  <div class="cmdbox"><span class="cmdic" aria-hidden="true" data-ic="search"></span><input id="cmdQ" type="text" autocomplete="off" spellcheck="false" placeholder="やりたいことを入力（例：文字、エモ、保存、背景）" aria-label="機能を検索" aria-controls="cmdList" aria-autocomplete="list"></div>
   <div id="cmdList" role="listbox" aria-label="候補"></div>
   <p class="note cmdnote">↑↓ で選んで Enter・Esc で閉じる。Ctrl+K か / でいつでも開けます。</p>
 </div>
@@ -1186,8 +1192,8 @@ const FONTS = [
 const FONT_MAP = Object.fromEntries(FONTS.map(f => [f[0], f]));
 const customFonts = [];            // [{name, blob}]
 const famStack = f => `"${f}","Hiragino Sans","Noto Sans JP",sans-serif`;
-const NOTE_SHAPES = [['square', '□ 付箋'], ['rounded', '▢ 角丸'], ['circle', '○ 丸'], ['heart', '♡ ハート'], ['speech', '💬 吹き出し'], ['cloud', '☁ 雲'], ['tag', '🏷 タグ'], ['torn', '✂ ノート'],
-  ['ribbon', '🎀 リボン'], ['label', '▭ ラベル'], ['sticker', '◎ 丸シール'], ['think', '💭 考え中']];
+const NOTE_SHAPES = [['square', '付箋'], ['rounded', '角丸'], ['circle', '丸'], ['heart', 'ハート'], ['speech', '吹き出し'], ['cloud', '雲'], ['tag', 'タグ'], ['torn', 'ノート'],
+  ['ribbon', 'リボン'], ['label', 'ラベル'], ['sticker', '丸シール'], ['think', '考え中']];
 /* 図形: line kinds share p1/p2 (+ bend for the curved ones); area kinds use w/h */
 /* lines: kind is the path (line / curve / elbow); cs / ce are the start / end caps and ls the stroke style.
    arrow / arrow2 / carrow are older kinds that imply their caps; lineNorm() turns them into path + caps before an edit. */
@@ -1253,7 +1259,6 @@ const sIco = (base, part, name) => `<img class="nico sico" data-s="${J(part)}" s
 /* the panel's pictures follow colour / fill / cap changes in place (no rebuild) */
 function syncShapeIcos(base) { panelEl().querySelectorAll('img[data-s]').forEach(im => { try { im.src = shapeThumb({ ...base, ...JSON.parse(im.dataset.s) }); } catch (e) { } }); }
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-const STAMPS = ['❤️', '⭐', '✨', '👍', '😀', '😂', '😍', '🥰', '😎', '🤔', '😭', '😱', '🎉', '🔥', '💯', '✅', '❌', '⭕', '⚠️', '❓', '❗', '👉', '👆', '👇', '📌', '📍', '💡', '💬', '🌸', '🍀', '☀️', '🌙', '⚡', '🎂', '🐱', '🐶', '🍰', '☕', '🎁', '🏷️'];
 const TYPE_NAMES = { image: '写真', text: '文字', note: '付箋', stroke: '手描き', shape: '図形', stamp: 'スタンプ', mosaic: 'モザイク', deco: 'デコ', chart: '表・グラフ' };
 const ADJ_KEYS = ['bri', 'con', 'sat', 'warm', 'tint', 'fade', 'vig', 'sepia', 'grain', 'glow', 'leak', 'split'];
 const DEFAULT_ADJ = { bri: 0, con: 0, sat: 0, warm: 0, tint: 0, fade: 0, vig: 0, sepia: 0, grain: 0, glow: 0, leak: 0, split: 0, preset: 'none', amt: 100 };
@@ -1932,6 +1937,244 @@ const DECO_CATS_SHAPES = [['kata','かたち']];
 return { DECO_CATS_SHAPES, DECO_SHAPES };
 })();
 //GEN-SHAPES-END
+//GEN-STAMPS-START
+/* stamps.js: hand-made flat stamps (スタンプ) that replace emoji — faces, hands, signs, weather, seasons, animals, food.
+   Canvas 2D only, no images, no fonts. Exposes DECO_CATS_STAMPS, DECO_STAMPS (same contract as DECO, merged into it).
+   Each stamp is drawn in a design space whose short side is 100 units (centre 0,0), fitted uniformly into o.w×o.h;
+   pass 1 builds the silhouette (white die-cut border + soft shadow), pass 2 the art. color = main colour, color2 = accent. */
+const { DECO_CATS_STAMPS, DECO_STAMPS } = (() => {
+'use strict';
+const PI = Math.PI, TAU = PI*2, sin = Math.sin, cos = Math.cos, MN = Math.min, RND = Math.round;
+const O = '#3B3A36', WH = '#FFFFFF', PK = '#F49A9A', LW = 2.6, BW = 3.4;
+let C = null, SIL = 0, HT = null;
+const hex = c => { if (/^#[0-9a-f]{6}$/i.test(c)) return c; HT = HT || document.createElement('canvas').getContext('2d');
+  HT.fillStyle = '#000'; HT.fillStyle = String(c); const v = HT.fillStyle; return v[0] == '#' ? v : '#'+(v.match(/[\d.]+/g) || [0,0,0]).slice(0,3).map(n => (+n | 0).toString(16).padStart(2,'0')).join(''); };
+const rgb = h => { const n = parseInt(h.slice(1,7),16); return [n >> 16 & 255,n >> 8 & 255,n & 255]; };
+const mix = (a,b,t) => { const x = rgb(a), y = rgb(b); return '#'+x.map((v,i) => RND(v+(y[i]-v)*t).toString(16).padStart(2,'0')).join(''); };
+const dk = (c,t) => mix(c,'#000000',t), lt = (c,t) => mix(c,'#ffffff',t);
+/* ---- paths ---- */
+const E = (x,y,rx,ry, r = 0) => { C.moveTo(x+rx*cos(r),y+rx*sin(r)); C.ellipse(x,y,rx,ry,r,0,TAU); };
+const Ci = (x,y,r) => E(x,y,r,r);
+const RR = (x,y,w,h,r) => { r = MN(r,w/2,h/2); C.moveTo(x+r,y); C.arcTo(x+w,y,x+w,y+h,r); C.arcTo(x+w,y+h,x,y+h,r); C.arcTo(x,y+h,x,y,r); C.arcTo(x,y,x+w,y,r); C.closePath(); };
+const PL = (p,open) => { C.moveTo(p[0][0],p[0][1]); for (let i = 1; i < p.length; i++) C.lineTo(p[i][0],p[i][1]); if (!open) C.closePath(); };
+const mid = (p,i) => { const n = p.length, a = p[i%n], b = p[(i+1)%n]; return [(a[0]+b[0])/2,(a[1]+b[1])/2]; };
+const RP = (p,r) => { const s = mid(p,p.length-1); C.moveTo(s[0],s[1]); p.forEach((q,i) => { const m = mid(p,i); C.arcTo(q[0],q[1],m[0],m[1],r); }); C.closePath(); };
+const SM = p => { const s = mid(p,p.length-1); C.moveTo(s[0],s[1]); p.forEach((q,i) => { const m = mid(p,i); C.quadraticCurveTo(q[0],q[1],m[0],m[1]); }); C.closePath(); };
+const HP = [[-.15,-.95,-1,-.95,-1,-.32],[-1,.2,-.42,.55,0,.92],[.42,.55,1,.2,1,-.32],[1,-.95,.15,-.95,0,-.5]];
+const hp = (cx,cy,rx,ry) => { const X = x => cx+x*rx, Y = y => cy+(y-.045)*ry/.875; C.moveTo(X(0),Y(-.5)); for (const c of HP) C.bezierCurveTo(X(c[0]),Y(c[1]),X(c[2]),Y(c[3]),X(c[4]),Y(c[5])); C.closePath(); };
+const star = (cx,cy,r,ri, n = 5, a0 = -PI/2) => { const p = []; for (let i = 0; i < n*2; i++) { const a = a0+i*PI/n, q = i & 1 ? ri : r; p.push([cx+cos(a)*q,cy+sin(a)*q]); } return p; };
+const kira = (cx,cy,r, c = .16) => { C.moveTo(cx,cy-r); for (let i = 0; i < 4; i++) { const a = -PI/2+i*PI/2, b = a+PI/2, q = a+PI/4; C.quadraticCurveTo(cx+cos(q)*r*c,cy+sin(q)*r*c,cx+cos(b)*r,cy+sin(b)*r); } C.closePath(); };
+const qp = (x0,y0,cx,cy,x1,y1, n = 10) => { const p = []; for (let i = 0; i <= n; i++) { const t = i/n, u = 1-t; p.push([u*u*x0+2*u*t*cx+t*t*x1,u*u*y0+2*u*t*cy+t*t*y1]); } return p; };
+const arcP = (x,y,rx,ry,a0,a1, n = 16) => Array.from({ length: n+1 }, (_,i) => { const a = a0+(a1-a0)*i/n; return [x+rx*cos(a),y+ry*sin(a)]; });
+const drop = (x,y,r) => { C.moveTo(x,y-r*2); C.bezierCurveTo(x+r*.35,y-r*1.2,x+r,y-r*.6,x+r,y); C.arc(x,y,r,0,PI); C.bezierCurveTo(x-r,y-r*.6,x-r*.35,y-r*1.2,x,y-r*2); C.closePath(); };
+const LF = (x0,y0,x1,y1,w) => { const dx = x1-x0, dy = y1-y0, l = Math.hypot(dx,dy), nx = -dy/l*w*1.33, ny = dx/l*w*1.33;
+  C.moveTo(x0,y0); C.bezierCurveTo(x0+dx*.2+nx,y0+dy*.2+ny,x0+dx*.75+nx,y0+dy*.75+ny,x1,y1); C.bezierCurveTo(x0+dx*.75-nx,y0+dy*.75-ny,x0+dx*.2-nx,y0+dy*.2-ny,x0,y0); C.closePath(); };
+const cx2 = (x1,y1,r1,x2,y2,r2) => { const dx = x2-x1, dy = y2-y1, d = Math.hypot(dx,dy), a = (r1*r1-r2*r2+d*d)/(2*d), h = Math.sqrt(Math.max(0,r1*r1-a*a)), mx = x1+dx*a/d, my = y1+dy*a/d;
+  return [[mx+h*dy/d,my-h*dx/d],[mx-h*dy/d,my+h*dx/d]]; };
+const cres = (x1,y1,r1,x2,y2,r2) => { const [P,Q] = cx2(x1,y1,r1,x2,y2,r2), an = (x,y,p) => Math.atan2(p[1]-y,p[0]-x), d = Math.atan2(y1-y2,x1-x2),
+  inA = (s,e,t) => ((t-s)%TAU+TAU)%TAU < ((e-s)%TAU+TAU)%TAU, aP = an(x1,y1,P), aQ = an(x1,y1,Q), bP = an(x2,y2,P), bQ = an(x2,y2,Q);
+  C.moveTo(P[0],P[1]); C.arc(x1,y1,r1,aP,aQ,!inA(aP,aQ,d)); C.arc(x2,y2,r2,bQ,bP,!inA(bQ,bP,d)); C.closePath(); };
+const TB = (p,w) => { const h = w/2; p.forEach(q => Ci(q[0],q[1],h)); for (let i = 1; i < p.length; i++) { const a = p[i-1], b = p[i], l = Math.hypot(b[0]-a[0],b[1]-a[1]) || 1, nx = -(b[1]-a[1])/l*h, ny = (b[0]-a[0])/l*h;
+  PL([[a[0]+nx,a[1]+ny],[b[0]+nx,b[1]+ny],[b[0]-nx,b[1]-ny],[a[0]-nx,a[1]-ny]]); } };
+/* ---- painters: in SIL mode only shapes that form the outline add to the path ---- */
+const F = (path,fill, lw = LW) => { if (SIL) return path(); C.beginPath(); path(); C.fillStyle = fill; C.fill(); if (lw) { C.strokeStyle = O; C.lineWidth = lw; C.stroke(); } };
+const U = (path,fill) => { if (SIL) return path(); C.beginPath(); path(); C.strokeStyle = O; C.lineWidth = LW*2; C.stroke(); C.fillStyle = fill; C.fill(); };
+const D = (path,fill, a = 1) => { if (SIL) return; C.save(); C.globalAlpha *= a; C.beginPath(); path(); C.fillStyle = fill; C.fill(); C.restore(); };
+const K = (path, col = O, w = LW*.8, a = 1) => { if (SIL) return; C.save(); C.globalAlpha *= a; C.beginPath(); path(); C.strokeStyle = col; C.lineWidth = w; C.stroke(); C.restore(); };
+const CL = (path,fn) => { if (SIL) return; C.save(); C.beginPath(); path(); C.clip(); fn(); C.restore(); };
+// thick strokes (polylines): outlined (ol) or plain; all outlines go under all fills so crossings stay clean
+const SS = (ps,col,w, ol = 1) => { if (SIL) return ps.forEach(p => TB(p,w+(ol ? LW : 0))); const go = (c,lw) => { C.beginPath(); ps.forEach(p => PL(p,1)); C.strokeStyle = c; C.lineWidth = lw; C.stroke(); };
+  if (ol) { go(O,w+LW); go(col,w-LW); } else go(col,w); };
+const hl = (x,y,rx,ry, r = -.6, a = .55) => D(() => E(x,y,rx,ry,r),WH,a);
+const rot = (a,fn) => (c1,c2) => { C.save(); C.rotate(a); try { fn(c1,c2); } finally { C.restore(); } };
+/* ---- face parts (round faces) ---- */
+const eye = (x,y, s = 1) => { D(() => E(x,y,4.4*s,6.2*s),O); D(() => Ci(x+1.5*s,y-2.4*s,1.7*s),WH); };
+const hap = (x,y, up = 1) => K(() => { C.moveTo(x-6.5,y+2*up); C.quadraticCurveTo(x,y-7*up,x+6.5,y+2*up); },O,3.4);
+const cheek = (y = 10, a = .7) => { D(() => E(-25,y,6.5,3.8),PK,a); D(() => E(25,y,6.5,3.8),PK,a); };
+const smile = (y = 12, w = 13, d = 13) => K(() => { C.moveTo(-w,y); C.quadraticCurveTo(0,y+d,w,y); },O,3.4);
+const mouthO = (y0,y1,w) => { D(() => { C.moveTo(-w,y0); C.quadraticCurveTo(0,y1*2-y0,w,y0); C.closePath(); },O); D(() => E(0,y0+(y1-y0)*.72,w*.42,(y1-y0)*.26),'#F27C7C'); };
+const FACE = (fn) => (a,b) => { F(() => Ci(0,0,44),a); D(() => E(0,26,30,13),dk(a,.06),.5); hl(-19,-24,10,5.5,-.6,.6); fn(a,b); };
+const fur = (x,y,s) => { eye(x-13*s,y,s*.9); eye(x+13*s,y,s*.9); };
+/* ---- hands ---- */
+const SK = '#FFCF6E';
+const pointUp = (a,b) => { F(() => RR(-15,24,30,20,5),b); U(() => { RR(-6.5,-46,14,44,7); RR(-19,-14,38,42,13); E(-19,6,7,12,-.35); },a);
+  K(() => { C.moveTo(4,0); C.lineTo(17,0); C.moveTo(3,11); C.lineTo(17,11); },dk(a,.32),2.2); hl(-1,-36,2.6,6,0,.5); };
+const tri = (cx,cy,r) => PL([[cx,cy-r],[cx+r*.87,cy+r*.5],[cx-r*.87,cy+r*.5]]);
+
+/* ---- the stamps: [id, name, cat, w, h, color, color2, art(c1, c2), yomi] ---- */
+const T = [
+/* スタンプ: feelings, faces, hands and signs */
+['heart','ハート','stamp',.14,.14,'#FF6B8A',null,a => { F(() => hp(0,5,46,39),a); hl(-21,-18,9,5.5); },'はーと すき あい love'],
+['star','ほし','stamp',.14,.14,'#FFCF3F',null,a => { F(() => RP(star(0,5,48,22),3.5),a); hl(-8,-14,4,7,.3); },'星 すたー star'],
+['sparkle','キラキラ','stamp',.14,.14,'#FFD84D',null,a => { F(() => kira(-7,6,40),a); F(() => kira(29,-29,15),a); F(() => kira(-30,-30,8),lt(a,.3),2); },'きらきら ぴかぴか'],
+['good','いいね','stamp',.14,.14,SK,'#7FB2E5',(a,b) => { F(() => RR(-38,-4,17,44,5),b);
+  U(() => { RR(-24,-8,48,46,14); RR(-18,-46,17,46,8.5); },a);
+  K(() => { C.moveTo(6,6); C.lineTo(24,6); C.moveTo(6,17); C.lineTo(24,17); C.moveTo(6,28); C.lineTo(22,28); },dk(a,.32),2.2); hl(-12,-36,2.6,6,0,.5); },'グッド ぐっど 親指 おやゆび'],
+['ok','OK','stamp',.16,.12,'#6DBE7A',null,a => { F(() => RR(-62,-40,124,80,22),a); hl(-44,-28,10,4,0,.4);
+  K(() => { E(-24,0,16,21); C.moveTo(14,-22); C.lineTo(14,22); C.moveTo(40,-22); C.lineTo(16,2); C.moveTo(22,-4); C.lineTo(42,22); },WH,9); },'おっけー おーけー オッケー'],
+['smile','えがお','stamp',.14,.14,'#FFD45C',null,FACE(() => { eye(-14,-6); eye(14,-6); cheek(); smile(); }),'にこにこ スマイル かお 顔'],
+['laugh','大笑い','stamp',.14,.14,'#FFD45C',null,FACE(() => { hap(-15,-6); hap(15,-6); mouthO(7,25,18); cheek(6,.6); F(() => drop(-37,8,6),'#7CC4F2',2); F(() => drop(37,8,6),'#7CC4F2',2); }),'わらい あはは 爆笑 かお'],
+['love','ラブ','stamp',.14,.14,'#FFD45C',null,FACE(() => { F(() => hp(-15,-6,10,9),'#FF5C7A',2); F(() => hp(15,-6,10,9),'#FF5C7A',2); smile(13,12,12); cheek(12,.5); }),'すき らぶ はーと かお'],
+['cool','クール','stamp',.14,.14,'#FFD45C',null,FACE(() => { F(() => { RR(-36,-17,30,20,8); RR(6,-17,30,20,8); },'#2E2E35',2);
+  K(() => { C.moveTo(-6,-11); C.quadraticCurveTo(0,-14,6,-11); C.moveTo(-36,-12); C.lineTo(-43,-15); C.moveTo(36,-12); C.lineTo(43,-15); },'#2E2E35',3);
+  D(() => { E(-27,-11,5,2.4,-.5); E(15,-11,5,2.4,-.5); },WH,.6); K(() => { C.moveTo(-10,17); C.quadraticCurveTo(5,25,16,13); },O,3.4); }),'さんぐらす かっこいい かお'],
+['think','考え中','stamp',.14,.14,'#FFD45C',null,FACE(() => { eye(-14,-5,.9); eye(14,-5,.9);
+  K(() => { C.moveTo(-22,-20); C.quadraticCurveTo(-14,-26,-6,-21); C.moveTo(7,-18); C.lineTo(22,-19); },O,3); K(() => { C.moveTo(-12,17); C.quadraticCurveTo(-2,12,10,16); },O,3.2);
+  U(() => { RR(6,22,28,17,8); RR(22,6,10,26,5); },SK); }),'かんがえる うーん なやむ かお'],
+['cry','大泣き','stamp',.14,.14,'#FFD45C',null,FACE(() => { hap(-15,-8,-1); hap(15,-8,-1);
+  K(() => { C.moveTo(-23,-22); C.lineTo(-8,-18); C.moveTo(23,-22); C.lineTo(8,-18); },O,3);
+  F(() => { RR(-21,-3,9,38,4.5); RR(12,-3,9,38,4.5); },'#7CC4F2',2); D(() => E(0,20,9,7),O); D(() => E(0,23,5,2.6),'#F27C7C'); }),'なく なみだ かなしい かお'],
+['wow','びっくり','stamp',.14,.14,'#FFD45C',null,FACE(() => { F(() => { Ci(-14,-7,8.5); Ci(14,-7,8.5); },WH,2); D(() => { Ci(-14,-6,3.6); Ci(14,-6,3.6); },O);
+  K(() => { C.moveTo(-23,-22); C.quadraticCurveTo(-14,-28,-6,-23); C.moveTo(6,-23); C.quadraticCurveTo(14,-28,23,-22); },O,3); D(() => E(0,21,7,10),O); cheek(10,.4); }),'おどろく えっ かお'],
+['wink','ウインク','stamp',.14,.14,'#FFD45C',null,FACE(() => { eye(-14,-6); K(() => { C.moveTo(8,-12); C.lineTo(19,-6); C.lineTo(8,-1); },O,3.4);
+  smile(12,13,13); F(() => { C.moveTo(1,17.4); C.quadraticCurveTo(4,29,10,26); C.quadraticCurveTo(13,22,9,15.6); C.closePath(); },'#F27C7C',2); cheek(); }),'ういんく ぱちっ かお'],
+['party','おめでとう','stamp',.14,.14,'#FFB84D','#FF6B8A',(a,b) => { const cone = () => PL([[-42,42],[-24,-12],[12,24]]);
+  SS([qp(-4,0,10,-30,34,-22),qp(4,8,30,0,30,26)],'#6AA8E8',4,0); SS([qp(-8,-4,-12,-34,8,-44)],b,4,0);
+  F(cone,a); CL(cone,() => K(() => { C.moveTo(-40,10); C.lineTo(-10,40); C.moveTo(-34,-6); C.lineTo(6,34); },b,6)); D(() => E(-6,6,25,6.5,PI/4),dk(a,.25));
+  F(() => Ci(22,-38,4.5),'#FFD84D',1.8); F(() => RR(34,-10,8,8,2),'#6DBE7A',1.8); F(() => Ci(38,14,4),b,1.8); F(() => RR(-4,-40,7,7,2),'#FF6B8A',1.8); },'くらっかー ぱーてぃー いわい 祝い'],
+['fire','ほのお','stamp',.14,.14,'#FF7A3D','#FFD84D',(a,b) => { const fl = (s,yo) => { const P = (x,y) => [x*s,yo-(46-y)*s];
+  C.moveTo(...P(0,46)); C.bezierCurveTo(...P(-34,46),...P(-42,14),...P(-26,-10)); C.bezierCurveTo(...P(-22,0),...P(-16,4),...P(-11,-1));
+  C.bezierCurveTo(...P(-16,-24),...P(-4,-36),...P(6,-46)); C.bezierCurveTo(...P(6,-30),...P(16,-22),...P(22,-14)); C.bezierCurveTo(...P(25,-20),...P(25,-25),...P(23,-31));
+  C.bezierCurveTo(...P(42,-12),...P(42,16),...P(34,28)); C.bezierCurveTo(...P(28,42),...P(16,46),...P(0,46)); C.closePath(); };
+  F(() => fl(1,46),a); F(() => fl(.55,46),b,0); hl(-14,6,3,7,.3,.4); },'炎 ひ もえる あつい'],
+['100','100てん','stamp',.16,.13,'#F2554B',null,a => { const sk = p => p.map(([x,y]) => [x-y*.18,y]);
+  SS([sk([[-54,-12],[-44,-22],[-44,18]]),sk(arcP(-12,-2,12,20,0,TAU,24)),sk(arcP(26,-2,12,20,0,TAU,24)),sk([[-58,34],[46,30]]),sk([[-50,42],[40,39]])],a,8,0); },'ひゃくてん まんてん'],
+['check','チェック','stamp',.14,.14,'#6DBE7A',null,a => { F(() => RR(-42,-42,84,84,20),a); hl(-26,-28,9,4.5,-.4,.45); K(() => PL([[-22,1],[-6,18],[24,-16]],1),WH,11); },'ちぇっく できた ok'],
+['batsu','バツ','stamp',.14,.14,'#F2665B',null,a => SS([[[-30,-30],[30,30]],[[30,-30],[-30,30]]],a,19),'ばつ だめ ng'],
+['maru','まる','stamp',.14,.14,'#F2665B',null,a => { if (SIL) { C.moveTo(45,0); C.arc(0,0,45,0,TAU); C.moveTo(23,0); C.arc(0,0,23,0,TAU,true); return; }
+  K(() => Ci(0,0,34),O,22+LW); K(() => Ci(0,0,34),a,22-LW); },'まる 丸 はなまる ok'],
+['warn','ちゅうい','stamp',.14,.14,'#FFCF3F',null,a => { F(() => RP([[0,-44],[48,40],[-48,40]],11),a); D(() => { RR(-5,-16,10,34,5); Ci(0,28,5.8); },O); },'注意 けいこく きけん'],
+['q','はてな','stamp',.14,.14,'#F2665B',null,a => { SS([[...qp(-19,-18,-18,-44,2,-44,8),...qp(2,-44,24,-44,22,-20,8).slice(1),...qp(22,-20,20,-8,2,0,8).slice(1),[2,12]]],a,15); F(() => Ci(2,34,9),a); },'はてな ぎもん 質問 ?'],
+['ex','びっくりマーク','stamp',.14,.14,'#F2665B',null,a => { F(() => { C.moveTo(-11,-40); C.quadraticCurveTo(0,-50,11,-40); C.lineTo(6,14); C.quadraticCurveTo(0,20,-6,14); C.closePath(); },a); F(() => Ci(0,33,9.5),a); },'びっくり えくすくらめーしょん !'],
+['up','うえ','stamp',.14,.14,SK,'#7FB2E5',pointUp,'ゆび 指 うえ 上'],
+['down','した','stamp',.14,.14,SK,'#7FB2E5',rot(PI,pointUp),'ゆび 指 した 下'],
+['right','みぎ','stamp',.14,.14,SK,'#7FB2E5',rot(PI/2,pointUp),'ゆび 指 みぎ 右 こっち'],
+['pin','がびょう','stamp',.14,.14,'#F2665B',null,rot(.5,a => { SS([[[0,4],[0,46]]],'#C3C9D1',4.5); U(() => { E(0,-36,18,8); RR(-9,-36,18,26,3); E(0,-8,26,9); },a); hl(-8,-38,6,2.4,0,.6); }),'ぴん 画鋲 とめる'],
+['mappin','ばしょ','stamp',.14,.14,'#F2665B',null,a => { F(() => { C.moveTo(0,46); C.bezierCurveTo(-10,28,-34,8,-34,-12); C.arc(0,-12,34,PI,0); C.bezierCurveTo(34,8,10,28,0,46); C.closePath(); },a);
+  F(() => Ci(0,-12,12.5),WH,2); hl(-18,-30,6,3.5); },'場所 まっぷ ぴん ちず'],
+['bulb','ひらめき','stamp',.14,.14,'#FFD84D',null,a => { SS(Array.from({ length: 5 },(_,i) => { const t = -PI*.9+i*PI*.2; return [[cos(t)*34,-8+sin(t)*34],[cos(t)*44,-8+sin(t)*44]]; }),a,4.5,0);
+  F(() => RR(-12,30,24,8,3),'#8F96A0'); F(() => RR(-14,16,28,16,4),'#C3C9D1'); K(() => { C.moveTo(-13,24); C.lineTo(13,24); },'#8F96A0',2);
+  U(() => { Ci(0,-6,24); RR(-12,6,24,12,3); },a); K(() => { C.moveTo(-6,14); C.lineTo(-6,2); C.quadraticCurveTo(0,-8,6,2); C.lineTo(6,14); },'#E89A3A',2.4); hl(-10,-16,6,4); },'でんきゅう 電球 あいであ'],
+['talk','ふきだし','stamp',.14,.14,'#FFFFFF','#8A8F98',(a,b) => { U(() => { RR(-46,-36,92,60,24); PL([[-24,18],[-34,42],[-4,22]]); },a); D(() => { Ci(-20,-6,6); Ci(0,-6,6); Ci(20,-6,6); },b); },'吹き出し はなし ちゃっと'],
+['music','おんぷ','stamp',.14,.14,'#9A7BE0',null,a => { U(() => { E(-22,28,12,9,-.35); E(22,20,12,9,-.35); RR(-14,-28,6,56,2); RR(28,-36,6,56,2); PL([[-14,-28],[34,-44],[34,-30],[-14,-14]]); },a); hl(-26,25,4,2,-.35,.5); },'音符 おんがく みゅーじっく うた'],
+['trophy','トロフィー','stamp',.14,.14,'#FFC83D',null,a => { SS([arcP(-26,-22,12,12,PI*.5,PI*1.5),arcP(26,-22,12,12,-PI*.5,PI*.5)],a,6);
+  U(() => { C.moveTo(-26,-40); C.lineTo(26,-40); C.bezierCurveTo(26,-6,14,8,0,8); C.bezierCurveTo(-14,8,-26,-6,-26,-40); C.closePath(); RR(-6,6,12,18,2); RR(-21,22,42,10,3); RR(-15,30,30,10,3); },a);
+  D(() => RP(star(0,-20,11,5),1),lt(a,.45)); hl(-15,-30,3,8,.1,.5); },'ゆうしょう 優勝 いちい 1位'],
+['medal','メダル','stamp',.14,.14,'#FFC83D','#6AA8E8',(a,b) => { F(() => PL([[-30,-48],[-14,-48],[8,-4],[-8,-4]]),b); F(() => PL([[30,-48],[14,-48],[-8,-4],[8,-4]]),'#F2665B');
+  F(() => Ci(0,16,27),a); K(() => Ci(0,16,20),dk(a,.15),2); D(() => RP(star(0,17,13,6),1.5),dk(a,.12)); hl(-11,4,5,3); },'めだる きん 金 1位'],
+['bow','リボン','stamp',.14,.14,'#FF8FB8',null,a => { F(() => PL([[-6,2],[-24,42],[-12,36],[-4,44],[4,4]]),dk(a,.05)); F(() => PL([[6,2],[24,42],[12,36],[4,44],[-4,4]]),dk(a,.05));
+  F(() => { C.moveTo(0,-2); C.bezierCurveTo(-18,-36,-50,-26,-44,0); C.bezierCurveTo(-40,16,-14,12,0,-2); C.closePath(); },a);
+  F(() => { C.moveTo(0,-2); C.bezierCurveTo(18,-36,50,-26,44,0); C.bezierCurveTo(40,16,14,12,0,-2); C.closePath(); },a);
+  D(() => { E(-24,-6,8,5,.4); E(24,-6,8,5,-.4); },dk(a,.18),.6); F(() => RR(-9,-11,18,18,6),dk(a,.12)); },'りぼん かわいい'],
+['mic','マイク','stamp',.14,.14,'#FF8FB8','#C3C9D1',(a,b) => { F(() => PL([[-10,0],[10,0],[5,44],[-5,44]]),a); F(() => RR(-14,-6,28,9,3),dk(b,.25));
+  const hd = () => Ci(0,-24,22); F(hd,b); CL(hd,() => K(() => { for (let i = -3; i <= 3; i++) { C.moveTo(i*7,-48); C.lineTo(i*7,0); C.moveTo(-24,-24+i*7); C.lineTo(24,-24+i*7); } },dk(b,.22),1.6)); hl(-9,-34,6,4); },'まいく うた からおけ 歌'],
+['plane','ひこうき','stamp',.14,.14,'#6AA8E8',null,rot(PI/4,a => { U(() => { RR(-8,-46,16,90,8); PL([[-5,-8],[-46,10],[-46,18],[-5,10],[5,10],[46,18],[46,10],[5,-8]]); PL([[-4,28],[-20,40],[-20,44],[-3,38],[3,38],[20,44],[20,40],[4,28]]); },a);
+  D(() => E(0,-32,4,7),lt(a,.6)); }),'飛行機 たび 旅行 りょこう'],
+['bag','おかいもの','stamp',.14,.14,'#FF8FB8',null,a => { SS([arcP(0,-14,14,18,PI,TAU)],O,4,0); F(() => RP([[-32,-14],[32,-14],[38,44],[-38,44]],5),a);
+  D(() => PL([[-32,-14],[32,-14],[33,-4],[-33,-4]]),dk(a,.12)); D(() => { Ci(-14,-8,2.4); Ci(14,-8,2.4); },O); },'買い物 ばっぐ しょっぴんぐ'],
+['clock','とけい','stamp',.14,.14,'#6AA8E8',null,a => { F(() => Ci(0,0,44),a); F(() => Ci(0,0,34),WH,2);
+  K(() => { for (let i = 0; i < 12; i++) { const t = i*PI/6, r = i%3 ? 29 : 27; C.moveTo(cos(t)*r,sin(t)*r); C.lineTo(cos(t)*31,sin(t)*31); } },O,2.4);
+  K(() => { C.moveTo(0,0); C.lineTo(0,-22); C.moveTo(0,0); C.lineTo(15,7); },O,4.2); D(() => Ci(0,0,4),'#F2665B'); },'時計 じかん 時間'],
+['grad','そつぎょう','stamp',.14,.14,'#3B3F4A','#FFC83D',(a,b) => { F(() => { C.moveTo(-26,-12); C.lineTo(-26,14); C.bezierCurveTo(-12,24,12,24,26,14); C.lineTo(26,-12); C.closePath(); },lt(a,.12));
+  F(() => PL([[0,-38],[48,-18],[0,2],[-48,-18]]),a); SS([[[0,-18],[34,-10],[34,14]]],b,3.4,0); F(() => RR(29,12,10,16,3),b,2); },'卒業 入学 がくせい 学生'],
+/* 季節・天気 */
+['sun','たいよう','season',.14,.14,'#FFD84D','#FFA94D',(a,b) => { F(() => { for (let i = 0; i < 12; i++) { const t = i*PI/6, s = .2; PL([[cos(t-s)*31,sin(t-s)*31],[cos(t)*47,sin(t)*47],[cos(t+s)*31,sin(t+s)*31]]); } },b);
+  F(() => Ci(0,0,30),a); hl(-12,-15,7,4); eye(-10,-2,.7); eye(10,-2,.7); smile(8,8,8); cheek(6,.6); },'太陽 はれ 晴れ てんき'],
+['moon','つき','season',.14,.14,'#FFD84D',null,a => { F(() => cres(-4,2,40,16,-14,34),a); F(() => RP(star(28,-24,11,5),1),a); D(() => Ci(-24,10,4),dk(a,.1),.6); },'月 よる 夜 みかづき'],
+['fullmoon','まんげつ','season',.14,.14,'#FFE07A',null,a => { F(() => Ci(0,0,43),a); D(() => { Ci(-14,-12,8); Ci(14,12,10); Ci(18,-18,5); Ci(-16,18,5); },dk(a,.08),.8); hl(-18,-24,9,5); },'満月 つきみ 月見 十五夜'],
+['cloud','くも','season',.14,.14,'#EEF3FA',null,a => { U(() => { Ci(-20,6,20); Ci(4,-8,26); Ci(26,8,18); RR(-42,6,84,24,12); },a); D(() => RR(-36,18,72,10,5),dk(a,.07)); },'雲 くもり 曇り てんき'],
+['rain','あめ','season',.14,.14,'#B4C8DF','#5A9BE0',(a,b) => { U(() => { Ci(-20,-10,18); Ci(4,-22,23); Ci(25,-8,16); RR(-38,-10,77,22,11); },a);
+  F(() => drop(-20,34,6),b,2); F(() => drop(2,40,6),b,2); F(() => drop(24,32,6),b,2); },'雨 てんき 梅雨 つゆ'],
+['umbrella','かさ','season',.14,.14,'#7FB2E5','#F2665B',(a,b) => { SS([[[0,-40],[0,-47]]],O,3.6,0); SS([[[0,4],[0,34],[-2,40],[-7,43],[-11,41],[-12,36]]],'#9A6B4A',5);
+  const cp = () => { C.moveTo(-46,4); C.bezierCurveTo(-46,-30,-20,-42,0,-42); C.bezierCurveTo(20,-42,46,-30,46,4); C.quadraticCurveTo(34,-5,23,4); C.quadraticCurveTo(11.5,-5,0,4); C.quadraticCurveTo(-11.5,-5,-23,4); C.quadraticCurveTo(-34,-5,-46,4); C.closePath(); };
+  F(cp,a); CL(cp,() => D(() => { C.moveTo(0,-42); C.quadraticCurveTo(-8,-20,-11.5,4); C.lineTo(11.5,4); C.quadraticCurveTo(8,-20,0,-42); C.closePath(); },b,.9));
+  K(() => { C.moveTo(0,-42); C.quadraticCurveTo(-18,-20,-23,4); C.moveTo(0,-42); C.quadraticCurveTo(18,-20,23,4); },dk(a,.3),1.8); },'傘 あめ 雨 梅雨'],
+['snow','ゆき','season',.14,.14,'#8EC5F0',null,a => { const ps = []; for (let i = 0; i < 6; i++) { const t = i*PI/3, u = [cos(t),sin(t)], v = [-u[1],u[0]], P = (r,s) => [u[0]*r+v[0]*s,u[1]*r+v[1]*s];
+  ps.push([P(0,0),P(42,0)],[P(20,0),P(30,10)],[P(20,0),P(30,-10)]); } SS(ps,a,6.5); D(() => Ci(0,0,4),WH); },'雪 ゆきのけっしょう ふゆ 冬'],
+['snowman','ゆきだるま','season',.14,.14,'#FFFFFF','#F2665B',(a,b) => { U(() => { Ci(0,20,25); Ci(0,-16,18); },a); F(() => RR(-18,-4,36,8,4),b,2); F(() => RR(6,-2,9,18,3),b,2);
+  F(() => RR(-14,-46,28,16,3),'#3B3F4A',2); F(() => RR(-21,-32,42,6,3),'#3B3F4A',2); D(() => { Ci(-6,-17,2.6); Ci(6,-17,2.6); Ci(0,16,2.6); Ci(0,28,2.6); },O);
+  D(() => PL([[0,-13],[11,-10],[0,-8]]),'#FF9D4D'); cheek(-9,.4); },'雪だるま ふゆ 冬'],
+['thunder','かみなり','season',.14,.14,'#FFD84D',null,a => { F(() => RP([[6,-47],[-26,4],[-4,4],[-15,47],[26,-9],[4,-9],[18,-47]],2.5),a); hl(0,-30,2.4,8,.5,.5); },'雷 いなずま でんき'],
+['flower','おはな','season',.14,.14,'#FF9EC0','#FFD84D',(a,b) => { U(() => { for (let i = 0; i < 5; i++) { const t = -PI/2+i*TAU/5; Ci(cos(t)*23,sin(t)*23,19); } },a);
+  K(() => { for (let i = 0; i < 5; i++) { const t = -PI/2+i*TAU/5; C.moveTo(cos(t)*14,sin(t)*14); C.lineTo(cos(t)*28,sin(t)*28); } },dk(a,.12),2); F(() => Ci(0,0,12),b,2); },'花 はな ふらわー 桃 もも'],
+['leaf','おちば','season',.14,.14,'#E8894A',null,a => { SS([[[-28,34],[-40,46]]],'#9A6B4A',4); F(() => LF(-30,34,36,-36,22),a); K(() => { C.moveTo(-28,32); C.lineTo(32,-32); for (const t of [.3,.5,.7]) { const x = -28+60*t, y = 32-64*t; C.moveTo(x,y); C.lineTo(x-12,y-6); C.moveTo(x,y); C.lineTo(x+6,y+12); } },dk(a,.25),2); },'落ち葉 あき 秋 は 葉'],
+['pumpkin','かぼちゃ','season',.14,.14,'#FF9D4D',null,a => { F(() => RR(-5,-36,10,16,3),'#6D9E5A',2); U(() => { E(-18,8,20,30); E(18,8,20,30); E(0,8,22,32); },a);
+  K(() => { C.moveTo(-6,-22); C.quadraticCurveTo(-14,8,-6,38); C.moveTo(6,-22); C.quadraticCurveTo(14,8,6,38); },dk(a,.18),2);
+  D(() => { tri(-15,0,8); tri(15,0,8); C.moveTo(-18,16); C.lineTo(-10,22); C.lineTo(-4,16); C.lineTo(4,22); C.lineTo(10,16); C.lineTo(18,22); C.lineTo(14,28); C.lineTo(-14,28); C.closePath(); },'#5A3A22'); },'ハロウィン はろうぃん おばけ'],
+['ghost','おばけ','season',.14,.14,'#F8F6FF',null,a => { U(() => { C.moveTo(-30,40); C.lineTo(-30,-10); C.arc(0,-10,30,PI,0); C.lineTo(30,40); C.quadraticCurveTo(20,30,10,40); C.quadraticCurveTo(0,50,-10,40); C.quadraticCurveTo(-20,30,-30,40); C.closePath(); E(-34,10,10,6,-.6); E(34,10,10,6,.6); },a);
+  D(() => { E(-11,-10,4.4,6); E(11,-10,4.4,6); },O); D(() => E(0,8,5,6),O); cheek(2,.6); },'お化け ハロウィン ゆうれい'],
+['xmas','ツリー','season',.14,.14,'#5FAE6A','#FFD84D',(a,b) => { F(() => RR(-7,30,14,14,2),'#9A6B4A',2);
+  U(() => { RP([[0,-38],[22,-12],[-22,-12]],3); RP([[0,-24],[30,8],[-30,8]],3); RP([[0,-6],[38,32],[-38,32]],3); },a);
+  D(() => { Ci(-12,-2,3.6); Ci(14,14,3.6); Ci(-20,24,3.6); },'#F2665B'); D(() => { Ci(8,-16,3.2); Ci(-4,18,3.2); Ci(22,26,3.2); },'#6AA8E8'); F(() => RP(star(0,-38,12,5.5),1),b,2); },'クリスマス くりすます 木'],
+['hanabi','はなび','season',.14,.14,'#FF6B8A','#FFD84D',(a,b) => { const cs = [a,b,'#6AA8E8']; for (let i = 0; i < 12; i++) { const t = i*PI/6;
+  SS([[[cos(t)*12,sin(t)*12],[cos(t)*34,sin(t)*34]]],cs[i%3],4.5,0); F(() => Ci(cos(t)*41,sin(t)*41,4.2),cs[i%3],0); } F(() => Ci(0,0,5),b,0); },'花火 なつ 夏 まつり'],
+['torii','とりい','season',.14,.14,'#E9503F',null,a => { U(() => { C.moveTo(-48,-40); C.quadraticCurveTo(0,-30,48,-40); C.lineTo(46,-28); C.quadraticCurveTo(0,-20,-46,-28); C.closePath();
+  RR(-40,-16,80,8,2); RP([[-30,-26],[-21,-26],[-19,46],[-32,46]],1); RP([[30,-26],[21,-26],[19,46],[32,46]],1); RR(-4,-26,8,12,1); },a);
+  D(() => { C.moveTo(-48,-40); C.quadraticCurveTo(0,-30,48,-40); C.lineTo(47.5,-36); C.quadraticCurveTo(0,-26,-47.5,-36); C.closePath(); },'#3B3A36'); },'鳥居 じんじゃ 神社 はつもうで 初詣 正月'],
+['kadomatsu','かどまつ','season',.14,.14,'#7DBE6A','#D9B370',(a,b) => { const bb = (x,t,h) => { F(() => PL([[x-7,t+10],[x+7,t],[x+7,40],[x-7,40]]),a,2.2); D(() => E(x,t+5,6.5,2.4,-.62),lt(a,.55)); K(() => { C.moveTo(x-7,t+h); C.lineTo(x+7,t+h); },dk(a,.25),1.8); };
+  F(() => { E(-30,6,12,7,-.5); E(30,6,12,7,.5); },'#3F7F4A',2); bb(-14,-32,22); bb(14,-26,20); bb(0,-46,30);
+  F(() => RR(-26,10,52,34,6),b); K(() => { C.moveTo(-26,20); C.lineTo(26,20); C.moveTo(-26,32); C.lineTo(26,32); },dk(b,.3),2.4); },'門松 おしょうがつ 正月 しんねん'],
+['koi','こいのぼり','season',.2,.12,'#F2665B',null,a => { const body = () => { C.moveTo(-70,0); C.bezierCurveTo(-62,-32,22,-34,50,-14); C.lineTo(78,-30); C.lineTo(66,0); C.lineTo(78,30); C.lineTo(50,14); C.bezierCurveTo(22,34,-62,32,-70,0); C.closePath(); };
+  F(body,a); CL(body,() => { D(() => E(-4,20,60,10),lt(a,.55)); K(() => { for (let x = -18; x <= 36; x += 14) for (const y of [-12,4]) { C.moveTo(x,y-9); C.arc(x,y,9,-PI/2,PI/2); } },lt(a,.5),2.2); });
+  K(() => { C.moveTo(-38,-22); C.quadraticCurveTo(-30,0,-38,22); },dk(a,.25),2.4); F(() => Ci(-50,-6,9),WH,2); D(() => Ci(-49,-6,4.2),O); },'鯉のぼり こどものひ こどもの日 5月'],
+['lantern','ちょうちん','season',.12,.15,'#F2665B',null,a => { SS([[[0,-58],[0,-50]]],O,3,0); const bd = () => E(0,0,36,46);
+  F(bd,a); CL(bd,() => K(() => { for (let y = -36; y <= 36; y += 12) { C.moveTo(-40,y); C.quadraticCurveTo(0,y+y*.18,40,y); } },dk(a,.2),2)); D(() => E(-14,-6,6,24),WH,.3);
+  F(() => RR(-18,-52,36,10,3),'#3B3A36',2); F(() => RR(-18,42,36,10,3),'#3B3A36',2); },'提灯 なつまつり 祭り'],
+['furin','ふうりん','season',.14,.14,'#BFE3F5','#FFD84D',(a,b) => { SS([[[0,-46],[0,-34]],[[0,-4],[0,16]]],O,1.8,0); F(() => Ci(0,-36,4),dk(a,.2),1.8);
+  F(() => { C.moveTo(-26,-2); C.bezierCurveTo(-26,-44,26,-44,26,-2); C.closePath(); },a); D(() => { Ci(-10,-14,3); Ci(4,-22,2.6); Ci(14,-10,3); },'#F2665B');
+  K(() => { C.moveTo(-18,-6); C.quadraticCurveTo(-9,-10,0,-6); C.quadraticCurveTo(9,-2,18,-6); },'#6AA8E8',2.2); F(() => RR(-8,16,16,30,2),b,2); hl(-14,-22,3,6,.3,.6); },'風鈴 なつ 夏 すずしい'],
+['snail','かたつむり','season',.14,.14,'#E8A36B','#E6D3A8',(a,b) => { SS([[[-38,-2],[-44,-22]],[[-30,-2],[-30,-22]]],O,2.4,0); F(() => { Ci(-44,-23,3.5); Ci(-30,-23,3.5); },O,0);
+  F(() => { C.moveTo(-46,32); C.quadraticCurveTo(-48,-6,-30,-6); C.quadraticCurveTo(-18,-6,-16,22); C.lineTo(44,24); C.quadraticCurveTo(48,34,40,36); C.lineTo(-40,36); C.quadraticCurveTo(-46,36,-46,32); C.closePath(); },b);
+  F(() => Ci(10,0,26),a); K(() => PL(Array.from({ length: 40 },(_,i) => { const t = i*.32, r = 22-i*.52; return [10+cos(t+PI)*r,0+sin(t+PI)*r]; }),1),dk(a,.3),2.6);
+  D(() => { Ci(-38,6,2.4); },O); D(() => E(-30,12,3,1.8),PK,.7); },'蝸牛 つゆ 梅雨'],
+/* どうぶつ */
+['cat','ねこ','animal',.14,.14,'#F5B66B','#F49A9A',(a,b) => { U(() => { RP([[-40,-2],[-32,-46],[-6,-28]],5); RP([[40,-2],[32,-46],[6,-28]],5); E(0,8,42,34); },a);
+  D(() => { RP([[-33,-12],[-29,-37],[-14,-26]],3); RP([[33,-12],[29,-37],[14,-26]],3); },b,.8);
+  fur(0,4,1.2); D(() => PL([[-3.5,13],[3.5,13],[0,16.5]]),'#E07070'); K(() => { C.moveTo(-6,20); C.quadraticCurveTo(-3,23,0,19); C.quadraticCurveTo(3,23,6,20); C.moveTo(-26,12); C.lineTo(-44,9); C.moveTo(-26,18); C.lineTo(-42,20); C.moveTo(26,12); C.lineTo(44,9); C.moveTo(26,18); C.lineTo(42,20); },O,1.8); cheek(18,.5); },'猫 にゃんこ どうぶつ'],
+['dog','いぬ','animal',.14,.14,'#E8C49A','#9A6B4A',(a,b) => { F(() => { E(-36,-6,12,25,.35); E(36,-6,12,25,-.35); },b); F(() => E(0,4,36,36),a);
+  D(() => E(0,18,16,12),lt(a,.55)); fur(0,-2,1.1); D(() => E(0,11,6,4.5),O); K(() => { C.moveTo(0,15); C.lineTo(0,20); C.moveTo(-7,21); C.quadraticCurveTo(0,26,7,21); },O,2); cheek(14,.5); },'犬 わんこ どうぶつ'],
+['rabbit','うさぎ','animal',.14,.14,'#F7F2EE','#F49A9A',(a,b) => { U(() => { E(-14,-24,9.5,22,-.12); E(14,-24,9.5,22,.12); E(0,16,34,28); },a);
+  D(() => { E(-14,-24,4.5,15,-.12); E(14,-24,4.5,15,.12); },b,.85); fur(0,12,1); D(() => PL([[-3,20],[3,20],[0,23]]),'#E07070'); K(() => { C.moveTo(-5,26); C.quadraticCurveTo(-2,29,0,25.5); C.quadraticCurveTo(2,29,5,26); },O,1.8); cheek(24,.55); },'兎 うさちゃん どうぶつ'],
+['bear','くま','animal',.14,.14,'#B98A62',null,a => { U(() => { Ci(-29,-24,13); Ci(29,-24,13); E(0,6,40,36); },a); D(() => { Ci(-29,-24,6.5); Ci(29,-24,6.5); },lt(a,.4));
+  D(() => E(0,18,15,11),lt(a,.5)); fur(0,-1,1.1); D(() => E(0,13,5.5,4),O); K(() => { C.moveTo(0,16); C.lineTo(0,21); C.moveTo(-6,22); C.quadraticCurveTo(0,26,6,22); },O,2); cheek(14,.45); },'熊 くまさん どうぶつ'],
+['panda','パンダ','animal',.14,.14,'#FFFFFF','#3B3A36',(a,b) => { F(() => { Ci(-28,-26,12); Ci(28,-26,12); },b); F(() => E(0,6,40,36),a);
+  D(() => { E(-15,0,9,12,.5); E(15,0,9,12,-.5); },b); D(() => { Ci(-13,-1,3); Ci(13,-1,3); },WH); D(() => E(0,15,5,3.6),b); K(() => { C.moveTo(-5,22); C.quadraticCurveTo(0,26,5,22); },b,2); cheek(16,.5); },'ぱんだ どうぶつ'],
+['chick','ひよこ','animal',.14,.14,'#FFD84D','#FF9D4D',(a,b) => { U(() => { Ci(0,6,38); LF(-2,-30,-10,-46,4); LF(2,-30,10,-46,4); },a); F(() => { E(-37,14,7,13,.3); E(37,14,7,13,-.3); },dk(a,.06),2);
+  eye(-13,0,.85); eye(13,0,.85); F(() => PL([[-7,8],[7,8],[0,16]]),b,2); cheek(12,.55); },'ひよこ とり 鳥 どうぶつ'],
+['paw','あしあと','animal',.14,.14,'#C08A64',null,a => { F(() => SM([[0,4],[28,14],[24,40],[0,42],[-24,40],[-28,14]]),a); F(() => { Ci(-30,-10,9.5); Ci(-11,-28,10.5); Ci(11,-28,10.5); Ci(30,-10,9.5); },a); hl(-8,20,6,3,0,.35); },'足あと 肉球 にくきゅう ぺっと'],
+/* たべもの */
+['bread','しょくパン','food',.14,.14,'#D9934A','#FBE3B4',(a,b) => { const sh = s => { const P = (x,y) => [x*s,y*s+2*(1-s)];
+  C.moveTo(...P(-32,42)); C.lineTo(...P(-32,-8)); C.bezierCurveTo(...P(-48,-12),...P(-46,-44),...P(-18,-42)); C.bezierCurveTo(...P(-8,-50),...P(8,-50),...P(18,-42)); C.bezierCurveTo(...P(46,-44),...P(48,-12),...P(32,-8)); C.lineTo(...P(32,42)); C.closePath(); };
+  F(() => sh(1),a); D(() => sh(.8),b); hl(-16,-20,6,3,0,.5); },'パン ぱん 食パン あさごはん 朝ごはん'],
+['strawberry','いちご','food',.14,.14,'#F2554B','#6DBE7A',(a,b) => { F(() => { C.moveTo(0,46); C.bezierCurveTo(-28,36,-42,4,-36,-16); C.bezierCurveTo(-30,-30,-12,-30,0,-24); C.bezierCurveTo(12,-30,30,-30,36,-16); C.bezierCurveTo(42,4,28,36,0,46); C.closePath(); },a);
+  D(() => { for (const [x,y] of [[-20,-6],[0,-8],[20,-6],[-12,10],[10,10],[-2,26],[-22,20],[22,20]]) E(x,y,1.8,2.8); },'#FFE08A'); F(() => RP(star(0,-28,24,8,6),2),b); SS([[[0,-32],[3,-46]]],dk(b,.15),4); hl(-22,-10,4,7,.4,.4); },'苺 ふるーつ くだもの'],
+['dango','だんご','food',.14,.14,'#F7A8C0',null,rot(.45,a => { SS([[[0,-48],[0,48]]],'#D9B370',4.5); F(() => Ci(0,28,14.5),'#9CCB7A'); F(() => Ci(0,1,14.5),'#FFF8EE'); F(() => Ci(0,-26,14.5),a); D(() => { E(-5,-31,4,2.4,-.5); E(-5,-4,4,2.4,-.5); E(-5,23,4,2.4,-.5); },WH,.6); }),'団子 だんご 和菓子 つきみ 花見'],
+['watermelon','すいか','food',.14,.14,'#5FAE6A','#F2665B',(a,b) => { F(() => { C.moveTo(-46,-20); C.arc(0,-20,46,PI,0,true); C.closePath(); },a); D(() => { C.moveTo(-39,-20); C.arc(0,-20,39,PI,0,true); C.closePath(); },'#F4F6E6');
+  D(() => { C.moveTo(-35,-20); C.arc(0,-20,35,PI,0,true); C.closePath(); },b); D(() => { for (const [x,y] of [[-18,-10],[0,-6],[18,-10],[-9,4],[9,4]]) E(x,y,2,3.2); },O); },'西瓜 なつ 夏 くだもの'],
+['kakigori','かきごおり','food',.14,.14,'#F2665B','#DCEFF8',(a,b) => { const ice = () => { C.moveTo(-36,6); C.bezierCurveTo(-40,-32,-16,-46,0,-46); C.bezierCurveTo(16,-46,40,-32,36,6); C.closePath(); };
+  F(ice,WH); CL(ice,() => D(() => { C.moveTo(-40,-50); C.lineTo(40,-50); C.lineTo(40,-16); C.quadraticCurveTo(20,-6,4,-18); C.quadraticCurveTo(-14,-4,-40,-16); C.closePath(); },a,.9)); F(() => PL([[-32,4],[32,4],[20,44],[-20,44]]),b);
+  K(() => { C.moveTo(-24,16); C.lineTo(24,16); },dk(b,.2),2); },'かき氷 なつ 夏 こおり'],
+['choco','チョコ','food',.14,.14,'#8A5A3C','#F2665B',rot(-.3,(a,b) => { F(() => RR(-26,-42,52,82,6),a); K(() => { C.moveTo(-26,-14); C.lineTo(26,-14); C.moveTo(0,-42); C.lineTo(0,2); },dk(a,.3),2.4); D(() => { RR(-21,-37,16,18,3); RR(5,-37,16,18,3); },lt(a,.18));
+  F(() => PL([[-28,2],[-20,-2],[-12,3],[-4,-2],[4,3],[12,-2],[20,3],[28,-2],[28,44],[-28,44]]),b); D(() => RR(-28,18,56,8,0),lt(b,.35)); }),'ちょこ バレンタイン ばれんたいん おかし'],
+['egg','めだまやき','food',.14,.14,'#FFFDF7','#FFC83D',(a,b) => { F(() => SM([[-44,-4],[-32,-38],[2,-42],[34,-30],[44,2],[30,36],[-2,40],[-36,30]]),a); F(() => Ci(4,-2,16),b); hl(-2,-8,5,3,-.6,.7); },'目玉焼き たまご 卵 あさごはん 朝ごはん']
+];
+
+const DECO_STAMPS = {};
+for (const [id,name,cat,w,h,color,color2,art,yomi] of T) { const k = MN(w,h), hw = 50*w/k, hh = 50*h/k;
+  const sp = DECO_STAMPS['st-'+id] = { name,cat,w,h,color,color2,yomi, draw(ctx,o) {
+    const a = hex(o.color || sp.color), b = hex(o.color2 || sp.color2 || '#FFFFFF'), s = MN(o.w/(2*hw),o.h/(2*hh));
+    if (!(s > 0)) return; const sv = C; ctx.save();
+    try { C = ctx; ctx.scale(s,s); ctx.lineJoin = ctx.lineCap = 'round';
+      SIL = 1; ctx.beginPath(); art(a,b); const t = ctx.getTransform(), kp = Math.hypot(t.a,t.b) || 1;
+      ctx.shadowColor = 'rgba(40,38,30,.24)'; ctx.shadowBlur = 6*kp; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 2.2*kp;
+      ctx.strokeStyle = WH; ctx.lineWidth = LW+BW*2; ctx.stroke(); ctx.shadowColor = 'rgba(0,0,0,0)'; ctx.shadowBlur = ctx.shadowOffsetY = 0; ctx.fillStyle = WH; ctx.fill();
+      SIL = 0; art(a,b);
+    } finally { SIL = 0; C = sv; ctx.restore(); ctx.beginPath(); } } };
+}
+const DECO_CATS_STAMPS = [['stamp','スタンプ'],['season','季節・天気'],['animal','どうぶつ']];
+return { DECO_CATS_STAMPS, DECO_STAMPS };
+})();
+//GEN-STAMPS-END
 //GEN-CHARTS-START
 /* Lufora charts & tables — editable chart/table stickers (Canvas 2D, no deps) */
 const { CHART_KINDS, CHART_PRESETS, drawChart, chartToText, chartFromText } = (() => {
@@ -2196,8 +2439,8 @@ tx(x, fmt(d.v[i]), R.x + R.w, cy, nw, fs, 800, P.dark, 'right');
 }
 }
 /* ---------- tables ---------- */
-const MARK = { '◎': 'dbl', '◯': 'o', '○': 'o', '〇': 'o', 'O': 'o', '△': 'tri', '▲': 'tri', '✕': 'x', '×': 'x', '✖': 'x', 'X': 'x', 'x': 'x', '-': '-', '－': '-', 'ー': '-', '―': '-' };
-const CHECK = /^(☑|✓|✔|☒|■|済|完了|done|ok|v|y|yes|1|true)$/i;
+const MARK = { '◎': 'dbl', '◯': 'o', '○': 'o', '〇': 'o', 'O': 'o', '△': 'tri', '▲': 'tri', '✕': 'x', '×': 'x', '✖': 'x', 'X': 'x', 'x': 'x', '-': '-', '－': '-', 'ー': '-', '―': '-' };   // emoji-compat: marks people may type
+const CHECK = /^(☑|✓|✔|☒|■|済|完了|done|ok|v|y|yes|1|true)$/i;   // emoji-compat
 function mark(x, kind, cx, cy, m, P, S) {
 const lw = Math.max(1, m * .22), good = P.c, mid = P.st === 'mono' ? [150, 150, 146] : [214, 166, 74], bad = P.st === 'mono' ? [185, 185, 181] : [205, 112, 112];
 x.lineWidth = lw; x.lineCap = x.lineJoin = 'round';
@@ -2237,9 +2480,9 @@ function weatherIcon(x, w, cx, cy, s, P) {
 const mono = P.st === 'mono', sunC = mono ? P.c : [242, 184, 75], cl = mono ? [190, 190, 186] : [186, 196, 206], rain = mono ? [130, 130, 126] : [100, 150, 205];
 const sun = (X, Y, r) => { x.strokeStyle = x.fillStyle = css(sunC); x.lineWidth = r * .22; x.lineCap = 'round'; for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; line(x, X + Math.cos(a) * r * 1.35, Y + Math.sin(a) * r * 1.35, X + Math.cos(a) * r * 1.75, Y + Math.sin(a) * r * 1.75); } circ(x, X, Y, r); x.fill(); };
 const cloud = (X, Y, r) => { x.fillStyle = css(cl); circ(x, X - r * .55, Y + r * .15, r * .55); x.fill(); circ(x, X + r * .1, Y - r * .2, r * .72); x.fill(); circ(x, X + r * .7, Y + r * .2, r * .48); x.fill(); rr(x, X - r * 1.1, Y + r * .1, r * 2.25, r * .58, r * .29); x.fill(); };
-const k = /雨|☂|☔|rain/i.test(w) ? 'r' : /雪|☃|❄|snow/i.test(w) ? 's' : /曇|☁|くもり|cloud/i.test(w) ? 'c' : /晴|☀|はれ|sun/i.test(w) ? 'f' : '';
+const k = /雨|☂|☔|rain/i.test(w) ? 'r' : /雪|☃|❄|snow/i.test(w) ? 's' : /曇|☁|くもり|cloud/i.test(w) ? 'c' : /晴|☀|はれ|sun/i.test(w) ? 'f' : '';   // emoji-compat: weather words or marks people may type
 const two = /のち|時々|一時|\/|→/.test(w);
-if (two && /晴|☀/.test(w) && k !== 'f') { sun(cx - s * .28, cy - s * .2, s * .2); }
+if (two && /晴|☀/.test(w) && k !== 'f') { sun(cx - s * .28, cy - s * .2, s * .2); }   // emoji-compat
 if (k === 'f') { sun(cx, cy, s * .24); if (two && /曇/.test(w)) cloud(cx + s * .2, cy + s * .15, s * .24); }
 else if (k) {
 cloud(cx, cy - s * .08, s * .3);
@@ -2377,7 +2620,7 @@ p('gauge', '達成率メーター', 'gauge', .46, .36, '目標達成率', cv(['�
 p('rank', 'おすすめランキング', 'ranking', .56, .42, 'おすすめ TOP3', cv(['抹茶ラテ', 'ほうじ茶ラテ', 'いちごミルク'], [98, 87, 76]), PINK, 'bold'),
 p('rating', '評価 ★', 'rating', .58, .42, 'お店の評価', cv(['味', '雰囲気', 'コスパ', '接客'], [4.5, 4, 3.5, 5]), YEL, 'soft'),
 p('timetable', '時間割', 'timetable', .7, .58, '時間割', { rows: [['', '月', '火', '水', '木', '金'], ['1', '国語', '数学', '英語', '理科', '数学'], ['2', '数学', '英語', '国語', '社会', '英語'], ['3', '英語', '理科', '体育', '数学', '国語'], ['4', '理科', '社会', '数学', '英語', '音楽'], ['5', '社会', '体育', '美術', '国語', '理科'], ['6', '体育', '国語', '美術', '総合', '']] }, SAGE, 'soft'),
-p('todo', 'やることリスト', 'checklist', .5, .5, 'やることリスト', { rows: [['✓', 'やること'], ['☑', '洗濯'], ['☐', '買い物'], ['☐', 'メールの返信'], ['☑', '部屋の掃除'], ['☐', '日記を書く']] }, BLUE, 'soft'),
+p('todo', 'やることリスト', 'checklist', .5, .5, 'やることリスト', { rows: [['✓', 'やること'], ['✓', '洗濯'], ['☐', '買い物'], ['☐', 'メールの返信'], ['✓', '部屋の掃除'], ['☐', '日記を書く']] }, BLUE, 'soft'),
 p('week', '今週の予定', 'schedule', .6, .5, '今週の予定', { rows: [['曜日', '時間', '予定'], ['月', '10:00', '歯医者'], ['水', '19:00', 'ヨガ'], ['金', '18:30', '友だちとごはん'], ['土', '9:00', 'カフェ巡り'], ['日', '13:00', '映画']] }, SAGE, 'soft'),
 p('compare', '比較表 ◯✕', 'compare', .6, .46, 'カフェ比較', { rows: [['', 'A店', 'B店', 'C店'], ['安さ', '◯', '△', '◎'], ['駅近', '◎', '◯', '✕'], ['Wi-Fi', '✕', '◯', '◯'], ['電源', '◯', '✕', '◯']] }, BLUE, 'bold'),
 p('menu', 'メニュー価格表', 'price', .54, .5, 'Cafe Menu', { rows: [['メニュー', '価格'], ['ブレンドコーヒー', '¥480'], ['カフェラテ', '¥520'], ['抹茶ラテ', '¥560'], ['チーズケーキ', '¥450'], ['季節のタルト', '¥600']] }, BRN, 'soft'),
@@ -2386,7 +2629,7 @@ p('sales', '売上（2系列）', 'bar', .66, .46, '売上 今年／昨年（万
 p('vote', '人気投票', 'hbar', .6, .44, '好きなアイスは？', cv(['いちご', 'チョコ', 'バニラ', '抹茶', 'マンゴー'], [128, 96, 74, 61, 43]), PINK, 'soft'),
 p('weather', '週間天気', 'weather', .72, .4, '週間天気', { rows: [WK, ['晴', '晴のち曇', '雨', '曇', '晴', '晴', '雨のち晴'], ['18/9', '16/10', '14/11', '15/9', '19/10', '20/12', '17/11']] }, BLUE, 'soft'),
 p('books', '読書記録', 'table', .64, .46, '読書記録', { rows: [['日付', 'タイトル', '評価'], ['11/2', '星降る庭', '★★★★☆'], ['11/9', '夜明けのパン屋', '★★★★★'], ['11/16', '森のことば', '★★★☆☆'], ['11/23', '旅する植物図鑑', '★★★★☆']] }, LAV, 'soft'),
-p('shop', '買い物リスト', 'checklist', .5, .48, '買い物リスト', { rows: [['✓', '品物', '数量'], ['☐', '牛乳', '1本'], ['☑', '卵', '1パック'], ['☐', 'りんご', '3個'], ['☐', '食パン', '1斤']] }, YEL, 'soft'),
+p('shop', '買い物リスト', 'checklist', .5, .48, '買い物リスト', { rows: [['✓', '品物', '数量'], ['☐', '牛乳', '1本'], ['✓', '卵', '1パック'], ['☐', 'りんご', '3個'], ['☐', '食パン', '1斤']] }, YEL, 'soft'),
 p('follow', 'フォロワー推移', 'area', .62, .44, 'フォロワー推移', cv(['6月', '7月', '8月', '9月', '10月', '11月'], [120, 180, 260, 390, 520, 740]), SAGE, 'soft'),
 p('sleep', '睡眠時間', 'bar', .6, .44, '睡眠時間（h）', cv(WK, [6.5, 7, 5.5, 8, 6, 9, 7.5]), LAV, 'mono')
 ];
@@ -2403,100 +2646,100 @@ const TEMPLATES_GEN = [
     { t: 'deco', kind: 'round-sticker', x: .14, y: .15, s: 1.2, color: '#C8102E', color2: '#FFFFFF' },
     { t: 'text', x: .14, y: .15, text: '福', font: 'Yuji Syuku', size: .09, color: '#FFFFFF', bold: false },
     { t: 'text', x: .3, y: .88, text: 'おみくじ 大吉', font: 'Shippori Mincho', size: .055, color: '#B5162B', bg: '#FFF6E0', rot: -.04 },
-    { t: 'stamp', x: .84, y: .86, ch: '⛩️', size: .12 }] },
+    { t: 'deco', x: .84, y: .86, kind: 'st-torii', s: .94 }] },
   { id: 'gen-m02', name: '2月 バレンタイン', cat: 'month', preset: 'soft', amt: 70, items: () => [
     { t: 'text', x: .5, y: .13, text: 'Happy Valentine', font: 'Great Vibes', size: .12, color: '#FFFFFF', shadow: true, bold: false },
     { t: 'deco', kind: 'heart-line', x: .13, y: .3, color: '#FF6F9C', rot: -.2 },
     { t: 'note', x: .73, y: .75, w: .42, h: .38, shape: 'heart', color: '#FFD6E0', text: 'いつも\nありがとう', font: 'Zen Maru Gothic', tcolor: '#B23A5E', deco: 'none', rot: .06 },
-    { t: 'stamp', x: .14, y: .85, ch: '🍫', size: .11 },
+    { t: 'deco', x: .14, y: .85, kind: 'st-choco', s: .86 },
     { t: 'deco', kind: 'kira', x: .88, y: .3, color: '#FFFFFF' }] },
   { id: 'gen-m03', name: '3月 ひなまつり', cat: 'month', preset: 'soft', amt: 60, items: () => [
     { t: 'deco', kind: 'tape-asanoha', x: .5, y: .08, s: 1.2, color: '#FFB3C7', color2: '#FFFFFF', rot: -.02 },
     { t: 'text', x: .5, y: .19, text: 'ひなまつり', font: 'Kaisei Decol', size: .1, color: '#FFFFFF', outline: '#E06A8E', bold: false },
-    { t: 'stamp', x: .13, y: .85, ch: '🎎', size: .13 },
-    { t: 'stamp', x: .87, y: .84, ch: '🌸', size: .1 }, { t: 'stamp', x: .76, y: .92, ch: '🌸', size: .06 },
+    { t: 'deco', x: .13, y: .85, kind: 'st-flower', s: 1.02, color: '#FFB3C7' },
+    { t: 'deco', x: .87, y: .84, kind: 'il-sakura', s: .55 }, { t: 'deco', x: .76, y: .92, kind: 'il-sakura', s: .33 },
     { t: 'text', x: .5, y: .93, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
   { id: 'gen-m04', name: '4月 お花見', cat: 'month', items: () => [
     { t: 'text', x: .5, y: .12, text: 'お花見日和', font: 'Zen Maru Gothic', size: .1, color: '#FFFFFF', bg: '#F49AB5' },
     { t: 'text', x: .5, y: .22, text: 'sakura days', font: 'Caveat', size: .085, color: '#FFFFFF', shadow: true, bold: false },
-    { t: 'stamp', x: .12, y: .3, ch: '🌸', size: .09 }, { t: 'stamp', x: .9, y: .35, ch: '🌸', size: .06 },
-    { t: 'stamp', x: .86, y: .85, ch: '🍡', size: .12 },
+    { t: 'deco', x: .12, y: .3, kind: 'il-sakura', s: .49 }, { t: 'deco', x: .9, y: .35, kind: 'il-sakura', s: .33 },
+    { t: 'deco', x: .86, y: .85, kind: 'st-dango', s: .94 },
     { t: 'text', x: .2, y: .92, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
   { id: 'gen-m05', name: '5月 こどもの日', cat: 'month', preset: 'natural', amt: 70, items: () => [
     { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.4, color: '#4FA3E0', color2: '#9BD27A' },
     { t: 'text', x: .5, y: .21, text: 'こどもの日', font: 'Mochiy Pop One', size: .09, color: '#FFFFFF', outline: '#2F6FB0', bold: false },
     { t: 'text', x: .62, y: .89, text: 'すくすく大きくなあれ', font: 'Kiwi Maru', size: .045, color: '#2F6FB0', bg: '#FFFFFF' },
-    { t: 'stamp', x: .14, y: .83, ch: '🎏', size: .14 }] },
+    { t: 'deco', x: .14, y: .83, kind: 'st-koi', s: .77 }] },
   { id: 'gen-m06', name: '6月 紫陽花と雨', cat: 'month', preset: 'cool', amt: 55, items: () => [
     { t: 'text', x: .88, y: .34, text: '紫陽花', font: 'Shippori Mincho', size: .1, color: '#FFFFFF', shadow: true, vert: true },
     { t: 'text', x: .3, y: .12, text: 'rainy days', font: 'Caveat', size: .12, color: '#FFFFFF', shadow: true, bold: false, rot: -.06 },
-    { t: 'stamp', x: .14, y: .84, ch: '☔', size: .12 },
-    { t: 'stamp', x: .3, y: .9, ch: '🐌', size: .07 },
+    { t: 'deco', x: .14, y: .84, kind: 'st-umbrella', s: .94 },
+    { t: 'deco', x: .3, y: .9, kind: 'st-snail', s: .55 },
     { t: 'deco', kind: 'bubble', x: .82, y: .82, color: '#B9A7E8' }] },
   { id: 'gen-m07', name: '7月 七夕', cat: 'month', preset: 'night', amt: 40, items: () => [
     { t: 'text', x: .12, y: .33, text: '七夕', font: 'Yuji Syuku', size: .12, color: '#FFFFFF', shadow: true, vert: true, bold: false },
     { t: 'note', x: .8, y: .36, w: .14, h: .5, shape: 'square', color: '#FFE3EC', text: '', deco: 'pin', rot: .05 },
     { t: 'text', x: .8, y: .39, text: '願いが叶いますように', font: 'Klee One', size: .036, color: '#6B3FA0', vert: true, rot: .05 },
     { t: 'deco', kind: 'kira3', x: .4, y: .12, color: '#FFE66D' },
-    { t: 'stamp', x: .86, y: .86, ch: '🎋', size: .13 },
+    { t: 'deco', x: .86, y: .86, kind: 'st-star', s: 1.02 },
     { t: 'deco', kind: 'star', x: .16, y: .85, s: .8, color: '#FFE66D' }] },
   { id: 'gen-m08', name: '8月 夏祭り・花火', cat: 'month', items: () => [
     { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.4, color: '#E8382F', color2: '#FFFFFF' },
     { t: 'text', x: .5, y: .2, text: '夏祭り', font: 'Darumadrop One', size: .13, color: '#FFFFFF', outline: '#E8382F', bold: false },
-    { t: 'stamp', x: .13, y: .84, ch: '🏮', size: .12 },
-    { t: 'stamp', x: .87, y: .36, ch: '🎆', size: .12 },
-    { t: 'stamp', x: .86, y: .86, ch: '🍧', size: .1 },
+    { t: 'deco', x: .13, y: .84, kind: 'st-lantern', s: .88 },
+    { t: 'deco', x: .87, y: .36, kind: 'st-hanabi', s: .94 },
+    { t: 'deco', x: .86, y: .86, kind: 'st-kakigori', s: .79 },
     { t: 'text', x: .5, y: .93, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
   { id: 'gen-m09', name: '9月 お月見', cat: 'month', preset: 'dusk', amt: 50, items: () => [
     { t: 'text', x: .87, y: .38, text: 'お月見', font: 'Hina Mincho', size: .11, color: '#FFF3C4', shadow: true, vert: true, bold: false },
-    { t: 'stamp', x: .15, y: .15, ch: '🌕', size: .13 },
+    { t: 'deco', x: .15, y: .15, kind: 'st-fullmoon', s: 1.02 },
     { t: 'text', x: .45, y: .13, text: 'moon night', font: 'Cinzel', size: .065, color: '#FFF3C4', shadow: true, bold: false },
-    { t: 'stamp', x: .14, y: .85, ch: '🐇', size: .11 }, { t: 'stamp', x: .3, y: .88, ch: '🍡', size: .08 }] },
+    { t: 'deco', x: .14, y: .85, kind: 'st-rabbit', s: .86 }, { t: 'deco', x: .3, y: .88, kind: 'st-dango', s: .63 }] },
   { id: 'gen-m10', name: '10月 紅葉狩り', cat: 'month', preset: 'warm', amt: 60, items: () => [
     { t: 'text', x: .5, y: .13, text: '紅葉狩り', font: 'Shippori Mincho', size: .11, color: '#FFFFFF', outline: '#A33B1E' },
     { t: 'text', x: .5, y: .235, text: 'autumn leaves', font: 'Caveat', size: .08, color: '#FFE0B5', shadow: true, bold: false },
-    { t: 'stamp', x: .12, y: .3, ch: '🍁', size: .1, rot: -.3 },
-    { t: 'stamp', x: .86, y: .84, ch: '🍂', size: .12, rot: .2 }, { t: 'stamp', x: .72, y: .91, ch: '🍁', size: .07 },
+    { t: 'deco', x: .12, y: .3, kind: 'il-maple', s: .55, rot: -.3 },
+    { t: 'deco', x: .86, y: .84, kind: 'st-leaf', s: .94, rot: .2 }, { t: 'deco', x: .72, y: .91, kind: 'il-maple', s: .39 },
     { t: 'text', x: .2, y: .92, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
   { id: 'gen-m11', name: '11月 読書の秋', cat: 'month', preset: 'film', amt: 55, items: () => [
     { t: 'text', x: .5, y: .12, text: 'Book & Coffee', font: 'Playfair Display', size: .085, color: '#FFFFFF', shadow: true, italic: true },
     { t: 'note', x: .29, y: .77, w: .46, h: .34, shape: 'torn', color: '#FBF6EC', text: '今読んでる本\n『秋の夜長』', font: 'Klee One', tcolor: '#4A3B2E', deco: 'tape', rot: -.04 },
-    { t: 'stamp', x: .85, y: .85, ch: '📚', size: .11 },
-    { t: 'stamp', x: .88, y: .26, ch: '☕', size: .09 }] },
+    { t: 'deco', x: .85, y: .85, kind: 'il-book', s: .5 },
+    { t: 'deco', x: .88, y: .26, kind: 'il-coffee', s: .49 }] },
   { id: 'gen-m12', name: '12月 今年もありがとう', cat: 'month', preset: 'cool', amt: 40, items: () => [
     { t: 'text', x: .5, y: .13, text: '今年もありがとう', font: 'Zen Maru Gothic', size: .085, color: '#FFFFFF', shadow: true },
     { t: 'text', x: .5, y: .23, text: 'THANK YOU ' + new Date().getFullYear(), font: 'Bebas Neue', size: .07, color: '#CFE8FF', bold: false, shadow: true },
     { t: 'deco', kind: 'kira', x: .86, y: .36, color: '#FFFFFF' },
-    { t: 'stamp', x: .14, y: .85, ch: '⛄', size: .13 },
-    { t: 'stamp', x: .86, y: .84, ch: '❄️', size: .08 }, { t: 'stamp', x: .76, y: .92, ch: '❄️', size: .05 }] },
+    { t: 'deco', x: .14, y: .85, kind: 'st-snowman', s: 1.02 },
+    { t: 'deco', x: .86, y: .84, kind: 'st-snow', s: .63 }, { t: 'deco', x: .76, y: .92, kind: 'st-snow', s: .39 }] },
 
   /* ---- 学校・勉強 ---- */
   { id: 'gen-sc-time', name: '時間割メモ', cat: 'school', items: () => [
     { t: 'text', x: .5, y: .1, text: '今週の時間割', font: 'Mochiy Pop One', size: .075, color: '#FFFFFF', bg: '#4F8FD9', bold: false },
     { t: 'note', x: .7, y: .58, w: .44, h: .56, shape: 'square', color: '#FFFFFF', pattern: 'grid', text: '月 国語・数学\n火 英語・理科\n水 社会・体育\n木 数学・音楽\n金 英語・美術', font: 'Zen Maru Gothic', tcolor: '#2A3A55', deco: 'tape', rot: .02 },
-    { t: 'stamp', x: .16, y: .86, ch: '✏️', size: .1 },
+    { t: 'deco', x: .16, y: .86, kind: 'il-pencil', s: .55 },
     { t: 'deco', kind: 'check', x: .16, y: .3, color: '#FF6F61' }] },
   { id: 'gen-sc-study', name: '勉強記録', cat: 'school', items: () => [
     { t: 'text', x: .3, y: .1, text: 'STUDY LOG', font: 'Bebas Neue', size: .1, color: '#FFFFFF', bold: false, shadow: true },
     { t: 'text', x: .3, y: .19, text: todayStr(), font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', bold: false, shadow: true },
     { t: 'note', x: .71, y: .73, w: .46, h: .42, shape: 'rounded', color: '#FFFFFF', pattern: 'lines', text: '勉強時間 3h20m\n英単語 50個\n数学 p.32〜35', font: 'Klee One', tcolor: '#2A3A55', deco: 'pin' },
     { t: 'deco', kind: 'hand-underline', x: .3, y: .24, s: .8, color: '#FFD23F' },
-    { t: 'stamp', x: .14, y: .86, ch: '📖', size: .1 }] },
+    { t: 'deco', x: .14, y: .86, kind: 'il-book', s: .46 }] },
   { id: 'gen-sc-club', name: '部活おつかれ', cat: 'school', preset: 'youth', amt: 70, items: () => [
     { t: 'text', x: .5, y: .12, text: '部活おつかれ！', font: 'RocknRoll One', size: .085, color: '#FFFFFF', outline: '#1E3A8A', bold: false },
     { t: 'deco', kind: 'ribbon', x: .5, y: .86, s: 1.3, color: '#1E3A8A', color2: '#FFFFFF' },
     { t: 'text', x: .5, y: .858, text: '大会まであと30日', font: 'Zen Kaku Gothic New', size: .045, color: '#FFFFFF' },
-    { t: 'stamp', x: .1, y: .26, ch: '🔥', size: .09 }, { t: 'stamp', x: .9, y: .26, ch: '🏆', size: .09 }] },
+    { t: 'deco', x: .1, y: .26, kind: 'st-fire', s: .71 }, { t: 'deco', x: .9, y: .26, kind: 'st-trophy', s: .71 }] },
   { id: 'gen-sc-fest', name: '文化祭', cat: 'school', items: () => [
     { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.4, color: '#FF7AA8', color2: '#FFE66D' },
     { t: 'text', x: .5, y: .2, text: '文化祭', font: 'Rampart One', size: .12, color: '#FFFFFF', outline: '#FF4F9A', bold: false },
     { t: 'text', x: .6, y: .88, text: '2年3組 カフェやってます！', font: 'M PLUS Rounded 1c', size: .045, color: '#E0457B', bg: '#FFFFFF' },
-    { t: 'stamp', x: .13, y: .84, ch: '🎪', size: .12 }] },
+    { t: 'deco', x: .13, y: .84, kind: 'st-party', s: .94 }] },
   { id: 'gen-sc-sports', name: '体育祭', cat: 'school', preset: 'vivid', amt: 60, items: () => [
     { t: 'text', x: .5, y: .12, text: '体育祭', font: 'RocknRoll One', size: .12, color: '#FFFFFF', outline: '#D7263D', bold: false },
     { t: 'deco', kind: 'ribbon', x: .5, y: .86, s: 1.2, color: '#D7263D', color2: '#FFFFFF' },
     { t: 'text', x: .5, y: .858, text: '赤組 優勝！', font: 'Zen Kaku Gothic New', size: .05, color: '#FFFFFF' },
-    { t: 'stamp', x: .13, y: .28, ch: '🏃', size: .1 }, { t: 'stamp', x: .87, y: .28, ch: '🏅', size: .1 },
+    { t: 'deco', x: .13, y: .28, kind: 'st-trophy', s: .79 }, { t: 'deco', x: .87, y: .28, kind: 'st-medal', s: .79 },
     { t: 'deco', kind: 'kira3', x: .86, y: .66, color: '#FFE66D' }] },
   { id: 'gen-sc-album', name: '卒アル風（6枚）', cat: 'school', canvas: [1080, 1350], bg: '#F5F1E8', items: () => [
     { t: 'text', x: .5, y: .065, text: 'GRADUATION', font: 'Cinzel', size: .075, color: '#2B3A55' },
@@ -2517,21 +2760,21 @@ const TEMPLATES_GEN = [
     { t: 'text', x: .755, y: .7, text: '最大', font: 'Zen Kaku Gothic New', size: .045, color: '#C2185B', rot: .1 },
     { t: 'text', x: .76, y: .77, text: '30%OFF', font: 'Dela Gothic One', size: .052, color: '#C2185B', bold: false, rot: .1 },
     { t: 'text', x: .28, y: .88, text: '今週末まで', font: 'Zen Kaku Gothic New', size: .055, color: '#FFFFFF', bg: '#111111' },
-    { t: 'stamp', x: .12, y: .34, ch: '🛍️', size: .1 }] },
+    { t: 'deco', x: .12, y: .34, kind: 'st-bag', s: .79 }] },
   { id: 'gen-shop-hours', name: '営業時間のお知らせ', cat: 'shop', items: () => [
     { t: 'text', x: .5, y: .1, text: 'OPEN', font: 'Oswald', size: .1, color: '#FFFFFF', shadow: true },
     { t: 'note', x: .5, y: .64, w: .62, h: .42, shape: 'rounded', color: '#FFFFFF', text: '', deco: 'none' },
     { t: 'text', x: .5, y: .54, text: '営業時間', font: 'Zen Kaku Gothic New', size: .045, color: '#8A7B6B' },
     { t: 'text', x: .5, y: .64, text: '11:00 – 19:00', font: 'Oswald', size: .075, color: '#2A2724' },
     { t: 'text', x: .5, y: .75, text: '定休日 水曜日', font: 'Zen Kaku Gothic New', size: .045, color: '#C0504D' },
-    { t: 'stamp', x: .76, y: .45, ch: '🕐', size: .09, rot: .15 },
+    { t: 'deco', x: .76, y: .45, kind: 'st-clock', s: .71, rot: .15 },
     { t: 'text', x: .5, y: .92, text: 'ご来店お待ちしております', font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', bold: false, shadow: true }] },
   { id: 'gen-shop-event', name: 'イベント告知', cat: 'shop', preset: 'natural', amt: 60, items: () => [
     { t: 'text', x: .5, y: .11, text: 'EVENT', font: 'Abril Fatface', size: .12, color: '#FFFFFF', shadow: true, bold: false },
     { t: 'text', x: .5, y: .22, text: todayStr() + ' 13:00〜', font: 'Oswald', size: .05, color: '#2A2724', bg: '#FFFFFF' },
     { t: 'text', x: .4, y: .78, text: '押し花ワークショップ', font: 'Zen Maru Gothic', size: .055, color: '#24543A', bg: '#DDF0D8', rot: -.03 },
     { t: 'text', x: .4, y: .88, text: 'ご予約はDMへ', font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', shadow: true },
-    { t: 'stamp', x: .86, y: .82, ch: '🌿', size: .11 }] },
+    { t: 'deco', x: .86, y: .82, kind: 'il-branch', s: .55 }] },
   { id: 'gen-shop-new', name: '新商品入荷', cat: 'shop', preset: 'clear', amt: 60, items: () => [
     { t: 'text', x: .5, y: .12, text: 'New Arrival', font: 'Playfair Display', size: .1, color: '#FFFFFF', italic: true, shadow: true },
     { t: 'deco', kind: 'round-sticker', x: .85, y: .3, s: 1.3, color: '#2F80ED', color2: '#FFFFFF' },
@@ -2544,7 +2787,7 @@ const TEMPLATES_GEN = [
     { t: 'text', x: .5, y: .2, text: '今日のおやつどっち？', font: 'M PLUS Rounded 1c', size: .06, color: '#2A2724', bg: '#FFFFFF' },
     { t: 'text', x: .3, y: .82, text: 'A ケーキ', font: 'M PLUS Rounded 1c', size: .06, color: '#E0457B', bg: '#FFFFFF' },
     { t: 'text', x: .7, y: .82, text: 'B プリン', font: 'M PLUS Rounded 1c', size: .06, color: '#2F80ED', bg: '#FFFFFF' },
-    { t: 'stamp', x: .86, y: .09, ch: '🤔', size: .09 }] },
+    { t: 'deco', x: .86, y: .09, kind: 'st-think', s: .71 }] },
   { id: 'gen-sns-ootd', name: '今日のコーデ', cat: 'sns', items: () => [
     { t: 'text', x: .2, y: .1, text: 'OOTD', font: 'Bebas Neue', size: .13, color: '#FFFFFF', bold: false, shadow: true },
     { t: 'text', x: .22, y: .2, text: '今日のコーデ', font: 'Zen Kaku Gothic New', size: .045, color: '#FFFFFF', shadow: true },
@@ -2563,7 +2806,7 @@ const TEMPLATES_GEN = [
     { t: 'deco', kind: 'heart-line', x: .86, y: .32, s: .8, color: '#FFFFFF' },
     { t: 'note', x: .76, y: .8, w: .34, h: .34, shape: 'sticker', color: '#FFFFFF', text: '', deco: 'none', rot: .08 },
     { t: 'text', x: .76, y: .8, text: 'today ♡', font: 'Caveat', size: .08, color: '#E0457B', rot: .08 },
-    { t: 'stamp', x: .14, y: .86, ch: '🤍', size: .09 }] },
+    { t: 'deco', x: .14, y: .86, kind: 'st-heart', s: .71, color: '#FFFFFF' }] },
   { id: 'gen-sns-neon', name: 'ネオン風', cat: 'sns', preset: 'cyber', amt: 60, items: () => [
     { t: 'deco', kind: 'frame-neon', x: .5, y: .5, color: '#FF4FD8' },
     { t: 'text', x: .5, y: .16, text: 'GOOD VIBES', font: 'Monoton', size: .1, color: '#FFE3FA', shadow: true, bold: false },
@@ -2590,7 +2833,7 @@ const TEMPLATES_GEN = [
     { t: 'text', x: .5, y: .9, text: '東京ドーム  ' + todayStr(), font: 'Zen Kaku Gothic New', size: .042, color: '#FFFFFF', shadow: true },
     { t: 'deco', kind: 'penlight', x: .1, y: .4, color: '#B47CFF', rot: -.3 },
     { t: 'deco', kind: 'penlight', x: .9, y: .4, color: '#4FC3FF', rot: .3 },
-    { t: 'stamp', x: .5, y: .22, ch: '🎤', size: .08 }] },
+    { t: 'deco', x: .5, y: .22, kind: 'st-mic', s: .63 }] },
   { id: 'gen-oshi-color', name: '推しカラー', cat: 'oshi', items: () => [
     { t: 'deco', kind: 'tape-solid', x: .2, y: .08, color: '#8FD3FF', color2: '#FFFFFF', rot: -.25 },
     { t: 'deco', kind: 'tape-solid', x: .8, y: .92, color: '#8FD3FF', color2: '#FFFFFF', rot: -.25 },
@@ -2602,7 +2845,7 @@ const TEMPLATES_GEN = [
     { t: 'deco', kind: 'frame-lace', x: .5, y: .5, color: '#FFFFFF' },
     { t: 'deco', kind: 'crown', x: .5, y: .15, s: 1.1, color: '#FFC83D', color2: '#FF4F9A' },
     { t: 'text', x: .5, y: .26, text: 'おうち祭壇', font: 'Kaisei Decol', size: .07, color: '#FFFFFF', outline: '#D9558A', bold: false },
-    { t: 'stamp', x: .18, y: .8, ch: '💐', size: .12 }, { t: 'stamp', x: .82, y: .8, ch: '💐', size: .12 },
+    { t: 'deco', x: .18, y: .8, kind: 'st-flower', s: .94 }, { t: 'deco', x: .82, y: .8, kind: 'st-flower', s: .94 },
     { t: 'text', x: .5, y: .86, text: 'Forever my star', font: 'Great Vibes', size: .09, color: '#FFFFFF', shadow: true, bold: false }] },
 
   /* ---- 日記・ライフ ---- */
@@ -2610,36 +2853,36 @@ const TEMPLATES_GEN = [
     { t: 'text', x: .2, y: .1, text: 'TRIP', font: 'Bebas Neue', size: .13, color: '#FFFFFF', bold: false, shadow: true },
     { t: 'text', x: .62, y: .82, text: 'TOKYO → KYOTO', font: 'Oswald', size: .065, color: '#8A4B16', bg: '#FFF6E0', rot: -.03 },
     { t: 'text', x: .66, y: .91, text: todayStr(), font: 'Oswald', size: .042, color: '#FFFFFF', shadow: true, bold: false },
-    { t: 'stamp', x: .86, y: .14, ch: '✈️', size: .1 },
-    { t: 'stamp', x: .14, y: .86, ch: '🧳', size: .1 }] },
+    { t: 'deco', x: .86, y: .14, kind: 'st-plane', s: .79 },
+    { t: 'deco', x: .14, y: .86, kind: 'st-bag', s: .79, color: '#C9A27E' }] },
   { id: 'gen-life-tabi', name: '旅日記（縦書き）', cat: 'life', preset: 'film', amt: 70, items: () => [
     { t: 'text', x: .88, y: .34, text: '京都 二日目', font: 'Shippori Mincho', size: .075, color: '#FFFFFF', shadow: true, vert: true },
     { t: 'text', x: .78, y: .27, text: '朝の鴨川を散歩', font: 'Klee One', size: .04, color: '#FFFFFF', shadow: true, bold: false, vert: true },
     { t: 'text', x: .2, y: .92, text: todayStr(), font: 'DotGothic16', size: .045, color: '#FF9500', bold: false, shadow: true },
-    { t: 'stamp', x: .12, y: .12, ch: '🗺️', size: .09 }] },
+    { t: 'deco', x: .12, y: .12, kind: 'st-mappin', s: .71 }] },
   { id: 'gen-life-cafe', name: 'カフェ巡り', cat: 'life', preset: 'warm', amt: 50, items: () => [
     { t: 'text', x: .5, y: .12, text: 'cafe hopping', font: 'Pacifico', size: .09, color: '#FFFFFF', shadow: true, bold: false },
     { t: 'note', x: .76, y: .78, w: .36, h: .36, shape: 'circle', color: '#F3E5D0', text: '', deco: 'none' },
     { t: 'text', x: .76, y: .75, text: 'ラテ', font: 'Zen Maru Gothic', size: .05, color: '#6B4A2E' },
     { t: 'text', x: .76, y: .82, text: '★★★★☆', font: 'Zen Maru Gothic', size: .045, color: '#E0A23B' },
     { t: 'text', x: .28, y: .9, text: 'cafe Hinata', font: 'Caveat', size: .065, color: '#FFFFFF', bg: '#6B4A2E', bold: false },
-    { t: 'stamp', x: .14, y: .26, ch: '☕', size: .09 }] },
+    { t: 'deco', x: .14, y: .26, kind: 'il-coffee', s: .49 }] },
   { id: 'gen-life-pet', name: 'うちの子日記', cat: 'life', items: () => [
     { t: 'text', x: .28, y: .1, text: 'うちの子', font: 'Mochiy Pop One', size: .09, color: '#FFFFFF', outline: '#C77B3B', bold: false },
     { t: 'note', x: .71, y: .3, w: .46, h: .32, shape: 'speech', color: '#FFFFFF', text: '', deco: 'none' },
     { t: 'text', x: .71, y: .27, text: 'おやつまだ？', font: 'M PLUS Rounded 1c', size: .055, color: '#C77B3B' },
-    { t: 'stamp', x: .12, y: .84, ch: '🐾', size: .1, rot: -.2 }, { t: 'stamp', x: .24, y: .91, ch: '🐾', size: .06, rot: .2 },
+    { t: 'deco', x: .12, y: .84, kind: 'st-paw', s: .79, rot: -.2 }, { t: 'deco', x: .24, y: .91, kind: 'st-paw', s: .47, rot: .2 },
     { t: 'text', x: .82, y: .92, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
   { id: 'gen-life-plant', name: '植物の成長記録', cat: 'life', preset: 'natural', amt: 70, items: () => [
     { t: 'text', x: .3, y: .1, text: 'growing log', font: 'Caveat', size: .1, color: '#FFFFFF', shadow: true, bold: false },
     { t: 'text', x: .3, y: .19, text: todayStr(), font: 'Zen Kaku Gothic New', size: .035, color: '#FFFFFF', bold: false, shadow: true },
     { t: 'note', x: .29, y: .77, w: .46, h: .34, shape: 'torn', color: '#F4F8EC', text: 'Day 12\n新しい葉っぱが出た', font: 'Klee One', tcolor: '#3E6B3A', deco: 'tape', rot: -.04 },
-    { t: 'stamp', x: .85, y: .14, ch: '🌱', size: .1 },
-    { t: 'stamp', x: .86, y: .85, ch: '🪴', size: .11 }] },
+    { t: 'deco', x: .85, y: .14, kind: 'il-sprout', s: .55 },
+    { t: 'deco', x: .86, y: .85, kind: 'il-pot', s: .55 }] },
   { id: 'gen-life-shop', name: '買い物メモ', cat: 'life', items: () => [
     { t: 'note', x: .28, y: .4, w: .4, h: .52, shape: 'square', color: '#FFFDF5', pattern: 'lines', text: 'おかいもの\n□ 牛乳\n□ たまご\n□ 食パン\n□ りんご', font: 'Klee One', tcolor: '#2A2724', deco: 'tape', rot: -.03 },
     { t: 'text', x: .68, y: .88, text: '今月の食費 ¥24,800', font: 'Zen Kaku Gothic New', size: .045, color: '#2A2724', bg: '#FFE66D' },
-    { t: 'stamp', x: .86, y: .14, ch: '🛒', size: .1 }] },
+    { t: 'deco', x: .86, y: .14, kind: 'st-bag', s: .79 }] },
 
   /* ---- コラージュ (new canvas) ---- */
   { id: 'gen-col-3v', name: '3枚縦（ストーリー）', cat: 'collage', canvas: [1080, 1920], bg: '#F7F3EC', items: () => [
@@ -2667,10 +2910,11 @@ const TEMPLATES_GEN = [
     { t: 'slot', x: .5, y: .38, w: .82, h: .44, rad: 4 },
     { t: 'deco', kind: 'tape-solid', x: .2, y: .17, s: .55, color: '#FFD6A5', color2: '#FFFFFF', rot: -.4 },
     { t: 'note', x: .5, y: .8, w: .82, h: .3, shape: 'square', color: '#FFFFFF', pattern: 'lines', text: '今日はいい天気で、\n近所の公園まで散歩した。', font: 'Klee One', tcolor: '#3A4A5E', deco: 'none' },
-    { t: 'stamp', x: .88, y: .67, ch: '☀️', size: .08 }] }
+    { t: 'deco', x: .88, y: .67, kind: 'st-sun', s: .63 }] }
 ];
 //GEN-TPL-END
-Object.assign(DECO, DECO_GEN, DECO_SHAPES);
+Object.assign(DECO, DECO_GEN, DECO_SHAPES, DECO_STAMPS);
+DECO_CATS.unshift(...DECO_CATS_STAMPS);
 [...DECO_CATS_GEN, ...DECO_CATS_SHAPES].forEach(c => { if (!DECO_CATS.some(d => d[0] === c[0])) DECO_CATS.push(c); });
 const PREVIEW_MAX = 2560;
 
@@ -2758,6 +3002,19 @@ ICON.keep = I('<path d="M12 3.8l2.5 5.1 5.6.8-4.05 3.95.95 5.6L12 16.6l-5 2.65.9
 Object.assign(ICON, { addSel: I('<path d="M5 3.5l10.5 7.2-4.6 1.2-2.3 4.5z"/><path d="M17.5 14v7M14 17.5h7"/>'), more: I('<path d="M5.5 12h.01M12 12h.01M18.5 12h.01" stroke-width="3.2"/>'), lup: I('<path d="M6.5 14.5 12 9l5.5 5.5"/>'), ldn: I('<path d="M6.5 9.5 12 15l5.5-5.5"/>'), cutObj: I('<circle cx="6.5" cy="17.5" r="2.6"/><circle cx="17.5" cy="17.5" r="2.6"/><path d="M8.4 15.6 17 3.5M15.6 15.6 7 3.5"/>') });
 /* icon + short word inside a chip */
 const IW = (ic, t) => `${ICON[ic]}<span>${t}</span>`;
+/* line icons that stand in for emoji in UI text (the app uses no emoji) */
+Object.assign(ICON, {
+  layout: I('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15M9 10h11.5"/>'),
+  spark: I('<path d="M11 3.5c.6 4 2.5 5.9 6.5 6.5-4 .6-5.9 2.5-6.5 6.5-.6-4-2.5-5.9-6.5-6.5 4-.6 5.9-2.5 6.5-6.5z"/><path d="M18.5 14.5c.3 1.8 1.2 2.7 3 3-1.8.3-2.7 1.2-3 3-.3-1.8-1.2-2.7-3-3 1.8-.3 2.7-1.2 3-3z"/>'),
+  save: I('<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 16v3a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-3"/>'),
+  swap: I('<path d="M4.5 10a7.5 7.5 0 0 1 13.2-3.8L19.5 8M19.5 4v4h-4"/><path d="M19.5 14a7.5 7.5 0 0 1-13.2 3.8L4.5 16M4.5 20v-4h4"/>'),
+  dice: I('<rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M8.6 8.6h.01M15.4 8.6h.01M12 12h.01M8.6 15.4h.01M15.4 15.4h.01" stroke-width="2.8"/>'),
+  warn: I('<path d="M10.3 4.9 3.1 17.6A2 2 0 0 0 4.8 20.5h14.4a2 2 0 0 0 1.7-2.9L13.7 4.9a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5M12 17h.01"/>'),
+  link: I('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  offline: I('<path d="M2.5 9a15 15 0 0 1 5-3.1M12 5.5a15 15 0 0 1 9.5 3.5M5.5 12.5a10 10 0 0 1 4.3-2.3M15.5 10.8a10 10 0 0 1 3 1.7M8.8 16a5 5 0 0 1 5.6-.6M12 19.5h.01M3.5 3.5l17 17"/>'),
+  sprout: I('<path d="M12 20.5V13"/><path d="M12 13c0-4.2-2.6-6.6-7-6.6 0 4.3 2.7 6.6 7 6.6zM12 11.2c0-3.8 2.3-6.2 6.8-6.2 0 3.9-2.5 6.2-6.8 6.2z"/>')
+});
+document.querySelectorAll('[data-ic]').forEach(e => { e.innerHTML = ICON[e.dataset.ic] || ''; });   // icons in the static markup (help, welcome, search)
 /* crop ratio as a small proportional rectangle */
 const aspIco = r => { if (!r) return ICON.free; const w = r >= 1 ? 16 : 16 * r, h = r >= 1 ? 16 / r : 16; return I(`<rect x="${((24 - w) / 2).toFixed(1)}" y="${((24 - h) / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5"/>`); };
 /* a "none" dot that sits before colour swatches (縁取り・背景 なし) */
@@ -3532,7 +3789,7 @@ function drawStamp(ctx, o) {
     const f = `700 ${fs}px ${famStack('Noto Sans JP')}`;
     ensureFont(f, t, 'Noto Sans JP');
     ctx.font = f; ctx.fillStyle = '#FFFFFF'; ctx.fillText(t, 0, r * 0.06);
-  } else {
+  } else {   // emoji-compat: emoji stamps from old documents (new stamps are drawn DECO st-* stickers)
     ctx.font = `${o.size}px ${EMOJI_FONT}`; ctx.fillText(o.ch, 0, o.size * 0.04);
   }
 }
@@ -4746,22 +5003,13 @@ function addNote(text = '') {
   startInlineEdit(selObj(), true);
 }
 function nextNum() { return doc.objects.filter(o => o.type === 'stamp' && o.kind === 'num').reduce((m, o) => Math.max(m, o.n), 0) + 1; }
-function addStamp(ch) {
-  const c = viewCenter(), j = jitter();
-  pushObj({ ...baseObj('stamp', c.x + j.x, c.y + j.y), kind: 'emoji', ch, size: MIN() * 0.13 });
-}
 function addNum() {
   const c = viewCenter(), j = jitter();
   pushObj({ ...baseObj('stamp', c.x + j.x, c.y + j.y), kind: 'num', n: nextNum(), color: S.num.color, size: MIN() * 0.08 });
 }
 /* ==== 素材 (materials) ==== one catalogue shared by the 素材 tool panel (phones + PC inspector) and the PC 素材 drawer.
-   Item keys: 'e:<emoji>' stamp, 'd:<deco kind>' drawn sticker (DECO), 't:<n>' date text (DATE_FMTS). Recent picks in UI.recentMat. */
-const EMOJI_SETS = {
-  season: ['☀️', '⛅', '☁️', '☂️', '⛄', '❄️', '🌈', '⚡', '🌸', '🌷', '🌻', '🍉', '🎐', '🍁', '🍂', '🎃', '👻', '🎄', '🎅', '🎍', '🎎', '🎏', '🎋', '🎆', '🎓', '🎒'],
-  food: ['🍰', '🍩', '🍪', '🍓', '🍑', '🍋', '🍒', '🍜', '🍣', '🍙', '🍔', '🍕', '🍳', '☕', '🧋', '🍺', '🥂'],
-  animal: ['🐱', '🐶', '🐰', '🐻', '🐼', '🐥', '🦊', '🐸', '🐳', '🦄', '🐾'],
-  oshi: ['👑', '🎤', '💖', '💜', '💙', '💚', '💛', '🧡', '❤️', '🤍', '🖤', '🌟', '🎀', '💐']
-};
+   Item keys: 'd:<deco kind>' drawn sticker (DECO, incl. the st-* stamps), 't:<n>' date text (DATE_FMTS), 'g:<chart id>'. Recent picks in UI.recentMat.
+   Emoji are not offered any more ('e:' keys are dropped from recents); emoji stamps in old documents still render through drawStamp. */
 const DATE_FMTS = [
   ['2026.11.13 ドット', d => `${d.y}.${d.m}.${d.d}`, { font: 'DotGothic16', color: '#FF9500', shadow: true, bold: false }],
   ['フィルム日付', d => `'${String(d.y).slice(2)} ${d.m} ${d.d}`, { font: 'DotGothic16', color: '#FF7A1A', shadow: true, bold: false }],
@@ -4901,19 +5149,17 @@ function addDeco(kind) {
   const o = d.full ? { ...baseObj('deco', doc.w / 2, doc.h / 2), w: doc.w, h: doc.h } : { ...baseObj('deco', c.x + j.x, c.y + j.y), w: M * d.w, h: M * d.h };
   pushObj({ ...o, kind, color: d.color, ...(d.color2 != null ? { color2: d.color2 } : {}), seed });
 }
-let matCat = 'emoji';
+let matCat = 'stamp';
 function matCats() {
-  const all = [['recent', '最近'], ['lib', 'マイ素材'], ...(GEN_ON && SUPA.url ? [['ai', 'AIで作る']] : []), ['emoji', 'スタンプ'], ['season', '季節・天気'], ['food', '食べ物'], ['animal', '動物'], ...DECO_CATS, ...(CHART_PRESETS.length ? [['graph', '表・グラフ']] : []), ['date', '日付'], ['bg', '背景']];
-  return all.filter((c, i) => all.findIndex(d => d[0] === c[0]) === i);   // a generated cat may share an id (food) with an emoji set
+  const all = [['recent', '最近'], ['lib', 'マイ素材'], ...(GEN_ON && SUPA.url ? [['ai', 'AIで作る']] : []), ...DECO_CATS, ...(CHART_PRESETS.length ? [['graph', '表・グラフ']] : []), ['date', '日付'], ['bg', '背景']];
+  return all.filter((c, i) => all.findIndex(d => d[0] === c[0]) === i);
 }
 function matItems(cat) {
   if (cat === 'recent') return UI.recentMat;
   if (cat === 'lib') return [];
   if (cat === 'graph') return [...CHART_BASIC, ...CHART_PRESETS].map(p => 'g:' + p.id);
-  if (cat === 'emoji') return STAMPS.map(e => 'e:' + e);
   if (cat === 'date') return DATE_FMTS.map((_, i) => 't:' + i);
-  const deco = Object.entries(DECO).filter(([, d]) => d.cat === cat).map(([id]) => 'd:' + id);
-  return [...deco, ...(EMOJI_SETS[cat] || []).map(e => 'e:' + e)];
+  return Object.entries(DECO).filter(([, d]) => d.cat === cat).map(([id]) => 'd:' + id);
 }
 const decoThumbs = new Map();
 function decoThumb(kind) {
@@ -4927,7 +5173,6 @@ function decoThumb(kind) {
 }
 function matButton(key) {
   const t = key.slice(0, 1), v = key.slice(2), a = `data-act="cmd" data-k="matAdd" data-v="${J(key)}"`;
-  if (t === 'e') return `<button class="mat emo" ${a} aria-label="スタンプ ${esc(v)}">${esc(v)}</button>`;
   if (t === 'd') { const d = DECO[v]; return d ? `<button class="mat" ${a} title="${esc(d.name)}" aria-label="${esc(d.name)}"><img src="${decoThumb(v)}" alt=""></button>` : ''; }
   if (t === 'g') { const p = chartPre(v); if (p && p.sub) return `<button class="mat wide chb" ${a} title="${esc(p.name + '（' + p.sub + '）')}" aria-label="${esc(p.name + 'を追加')}"><img src="${chartThumb(v)}" alt=""><span>${esc(p.name)}</span><small>${esc(p.sub)}</small></button>`; return p ? `<button class="mat wide" ${a} title="${esc(p.name)}" aria-label="${esc(p.name)}"><img src="${chartThumb(v)}" alt=""><span>${esc(p.name)}</span></button>` : ''; }
   if (t === 't') { const f = DATE_FMTS[+v]; return f ? `<button class="mat date" ${a} aria-label="日付 ${esc(f[0])}"><span style="font-family:${esc(famStack(f[2].font))}">${esc(f[1](dateParts()))}</span></button>` : ''; }
@@ -4935,7 +5180,7 @@ function matButton(key) {
 }
 function addMat(key) {
   const t = key.slice(0, 1), v = key.slice(2);
-  if (t === 'e') addStamp(v); else if (t === 'd') addDeco(v); else if (t === 't') addDateStamp(+v); else if (t === 'g') addChart(v); else return;
+  if (t === 'd') addDeco(v); else if (t === 't') addDateStamp(+v); else if (t === 'g') addChart(v); else return;
   UI.recentMat = [key, ...UI.recentMat.filter(k => k !== key)].slice(0, 16); saveUI();
 }
 function bgPanelHtml() {
@@ -4946,7 +5191,7 @@ function bgPanelHtml() {
 }
 function matHtml(search) {
   const cats = matCats();
-  if (!cats.some(c => c[0] === matCat)) matCat = 'emoji';
+  if (!cats.some(c => c[0] === matCat)) matCat = 'stamp';
   let h = search ? `<div class="matsearch"><input type="search" class="matq" placeholder="素材を検索（例：テープ、ハート、矢印）" aria-label="素材を検索" value="${esc(matQ)}"></div>` : '';
   h += `<div class="matcats">${cats.map(([k, l]) => `<button class="chip${matCat === k ? ' on' : ''}" data-act="cmd" data-k="matCat" data-v="${J(k)}" aria-pressed="${matCat === k}">${l}</button>`).join('')}</div>`;
   if (search && matQ.trim()) {
@@ -4963,7 +5208,7 @@ function matHtml(search) {
   if (matCat === 'bg') return h + bgPanelHtml();
   if (matCat === 'graph') return h + `<div class="matgrid">${CHART_BASIC.map(p => matButton('g:' + p.id)).join('')}</div><div class="mathd">見本</div><div class="matgrid">${CHART_PRESETS.map(p => matButton('g:' + p.id)).join('')}</div>`;
   if (matCat === 'lib') return h + libGrid() + (libList && libList.length ? hint(`${deskOn ? 'クリック' : 'タップ'}で追加・×で削除。${UI.libAuto ? '自分で入れた写真' : '「マイ素材に保存」したもの'}がこの端末に残ります（最大${LIB_MAX}枚）。${UI.libAuto ? '' : '自動保存はオフ（設定で変えられます）。'}`) : '');
-  if (matCat === 'emoji') h += row('番号', cmdBtn('num', `番号を追加（次は ${nextNum()}）`) + swatches('s', 'num.color', S.num.color, ['#FF3B30', '#007AFF', '#111111', '#34C759', '#FF9500']));
+  if (matCat === 'stamp') h += row('番号', cmdBtn('num', `番号を追加（次は ${nextNum()}）`) + swatches('s', 'num.color', S.num.color, ['#FF3B30', '#007AFF', '#111111', '#34C759', '#FF9500']));
   const items = matItems(matCat);
   return h + (items.length ? `<div class="matgrid">${items.map(matButton).join('')}</div>` : hint(matCat === 'recent' ? 'まだありません。素材を使うとここに並びます。' : ''));
 }
@@ -4987,7 +5232,7 @@ const GEN_EX = ['ピンクの王冠', '手書き風の太陽', '猫のシルエ�
 const GEN_EL = new Set(['svg', 'g', 'path', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'title']);
 const GEN_ERR = { offline: 'オフラインのため作れません', limit: '今日はここまで（1日20回）', prompt: '言葉を入れてください' };
 let genQ = '', genBusy = false, genLeft = null, genRes = [];
-const genBtn = () => genBusy ? '<span class="aispin" aria-hidden="true"></span>作っています…' : '✨ 作る';
+const genBtn = () => genBusy ? '<span class="aispin" aria-hidden="true"></span>作っています…' : `${ICON.spark}作る`;
 const genOut = () => hint('AI（Claude）が作ります・1日20回まで' + (genLeft != null ? `（今日はあと<b>${genLeft}</b>回）` : ''))
   + (genRes.length ? `<div class="mathd">さっき作った素材</div><div class="matgrid">${genRes.map((r, i) => `<button class="mat" data-act="cmd" data-k="genAdd" data-v="${i}" title="${esc(r.p)}" aria-label="${esc(r.p)}をもう一度追加"><img src="${r.u}" alt="" draggable="false"></button>`).join('')}</div>` : '');
 function genHtml() {
@@ -5880,15 +6125,15 @@ function aiCmd(k, v) {
 }
 function aiPanel(where) {
   const D = aiData();
-  let h = `<button class="aibtn" data-act="cmd" data-k="aiAuto">✨ AIおまかせ補正</button>`
+  let h = `<button class="aibtn" data-act="cmd" data-k="aiAuto">${ICON.spark}AIおまかせ補正</button>`
     + `<div class="cmprow"><button class="chip" data-cmp="1" title="押している間だけ、フィルター・調整をかける前の写真を表示（キーボードの \\ でも同じ）">◐ 押して元の写真と比べる</button></div>`;
   h += `<div class="aiscene">${D.scene.tags.length ? 'この写真: ' + D.scene.tags.join('・') + '　' : ''}おすすめ: <b>${AI_LOOKS[D.scene.best][0]}</b></div>`;
-  if (where === 'adjust') return h + hint('✨ 明るさと色を自動で整えます');
+  if (where === 'adjust') return h + hint(`${ICON.spark}明るさと色を自動で整えます`);
   if (Object.keys(AI_LOOKS).some(i => !D.thumbs[i])) aiWarm();
   const ord = [D.scene.best, ...Object.keys(AI_LOOKS).filter(i => i !== D.scene.best)];
   h += `<div class="fcards">` + ord.map(id => `<button class="fcard${aiIsOn(AI_LOOKS[id][0]) ? ' on' : ''}" data-act="cmd" data-k="aiLook" data-v="${J(id)}">${D.thumbs[id] ? `<img src="${D.thumbs[id]}" alt="">` : '<span class="ph"></span>'}${id === D.scene.best ? '<i class="rec">おすすめ</i>' : ''}<span>${AI_LOOKS[id][0]}</span></button>`).join('')
     + (aiRef ? `<button class="fcard${aiIsOn('参考写真の色') ? ' on' : ''}" data-act="cmd" data-k="aiRef" data-v="true"><img class="refimg" src="${aiRef.thumb}" alt=""><span>参考写真</span></button>` : '')
-    + `<button class="fcard" data-act="cmd" data-k="aiRef" data-v="false"><span class="ph" style="display:grid;place-items:center;font-size:22px">🖼</span><span>${aiRef ? '参考を変える' : '色を参考に'}</span></button></div>`;
+    + `<button class="fcard" data-act="cmd" data-k="aiRef" data-v="false"><span class="ph" style="display:grid;place-items:center;color:var(--accent)">${ICON.photo}</span><span>${aiRef ? '参考を変える' : '色を参考に'}</span></button></div>`;
   return h + hint('トレンド風の色味を写真ごとに計算。分析は端末の中だけで、ネットの写真は学習していません。');
 }
 
@@ -5897,7 +6142,7 @@ function objPanel(o) {
   const editable = !o.locked && (o.type === 'text' || o.type === 'note');
   let h = `<div class="objhead"><span class="badge${o.locked ? ' locked' : ''}">${TYPE_NAMES[o.type]}${o.locked ? '・ロック中' : ''}</span>${editable ? cmdBtn('edit', '✎ 文字を編集') : ''}${deskOn ? '' : quickBar(o)}</div>`;
   // 前面へ・複製・ロック・削除 live in the object menu (long-press / right-click)
-  if (o.locked) return h + row('', cmdBtn('lock', '🔓 ロック解除')) + hint('ロック中は動かしたり消したりできません。');
+  if (o.locked) return h + row('', cmdBtn('lock', IW('unlock', 'ロック解除'))) + hint('ロック中は動かしたり消したりできません。');
   switch (o.type) {
     case 'text':
       h += row('書体', fontButton(o.font));
@@ -5926,7 +6171,7 @@ function objPanel(o) {
       break;
     case 'image':
       if (o.slot) {   // collage slot: fill / replace the photo and frame it
-        h += row('写真', cmdBtn('slotPick', o.bmp ? '🔄 写真を差し替え' : '＋ 写真を入れる', undefined, o.bmp ? '' : 'on') + (o.bmp ? cmdBtn('slotFit', '枠に合わせ直す') : ''), true);
+        h += row('写真', cmdBtn('slotPick', o.bmp ? IW('swap', '写真を差し替え') : '＋ 写真を入れる', undefined, o.bmp ? '' : 'on') + (o.bmp ? cmdBtn('slotFit', '枠に合わせ直す') : ''), true);
         if (o.bmp) h += slider('o:fz', '拡大', 100, 300, (o.fz || 1) * 100, 0.01) + slider('o:fx', '左右', -100, 100, (o.fx || 0) * 100, 0.01) + slider('o:fy', '上下', -100, 100, (o.fy || 0) * 100, 0.01);
         h += hint('枠をダブルクリック（ダブルタップ）するか、写真ファイルを枠にドロップしても入れられます。');
       } else h += row('加工', cmdBtn('cutThis', IW('cutout', '背景を削除')) + cmdBtn('libSave', IW('keep', 'マイ素材に保存')), true);
@@ -5967,7 +6212,7 @@ function objPanel(o) {
       h += row('色', swatches('o', 'color', o.color));
       if (d && d.outl) h += row('枠線', noneSw('color2', o.color2) + swatches('o', 'color2', o.color2 || 'none', ['#2A2724', '#FFFFFF', '#5E8C5F', '#E8392F', '#2563EB', '#F7C948']));
       else if (d && d.color2 != null) h += row('色2', swatches('o', 'color2', o.color2 || d.color2));
-      if (d && d.cat === 'line') h += row('形', cmdBtn('decoSeed', '🎲 描き直す'));
+      if (d && d.cat === 'line') h += row('形', cmdBtn('decoSeed', IW('dice', '描き直す')));
       if (d && d.full) h += row('大きさ', cmdBtn('decoFit', '写真全体に合わせる'));
       break;
     }
@@ -6035,7 +6280,7 @@ function layerName(o) {
   if (o.type === 'deco') return DECO[o.kind] ? DECO[o.kind].name : 'デコ';
   if (o.type === 'image' && o.slot) return o.bmp ? '写真枠' : '写真枠（空）';
   if (o.type === 'text' || o.type === 'note') { const t = (o.text || '').replace(/\s+/g, ' ').trim(); if (t) return [...t].slice(0, 16).join(''); }
-  if (o.type === 'stamp') return o.kind === 'num' ? `番号 ${o.n}` : `スタンプ ${o.ch || ''}`;
+  if (o.type === 'stamp') return o.kind === 'num' ? `番号 ${o.n}` : 'スタンプ';
   if (o.type === 'shape') {
     if (!isLineK(o.kind)) return SHAPE_NAMES[o.kind] || '図形';
     const ar = c => c === 'arrow' || c === 'open', a = ar(capS(o)), b = ar(capE(o)), g = lineGeo(o);
@@ -6106,7 +6351,7 @@ function multiPanel(ms) {
     + alignRow('揃える')
     + row('等間隔', [['h', ICON.distH, '横に等間隔'], ['v', ICON.distV, '縦に等間隔']].map(([v, ic, t]) => `<button class="chip ichip" data-act="cmd" data-k="dist" data-v="${J(v)}" title="${t}" aria-label="${t}"${ms.length < 3 ? ' disabled' : ''}>${ic}</button>`).join('')
       + ['flipH', 'flipV'].map(k => `<button class="chip ichip" data-act="cmd" data-k="${k}" title="${k === 'flipH' ? '左右反転' : '上下反転'}" aria-label="${k === 'flipH' ? 'まとめて左右反転' : 'まとめて上下反転'}">${ICON[k]}</button>`).join(''))
-    + hint(one ? `✋ 枠の中をドラッグでまとめて移動。中の1つを${deskOn ? 'クリック' : 'タップ'}すると、それだけを編集できます` : '✋ 枠の中をドラッグでまとめて移動');
+    + hint(one ? `${ICON.move}枠の中をドラッグでまとめて移動。中の1つを${deskOn ? 'クリック' : 'タップ'}すると、それだけを編集できます` : `${ICON.move}枠の中をドラッグでまとめて移動`);
 }
 let panelKey = '', panelTool = 'select';
 /* a slider being dragged must not be replaced by a panel rebuild (its 'change' would never fire): defer the rebuild to release */
@@ -6173,7 +6418,7 @@ function refreshPanel() {
           : `ドラッグで描きます（${deskOn ? 'クリック' : 'タップ'}で標準の大きさ）。${deskOn ? 'Shift で正方形・正円。' : ''}`);
     }
       break;
-    case 'stamp': h = matHtml(false); break;   // the 素材 tool: emoji stamps, drawn stickers, date stamps, backgrounds
+    case 'stamp': h = matHtml(false); break;   // the 素材 tool: drawn stamps & stickers, date stamps, backgrounds
     case 'mosaic':
       h = row('範囲', chips('s', 'mosaic.shape', [['brush', IW('brush', 'なぞる')], ['rect', IW('marq', '四角で囲む')]], S.mosaic.shape));
       h += row('効果', chips('s', 'mosaic.mode', [['pixel', IW('mosaic', 'モザイク')], ['blur', IW('blur', 'ぼかし')], ['black', IW('black', '黒塗り')]], S.mosaic.mode));
@@ -6209,9 +6454,9 @@ function refreshPanel() {
     case 'cutout': {
       const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
       if (imgs.length) h += row('対象', chips('s', 'cut.target', [['base', '土台の写真'], ...imgs.map((o, i) => [o.id, '貼った写真' + (i + 1)])], S.cut.target));
-      h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : '✨ AIで自動で背景を消す'}</button>`;
+      h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで自動で背景を消す'}</button>`;
       h += row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
-      if (S.cut.model === 'rmbg') h += hint('⚠ RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。');
+      if (S.cut.model === 'rmbg') h += hint(ICON.warn + 'RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。');
       else if (S.cut.model === 'biref') h += hint('高精度（BiRefNet・MITライセンス）は初回に約115MBをダウンロードします。Wi-Fiでの利用がおすすめです。');
       h += row('手動', chips('s', 'cut.mode', [['tap', IW('drop', '色で消す')], ['erase', IW('eraser', '消す')], ['restore', IW('restore', '戻す')]], S.cut.mode));
       if (S.cut.mode === 'tap') h += slider('s:cut.tol', '許容範囲', 0, 100, S.cut.tol) + row('範囲', chips('s', 'cut.contig', [[true, 'つながった部分'], [false, '同じ色すべて']], S.cut.contig));
@@ -6304,7 +6549,7 @@ function loadUI() {
   if (!AI_MODELS[u.aiModel]) u.aiModel = 'u2';
   u.nick = typeof u.nick === 'string' ? u.nick.slice(0, 20) : '';
   u.recent = (Array.isArray(u.recent) ? u.recent : []).filter(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).slice(0, 8);
-  u.recentMat = (Array.isArray(u.recentMat) ? u.recentMat : []).filter(k => typeof k === 'string' && /^[edtg]:./.test(k)).slice(0, 16);
+  u.recentMat = (Array.isArray(u.recentMat) ? u.recentMat : []).filter(k => typeof k === 'string' && /^[dtg]:./.test(k)).slice(0, 16);
   if (!['s', 'm', 'l'].includes(u.ph)) u.ph = 'm';
   if (!['right', 'left'].includes(u.hand)) u.hand = 'right';
   if (!['off', 'weak', 'normal', 'strong'].includes(u.snap)) u.snap = 'normal';
@@ -6648,31 +6893,31 @@ const TEMPLATES = [
     { t: 'text', x: .5, y: .13, text: 'HAPPY BIRTHDAY', font: 'Dancing Script', size: .12, shadow: true },
     { t: 'text', x: .5, y: .235, text: todayStr(), font: 'Zen Maru Gothic', size: .045, shadow: true },
     { t: 'note', x: .5, y: .82, w: .62, h: .22, shape: 'tag', color: '#FFB3C7', text: '◯◯くん 生誕祭', font: 'Zen Maru Gothic', deco: 'none', rot: -.03 },
-    { t: 'stamp', x: .13, y: .18, ch: '✨', size: .11 }, { t: 'stamp', x: .87, y: .64, ch: '🎂', size: .13 }, { t: 'stamp', x: .12, y: .7, ch: '💖', size: .1 }] },
+    { t: 'deco', x: .13, y: .18, kind: 'st-sparkle', s: .86 }, { t: 'deco', x: .87, y: .64, kind: 'il-cake', s: .65 }, { t: 'deco', x: .12, y: .7, kind: 'st-heart', s: .79 }] },
   { id: 'cafe', name: '韓国カフェ風', cat: 'sns', items: () => [
     { t: 'rect', x: .5, y: .5, w: .9, h: .9, color: '#FFFFFF', width: .006 },
     { t: 'text', x: .5, y: .12, text: 'cafe log', font: 'Caveat', size: .1, shadow: true },
     { t: 'text', x: .5, y: .2, text: todayStr(), font: 'Zen Kaku Gothic New', size: .035, bold: false, shadow: true },
-    { t: 'stamp', x: .84, y: .86, ch: '☕', size: .09 }] },
+    { t: 'deco', x: .84, y: .86, kind: 'il-coffee', s: .49 }] },
   { id: 'ryosan', name: '量産型ピンク', cat: 'sns', preset: 'dreamy', amt: 80, items: () => [
     { t: 'note', x: .73, y: .78, w: .36, h: .32, shape: 'heart', color: '#FFB3C7', text: 'だいすき', font: 'Hachi Maru Pop', deco: 'none', rot: .06 },
     { t: 'text', x: .3, y: .12, text: 'LOVE♡', font: 'M PLUS Rounded 1c', size: .09, color: '#FFFFFF', bg: '#FF8FB8' },
-    { t: 'stamp', x: .1, y: .3, ch: '✨', size: .09 }, { t: 'stamp', x: .88, y: .14, ch: '💖', size: .1 }, { t: 'stamp', x: .45, y: .9, ch: '✨', size: .07 }] },
+    { t: 'deco', x: .1, y: .3, kind: 'st-sparkle', s: .71 }, { t: 'deco', x: .88, y: .14, kind: 'st-heart', s: .79 }, { t: 'deco', x: .45, y: .9, kind: 'st-sparkle', s: .55 }] },
   { id: 'heisei', name: '平成プリ落書き', cat: 'sns', items: () => [
     { t: 'text', x: .32, y: .83, text: 'ずっ友♡', font: 'Yusei Magic', size: .13, color: '#FF2D92', outline: '#FFFFFF', rot: -.12 },
     { t: 'text', x: .78, y: .08, text: todayStr(), font: 'DotGothic16', size: .05, color: '#FFE66D', outline: '#FF2D92' },
-    { t: 'stamp', x: .1, y: .12, ch: '⭐', size: .1 }, { t: 'stamp', x: .88, y: .5, ch: '✨', size: .09 }, { t: 'stamp', x: .66, y: .9, ch: '✨', size: .07 }] },
+    { t: 'deco', x: .1, y: .12, kind: 'st-star', s: .79 }, { t: 'deco', x: .88, y: .5, kind: 'st-sparkle', s: .71 }, { t: 'deco', x: .66, y: .9, kind: 'st-sparkle', s: .55 }] },
   { id: 'qbox', name: '質問箱風', cat: 'sns', items: () => [
     { t: 'note', x: .5, y: .28, w: .72, h: .3, shape: 'rounded', color: '#FFFFFF', text: '質問に答えます！', font: 'M PLUS Rounded 1c', deco: 'none' },
-    { t: 'stamp', x: .84, y: .12, ch: '💬', size: .1 }] },
+    { t: 'deco', x: .84, y: .12, kind: 'st-talk', s: .79 }] },
   { id: 'trip', name: '旅行の記録', cat: 'life', items: () => [
-    { t: 'note', x: .26, y: .8, w: .42, h: .28, shape: 'torn', color: '#FFFFFF', text: '📍 行った場所\n' + todayStr(), font: 'Klee One', rot: -.05 },
-    { t: 'stamp', x: .86, y: .14, ch: '📍', size: .1 },
+    { t: 'note', x: .26, y: .8, w: .42, h: .28, shape: 'torn', color: '#FFFFFF', text: '行った場所\n' + todayStr(), font: 'Klee One', rot: -.05 },
+    { t: 'deco', x: .86, y: .14, kind: 'st-mappin', s: .79 },
     { t: 'arrow', x1: .5, y1: .78, x2: .64, y2: .6, color: '#FFFFFF', width: .012 }] },
   { id: 'recipe', name: '料理レシピ', cat: 'life', items: () => [
     { t: 'text', x: .5, y: .1, text: '今日のごはん', font: 'Shippori Mincho', size: .09, outline: '#111111' },
     { t: 'note', x: .74, y: .74, w: .44, h: .4, shape: 'rounded', color: '#FFFFFF', pattern: 'lines', text: '材料\n・\n・\n・', font: 'Klee One', deco: 'pin' },
-    { t: 'stamp', x: .12, y: .86, ch: '🍳', size: .1 }] },
+    { t: 'deco', x: .12, y: .86, kind: 'st-egg', s: .79 }] },
   { id: 'film', name: 'フィルム風日記', cat: 'life', preset: 'film', amt: 80, items: () => [
     { t: 'text', x: .82, y: .92, text: todayStr().replace(/^20/, "'"), font: 'DotGothic16', size: .055, color: '#FF9500', bold: false, shadow: true },
     { t: 'text', x: .14, y: .08, text: 'film diary', font: 'Caveat', size: .06, bold: false, shadow: true }] },
@@ -6699,25 +6944,25 @@ const TEMPLATES = [
   { id: 'grad', name: '卒業・入学', cat: 'season', items: () => [
     { t: 'deco', kind: 'ribbon', x: .5, y: .12, s: 1.3, color: '#FF8FB8', color2: '#E05A8A' },
     { t: 'text', x: .5, y: .115, text: '祝 卒業', font: 'Yuji Syuku', size: .08, color: '#FFFFFF' },
-    { t: 'stamp', x: .1, y: .86, ch: '🌸', size: .1 }, { t: 'stamp', x: .88, y: .8, ch: '🌸', size: .08 }, { t: 'stamp', x: .86, y: .3, ch: '🎓', size: .1 },
+    { t: 'deco', x: .1, y: .86, kind: 'il-sakura', s: .55 }, { t: 'deco', x: .88, y: .8, kind: 'il-sakura', s: .44 }, { t: 'deco', x: .86, y: .3, kind: 'st-grad', s: .79 },
     { t: 'text', x: .5, y: .93, text: todayStr(), font: 'Zen Maru Gothic', size: .04, shadow: true }] },
   { id: 'halloween', name: 'ハロウィン', cat: 'season', items: () => [
     { t: 'deco', kind: 'flag', x: .5, y: .07, s: 1.5, color: '#FF7A1A', color2: '#6B3FA0' },
     { t: 'text', x: .5, y: .2, text: 'Happy Halloween', font: 'Rampart One', size: .1, color: '#FF7A1A', outline: '#2B1B3A' },
-    { t: 'stamp', x: .12, y: .84, ch: '🎃', size: .13 }, { t: 'stamp', x: .88, y: .82, ch: '👻', size: .11 }] },
+    { t: 'deco', x: .12, y: .84, kind: 'st-pumpkin', s: 1.02 }, { t: 'deco', x: .88, y: .82, kind: 'st-ghost', s: .86 }] },
   { id: 'xmas', name: 'クリスマス', cat: 'season', items: () => [
     { t: 'text', x: .5, y: .14, text: 'Merry Christmas', font: 'Great Vibes', size: .13, shadow: true, bold: false },
     { t: 'deco', kind: 'kira3', x: .86, y: .12, color: '#FFE66D' }, { t: 'deco', kind: 'kira', x: .12, y: .3, color: '#FFFFFF' },
-    { t: 'stamp', x: .12, y: .85, ch: '🎄', size: .13 }, { t: 'stamp', x: .88, y: .86, ch: '🎁', size: .1 }, { t: 'stamp', x: .7, y: .9, ch: '❄️', size: .06 }] },
+    { t: 'deco', x: .12, y: .85, kind: 'st-xmas', s: 1.02 }, { t: 'deco', x: .88, y: .86, kind: 'il-gift', s: .55 }, { t: 'deco', x: .7, y: .9, kind: 'st-snow', s: .47 }] },
   { id: 'newyear', name: 'お正月', cat: 'season', items: () => [
     { t: 'text', x: .86, y: .36, text: '謹賀新年', font: 'Yuji Syuku', size: .11, color: '#FFFFFF', outline: '#C8102E', vert: true },
     { t: 'deco', kind: 'round-sticker', x: .14, y: .16, color: '#C8102E' },
     { t: 'text', x: .14, y: .16, text: '賀', font: 'Yuji Syuku', size: .08, color: '#FFFFFF' },
-    { t: 'stamp', x: .12, y: .86, ch: '🎍', size: .13 }] },
+    { t: 'deco', x: .12, y: .86, kind: 'st-kadomatsu', s: 1.02 }] },
   { id: 'summer', name: '夏の思い出', cat: 'season', items: () => [
     { t: 'text', x: .5, y: .13, text: '夏の思い出', font: 'Yomogi', size: .11, color: '#FFFFFF', outline: '#2B7FB8' },
     { t: 'deco', kind: 'wave-line', x: .5, y: .22, s: 1.2, color: '#FFFFFF' },
-    { t: 'stamp', x: .12, y: .86, ch: '🍉', size: .11 }, { t: 'stamp', x: .88, y: .84, ch: '🎆', size: .12 }, { t: 'stamp', x: .86, y: .12, ch: '🎐', size: .09 }] },
+    { t: 'deco', x: .12, y: .86, kind: 'st-watermelon', s: .86 }, { t: 'deco', x: .88, y: .84, kind: 'st-hanabi', s: .94 }, { t: 'deco', x: .86, y: .12, kind: 'st-furin', s: .71 }] },
   { id: 'howto', name: '説明図・手順', cat: 'howto', items: () => [
     { t: 'rect', x: .5, y: .45, w: .4, h: .3, color: '#FF3B30', width: .01 },
     { t: 'arrow', x1: .2, y1: .86, x2: .33, y2: .64, color: '#FF3B30', width: .014 },
@@ -6748,11 +6993,11 @@ const TEMPLATES_PRO = [
     { t: 'box', x: .5, y: .8, w: .86, h: .1, fc: '#FFFFFF', oc: '#EAD9C2', width: .003, rad: 30 },
     { t: 'text', x: .1, y: .8, anchor: 'left', maxW: .8, text: '香ばしいくるみと国産はちみつを練りこみ、\nじっくり長時間発酵させました。\nほんのり甘く、噛むほどに広がる味わいです。', font: 'Zen Maru Gothic', size: .026, color: '#5A4636', bold: false },
     { t: 'box', x: .215, y: .9, w: .29, h: .055, fc: '#F3E3CC', rad: 100 },
-    { t: 'text', x: .215, y: .9, text: '🍯 はちみつ入り', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
+    { t: 'text', x: .215, y: .9, text: 'はちみつ入り', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
     { t: 'box', x: .5, y: .9, w: .25, h: .055, fc: '#F3E3CC', rad: 100 },
-    { t: 'text', x: .5, y: .9, text: '🔥 トーストで', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
+    { t: 'text', x: .5, y: .9, text: 'トーストで', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
     { t: 'box', x: .785, y: .9, w: .29, h: .055, fc: '#F3E3CC', rad: 100 },
-    { t: 'text', x: .785, y: .9, text: '📦 1日20個限定', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
+    { t: 'text', x: .785, y: .9, text: '1日20個限定', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
     { t: 'text', x: .5, y: .962, text: '営業 8:00–18:00 ／ 水曜定休', font: 'Zen Maru Gothic', size: .022, color: '#9C7B5E', bold: false }] },
   // ---- tpl-a.js
   { id: 'pro-cake-new', name: 'ケーキの新作紹介', cat: 'intro', desc: 'メイン写真と2枚の詳細写真、ケーキの名前・価格・3つのこだわりポイント・販売期間が入った新作スイーツの紹介です。',
@@ -6828,7 +7073,7 @@ const TEMPLATES_PRO = [
     { t: 'text', x: .49, y: .54, anchor: 'left', text: '4.8 / 5.0', font: 'Oswald', size: .042, color: '#3A2C2E', bold: false },
     { t: 'box', x: .5, y: .647, w: .88, h: .145, fc: '#FFFFFF', rad: 16 },
     { t: 'text', x: .5, y: .594, text: 'ここが好き！', font: 'Zen Kaku Gothic New', size: .032, color: '#B97A70', bg: '#FBEAE5' },
-    { t: 'text', x: .12, y: .66, anchor: 'left', text: '✔ 塗った瞬間すっと溶ける、なめらかな質感\n✔ 時間がたっても唇が乾きにくい\n✔ 重ねるほど発色が深まるシアーな色', font: 'Zen Kaku Gothic New', size: .028, color: '#4A3A3C', bold: false, maxW: .78 },
+    { t: 'text', x: .12, y: .66, anchor: 'left', text: '✓ 塗った瞬間すっと溶ける、なめらかな質感\n✓ 時間がたっても唇が乾きにくい\n✓ 重ねるほど発色が深まるシアーな色', font: 'Zen Kaku Gothic New', size: .028, color: '#4A3A3C', bold: false, maxW: .78 },
     { t: 'text', x: .5, y: .755, text: 'HOW TO USE', font: 'Cinzel', size: .03, color: '#3A2C2E' },
     { t: 'box', kind: 'ellipse', x: .2, y: .81, w: .13, h: .073, fc: '#C98B80' },
     { t: 'text', x: .2, y: .81, text: '1', font: 'Oswald', size: .05, color: '#FFFFFF', bold: false },
@@ -7041,7 +7286,7 @@ const TEMPLATES_PRO = [
     { t: 'text', x: .1, y: .858, anchor: 'left', maxW: .8, text: '先着100名様にドリップバッグをプレゼント\n12/5〜12/11 はドリンク全品 10%OFF', font: 'Zen Kaku Gothic New', size: .026, color: '#1F2A44' },
     { t: 'deco', kind: 'il-coffee', x: .84, y: .835, s: .5, color: '#C9A45C', color2: '#1F2A44' },
     { t: 'line', x1: .07, y1: .913, x2: .93, y2: .913, color: '#D8D2C4', width: .002 },
-    { t: 'text', x: .5, y: .937, maxW: .86, text: '📍 東京都世田谷区桜丘2-14-8　🕘 8:00–18:00（火曜定休）', font: 'Zen Kaku Gothic New', size: .022, color: '#4A5060', bold: false },
+    { t: 'text', x: .5, y: .937, maxW: .86, text: '東京都世田谷区桜丘2-14-8　8:00–18:00（火曜定休）', font: 'Zen Kaku Gothic New', size: .022, color: '#4A5060', bold: false },
     { t: 'text', x: .5, y: .968, text: 'Instagram ＠hinata_bake', font: 'Zen Kaku Gothic New', size: .022, color: '#4A5060', bold: false }] },
 
   { id: 'pro-sale-campaign', name: 'セール・キャンペーン', cat: 'flyer', desc: '大きなSALEの文字・%OFFバッジ・期間・対象商品の写真と価格・注意事項が入った、目立つセール告知です。',
@@ -7098,9 +7343,9 @@ const TEMPLATES_PRO = [
     { t: 'slot', x: .5, y: .205, w: .86, h: .31, rad: 6, ph: '料理の写真' },
     { t: 'text', x: .07, y: .405, anchor: 'left', text: 'RECIPE', font: 'Oswald', size: .024, color: '#FFFFFF', bg: '#7A8B3A', bold: false },
     { t: 'text', x: .07, y: .452, anchor: 'left', maxW: .86, text: 'なすとひき肉のトマトパスタ', font: 'Zen Maru Gothic', size: .056, color: '#3B3226' },
-    { t: 'text', x: .07, y: .505, anchor: 'left', text: '⏱ 25分', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
-    { t: 'text', x: .21, y: .505, anchor: 'left', text: '👤 2人分', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
-    { t: 'text', x: .37, y: .505, anchor: 'left', text: '🔥 かんたん', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
+    { t: 'text', x: .07, y: .505, anchor: 'left', text: '25分', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
+    { t: 'text', x: .21, y: .505, anchor: 'left', text: '2人分', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
+    { t: 'text', x: .37, y: .505, anchor: 'left', text: 'かんたん', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
     { t: 'box', x: .26, y: .745, w: .38, h: .37, fc: '#F6EFE3', rad: 8 },
     { t: 'text', x: .1, y: .592, anchor: 'left', text: '材料', font: 'Zen Maru Gothic', size: .034, color: '#E07A3F' },
     { t: 'text', x: .42, y: .594, anchor: 'right', text: '2人分', font: 'Zen Maru Gothic', size: .022, color: '#8A7B66', bold: false },
@@ -7146,8 +7391,8 @@ const TEMPLATES_PRO = [
       { t: 'box', kind: 'ellipse', x: .655, y: .315 + i * .048, w: .016, h: .016, fc: i < 2 ? '#D9604C' : '#6B8F5A' },
       { t: 'text', x: .68, y: .315 + i * .048, anchor: 'left', maxW: .25, text: m, font: 'Kiwi Maru', size: .028, color: '#3E3A33', bold: false }]),
     { t: 'note', x: .785, y: .7, w: .3, h: .22, text: 'ゆうべの残りの\nきんぴらを活用！\n明日は鮭にしよう', color: '#FFF3B0', shape: 'rect', deco: 'tape', pattern: 'lines', tcolor: '#3E3A33', font: 'Yomogi', rot: .05 },
-    { t: 'text', x: .07, y: .91, anchor: 'left', text: '⏱ 15分', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
-    { t: 'text', x: .25, y: .91, anchor: 'left', text: '🔥 約520kcal', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
+    { t: 'text', x: .07, y: .91, anchor: 'left', text: '15分', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
+    { t: 'text', x: .25, y: .91, anchor: 'left', text: '約520kcal', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
     { t: 'text', x: .5, y: .91, anchor: 'left', text: '満足度 ★★★★☆', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
     { t: 'deco', kind: 'il-onigiri', x: .9, y: .92, s: .45, color: '#FFFDF7', color2: '#3E4A3D', rot: .15 }] },
 
@@ -7203,7 +7448,7 @@ const TEMPLATES_PRO = [
     { t: 'box', x: .5, y: .73, w: .86, h: .068, fc: '#FFFFFF', rad: 100 },
     { t: 'box', x: .185, y: .73, w: .2, h: .046, fc: '#9C8AC9', rad: 100 },
     { t: 'text', x: .185, y: .73, text: 'ひとこと', font: 'Zen Maru Gothic', size: .024, color: '#FFFFFF' },
-    { t: 'text', x: .32, y: .73, anchor: 'left', maxW: .58, text: 'ゆるっと仲良くしてください☺', font: 'Zen Maru Gothic', size: .029, color: '#4A3B3B', bold: false },
+    { t: 'text', x: .32, y: .73, anchor: 'left', maxW: .58, text: 'ゆるっと仲良くしてください♪', font: 'Zen Maru Gothic', size: .029, color: '#4A3B3B', bold: false },
     { t: 'slot', x: .2, y: .865, w: .26, h: .15, rad: 12, border: '#FFFFFF', shadow: true, rot: -.05, ph: '好きなもの' },
     { t: 'slot', x: .5, y: .86, w: .26, h: .15, rad: 12, border: '#FFFFFF', shadow: true, rot: .035, ph: '趣味' },
     { t: 'slot', x: .8, y: .865, w: .26, h: .15, rad: 12, border: '#FFFFFF', shadow: true, rot: -.035, ph: 'おでかけ' },
@@ -7235,7 +7480,7 @@ const TEMPLATES_PRO = [
   { id: 'pro-pet', name: 'ペットのプロフィール', cat: 'profile', desc: '大きなペット写真と小さな写真2枚、名前・誕生日・犬種・体重・好きなもの／苦手なものが入ったペットのプロフィールです。',
     canvas: [1080, 1350], bg: '#FFF8EC', bgPat: { kind: 'dot', color: '#FFF8EC', color2: '#F5E6CC' }, items: () => [
     { t: 'text', x: .07, y: .055, anchor: 'left', text: 'PET PROFILE', font: 'Fredoka', size: .04, color: '#E8894A' },
-    { t: 'text', x: .93, y: .055, anchor: 'right', text: 'うちの子しょうかい 🐾', font: 'Zen Maru Gothic', size: .026, color: '#9A7B62' },
+    { t: 'text', x: .93, y: .055, anchor: 'right', text: 'うちの子しょうかい', font: 'Zen Maru Gothic', size: .026, color: '#9A7B62' },
     { t: 'slot', x: .36, y: .3, w: .58, h: .4, rad: 8, border: '#FFFFFF', shadow: true, ph: 'メイン写真' },
     { t: 'slot', x: .79, y: .2, w: .26, h: .19, rad: 8, border: '#FFFFFF', shadow: true, ph: '寝顔' },
     { t: 'slot', x: .79, y: .4, w: .26, h: .19, rad: 8, border: '#FFFFFF', shadow: true, ph: 'おさんぽ' },
@@ -7244,16 +7489,16 @@ const TEMPLATES_PRO = [
     { t: 'text', x: .3, y: .6, anchor: 'left', text: 'Mugi', font: 'Pacifico', size: .045, color: '#E8894A', bold: false },
     { t: 'text', x: .07, y: .655, anchor: 'left', maxW: .86, text: 'おとこのこ・3さい ／ のんびりやの甘えんぼう', font: 'Zen Maru Gothic', size: .026, color: '#9A7B62', bold: false },
     { t: 'box', x: .215, y: .745, w: .27, h: .11, fc: '#FFFFFF', oc: '#F1DDC2', width: .003, rad: 20 },
-    { t: 'text', x: .215, y: .718, text: '🎂 誕生日', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
+    { t: 'text', x: .215, y: .718, text: '誕生日', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
     { t: 'text', x: .215, y: .762, text: '2023.4.12', font: 'Fredoka', size: .036, color: '#4B3A2F' },
     { t: 'box', x: .5, y: .745, w: .27, h: .11, fc: '#FFFFFF', oc: '#F1DDC2', width: .003, rad: 20 },
-    { t: 'text', x: .5, y: .718, text: '🐕 犬種', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
+    { t: 'text', x: .5, y: .718, text: '犬種', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
     { t: 'text', x: .5, y: .762, text: '柴犬（赤）', font: 'Zen Maru Gothic', size: .034, color: '#4B3A2F' },
     { t: 'box', x: .785, y: .745, w: .27, h: .11, fc: '#FFFFFF', oc: '#F1DDC2', width: .003, rad: 20 },
-    { t: 'text', x: .785, y: .718, text: '⚖ 体重', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
+    { t: 'text', x: .785, y: .718, text: '体重', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
     { t: 'text', x: .785, y: .762, text: '9.2 kg', font: 'Fredoka', size: .036, color: '#4B3A2F' },
     { t: 'box', x: .28, y: .88, w: .42, h: .11, fc: '#FCE3D0', rad: 20 },
-    { t: 'text', x: .28, y: .852, text: '♥ すきなもの', font: 'Zen Maru Gothic', size: .024, color: '#D9703A' },
+    { t: 'text', x: .28, y: .852, text: '♡ すきなもの', font: 'Zen Maru Gothic', size: .024, color: '#D9703A' },
     { t: 'text', x: .28, y: .897, maxW: .38, text: 'さつまいも・ボール遊び', font: 'Zen Maru Gothic', size: .027, color: '#4B3A2F', bold: false },
     { t: 'box', x: .72, y: .88, w: .42, h: .11, fc: '#E3EEDB', rad: 20 },
     { t: 'text', x: .72, y: .852, text: '✕ にがてなもの', font: 'Zen Maru Gothic', size: .024, color: '#5E8C5F' },
@@ -7269,7 +7514,7 @@ const TEMPLATES_PRO = [
     { t: 'deco', kind: 'oshi-heart', x: .14, y: .44, s: .8, color: '#B57EDC' },
     { t: 'deco', kind: 'penlight', x: .9, y: .43, s: .55, color: '#B57EDC', rot: .35 },
     { t: 'text', x: .5, y: .52, text: 'ひかる', font: 'Mochiy Pop One', size: .085, color: '#3D2E52', bold: false },
-    { t: 'text', x: .5, y: .578, text: 'HIKARU ／ メンカラ：ラベンダー 💜', font: 'M PLUS Rounded 1c', size: .028, color: '#7A6596' },
+    { t: 'text', x: .5, y: .578, text: 'HIKARU ／ メンカラ：ラベンダー', font: 'M PLUS Rounded 1c', size: .028, color: '#7A6596' },
     { t: 'box', x: .5, y: .628, w: .62, h: .042, fc: '#FF7AB8', rad: 100 },
     { t: 'text', x: .5, y: .628, text: 'ここが好き！推しポイント', font: 'M PLUS Rounded 1c', size: .034, color: '#FFFFFF' },
     { t: 'box', x: .5, y: .69, w: .8, h: .062, fc: '#FFFFFF', rad: 100 },
@@ -7285,10 +7530,10 @@ const TEMPLATES_PRO = [
     { t: 'text', x: .17, y: .834, text: '3', font: 'Fredoka', size: .04, color: '#FFFFFF' },
     { t: 'text', x: .24, y: .834, anchor: 'left', maxW: .62, text: 'ファンへの言葉がいつも優しい', font: 'M PLUS Rounded 1c', size: .03, color: '#3D2E52', bold: false },
     { t: 'box', x: .295, y: .915, w: .39, h: .075, fc: '#E9DCF7', rad: 20 },
-    { t: 'text', x: .295, y: .896, text: '🎵 好きな曲', font: 'M PLUS Rounded 1c', size: .024, color: '#8D5FB8' },
+    { t: 'text', x: .295, y: .896, text: '好きな曲', font: 'M PLUS Rounded 1c', size: .024, color: '#8D5FB8' },
     { t: 'text', x: .295, y: .93, maxW: .35, text: '「夜明けのソナタ」', font: 'M PLUS Rounded 1c', size: .028, color: '#3D2E52', bold: false },
     { t: 'box', x: .705, y: .915, w: .39, h: .075, fc: '#FFE0EF', rad: 20 },
-    { t: 'text', x: .705, y: .896, text: '✨ 出会い', font: 'M PLUS Rounded 1c', size: .024, color: '#D9558F' },
+    { t: 'text', x: .705, y: .896, text: '出会い', font: 'M PLUS Rounded 1c', size: .024, color: '#D9558F' },
     { t: 'text', x: .705, y: .93, maxW: .35, text: '2024年夏のフェスで沼落ち', font: 'M PLUS Rounded 1c', size: .028, color: '#3D2E52', bold: false }] },
 
   { id: 'pro-travel', name: '旅行レポート', cat: 'report', desc: '写真3枚・旅のタイトルと日付・2日分のタイムライン・満足度の星・費用の内訳が入ったA4の旅行レポートです。',
@@ -7393,11 +7638,11 @@ const TEMPLATES_PRO = [
     { t: 'text', x: .81, y: .725, text: '2 本', font: 'Fredoka', size: .04, color: '#4A4036' },
     { t: 'text', x: .5, y: .82, text: '✿ できるようになったこと ✿', font: 'Zen Maru Gothic', size: .032, color: '#4A4036' },
     { t: 'box', x: .19, y: .905, w: .26, h: .075, fc: '#DCEEF7', rad: 100 },
-    { t: 'text', x: .19, y: .905, maxW: .24, text: '✔ ねがえり', font: 'Zen Maru Gothic', size: .028, color: '#3F6F8C' },
+    { t: 'text', x: .19, y: .905, maxW: .24, text: '✓ ねがえり', font: 'Zen Maru Gothic', size: .028, color: '#3F6F8C' },
     { t: 'box', x: .5, y: .905, w: .26, h: .075, fc: '#FCE3EA', rad: 100 },
-    { t: 'text', x: .5, y: .905, maxW: .24, text: '✔ おすわり', font: 'Zen Maru Gothic', size: .028, color: '#B65A73' },
+    { t: 'text', x: .5, y: .905, maxW: .24, text: '✓ おすわり', font: 'Zen Maru Gothic', size: .028, color: '#B65A73' },
     { t: 'box', x: .81, y: .905, w: .26, h: .075, fc: '#FBEFC6', rad: 100 },
-    { t: 'text', x: .81, y: .905, maxW: .24, text: '✔ 離乳食デビュー', font: 'Zen Maru Gothic', size: .028, color: '#8C6A1E' }] },
+    { t: 'text', x: .81, y: .905, maxW: .24, text: '✓ 離乳食デビュー', font: 'Zen Maru Gothic', size: .028, color: '#8C6A1E' }] },
 
   { id: 'pro-eventreport', name: '活動報告・イベントレポート', cat: 'report', desc: 'タイトル・日付と会場・キャプション付き写真4枚・来場者数などの数字・次回のお知らせが入った、横長の活動報告です。',
     canvas: [1920, 1080], bg: '#F2F5F9', items: () => [
@@ -9919,7 +10164,7 @@ async function renderGal() {
   if (tab === 'liked' && LK.on === false) { GV.tab = 'public'; return renderGal(); }   // likes are not set up on the server
   if (failed) {   // a failed load is not "no works yet"
     $('#galTags').innerHTML = '';
-    $('#galGrid').innerHTML = `<div class="gempty"><b>📡</b>${navigator.onLine ? '作品を読み込めませんでした。' : 'オフラインのため作品を読み込めません。'}<br><button class="chip" data-g="retry" style="margin-top:12px">もう一度読み込む</button></div>`;
+    $('#galGrid').innerHTML = `<div class="gempty"><b>${ICON.offline}</b>${navigator.onLine ? '作品を読み込めませんでした。' : 'オフラインのため作品を読み込めません。'}<br><button class="chip" data-g="retry" style="margin-top:12px">もう一度読み込む</button></div>`;
     return;
   }
   GV.items = items;
@@ -9929,9 +10174,9 @@ async function renderGal() {
   const list = GV.tag ? items.filter(it => (it.tags || []).includes(GV.tag)) : items;
   const note = !Gallery.online ? `<p class="note" style="margin:0 0 4px">${tab === 'mine' ? '投稿はこの端末に保存されています。サーバー接続後に他の人にも表示されます。' : '今はサーバー未接続のため、あなたの「公開」作品とサンプルを表示しています。'}</p>` : '';
   $('#galGrid').innerHTML = note + (list.length ? '<div class="galgrid">' + list.map(galCard).join('') + '</div>'
-    : tab === 'mine' ? `<div class="gempty"><b>🖼️</b>まだ投稿はありません。<br>上の「公開する」から、今の作品を投稿できます。</div>`
-      : tab === 'liked' ? `<div class="gempty"><b>🤍</b>まだハートした作品はありません。<br>気に入った作品のハートをタップすると、ここに並びます。</div>`
-      : `<div class="gempty"><b>🌱</b>まだ作品がありません。<br>あなたの作品を最初に公開してみませんか？</div>`);
+    : tab === 'mine' ? `<div class="gempty"><b>${ICON.photo}</b>まだ投稿はありません。<br>上の「公開する」から、今の作品を投稿できます。</div>`
+      : tab === 'liked' ? `<div class="gempty"><b>${I('<path d="M12 20C5 15 3 11.5 3 8.6 3 6 5 4 7.5 4c2 0 3.6 1.2 4.5 3 .9-1.8 2.5-3 4.5-3C19 4 21 6 21 8.6c0 2.9-2 6.4-9 11.4z"/>')}</b>まだハートした作品はありません。<br>気に入った作品のハートをタップすると、ここに並びます。</div>`
+      : `<div class="gempty"><b>${ICON.sprout}</b>まだ作品がありません。<br>あなたの作品を最初に公開してみませんか？</div>`);
 }
 function renderGalDetail(it) {
   GV.cur = it; GV.delArm = false; GV.repCode = ''; GV.view = 'detail';
@@ -9940,7 +10185,7 @@ function renderGalDetail(it) {
   const visNote = it.hidden ? '確認が終わるまで、公開設定にかかわらず他の人には表示されません。' : it.visibility === 'unlisted' ? (Gallery.online ? 'リンクを知っている人だけが見られます。「リンクをコピー」で共有できます。' : 'リンクを知っている人だけが見られます（リンク共有はサーバー接続後に使えます）。')
     : it.visibility === 'public' ? (Gallery.online ? 'みんなの作品に表示されています。' : 'サーバー接続後に他の人にも表示されます。今はこの端末のギャラリーに保存されています。') : 'あなただけが見られます。';
   const canLink = Gallery.online && !it.sample && !it.hidden && it.visibility !== 'private';
-  const linkBtn = canLink ? '<button class="btn" data-g="link">🔗 リンクをコピー</button>' : '';
+  const linkBtn = canLink ? `<button class="btn" data-g="link">${ICON.link}リンクをコピー</button>` : '';
   d.innerHTML = `<img class="gdimg" src="${esc(safeImg(it.full || it.thumb))}" alt="${esc(it.title || '')}">
     <div class="gtags">${galBadges(it)}${(it.tags || []).map(t => `<span>#${esc(t)}</span>`).join('')}<span style="margin-left:auto">${esc(it.ai ? 'Lufora AI' : it.sample ? 'Lufora公式' : (it.author && it.author.name) || 'あなた')}${it.createdAt ? '・' + fmtDate(it.createdAt) : ''}</span></div>
     ${it.ai ? '<p class="note aiwork"><b>AI</b>が編集した作例です。元の写真はプログラムで描いた風景なので、著作権の心配はありません。</p>' : ''}
@@ -9990,12 +10235,12 @@ async function renderAdmin() {
   try { items = await Gallery.modList(); }
   catch (e) {
     console.warn('mod list', e); if (GV.view !== 'admin') return;
-    a.innerHTML = `<div class="gempty"><b>📡</b>${navigator.onLine ? '読み込めませんでした。' : 'オフラインのため読み込めません。'}<br><button class="chip" data-g="admin" style="margin-top:12px">もう一度読み込む</button></div>`; return;
+    a.innerHTML = `<div class="gempty"><b>${ICON.offline}</b>${navigator.onLine ? '読み込めませんでした。' : 'オフラインのため読み込めません。'}<br><button class="chip" data-g="admin" style="margin-top:12px">もう一度読み込む</button></div>`; return;
   }
   if (GV.view !== 'admin') return;
   GV.mod = items;
   a.innerHTML = `<p class="note" style="margin:0 0 4px">通報された投稿と非表示中の投稿です（新しい順）。別々の人から何件か通報されると、自動で非表示になります。</p>`
-    + (items.length ? items.map(modRow).join('') : '<div class="gempty"><b>🌱</b>確認が必要な投稿はありません。</div>')
+    + (items.length ? items.map(modRow).join('') : `<div class="gempty"><b>${ICON.sprout}</b>確認が必要な投稿はありません。</div>`)
     + '<div class="actions" style="padding:12px 0 0"><button class="btn" data-g="back">一覧へ戻る</button></div>';
 }
 function openModAdmin() { openGallery('public'); renderAdmin(); }
