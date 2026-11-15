@@ -6251,7 +6251,7 @@ function setTool(t) {
 /* ==== sidebar (PC) ==== icon rail + drawer. フィルター・調整・背景削除 are ordinary tools whose panel renders into the drawer. */
 const sideEl = $('#side'), railEl = $('#rail'), drawer = $('#drawer'), zoomPct = $('#zoomPct');
 /* アカウント (login + sync): turn on once supabase/DEPLOY-account.md is done (schema_account.sql, providers, URLs) */
-const ACCT_ON = false;
+const ACCT_ON = true, ACCT_PROVS = ['google'];   // add 'apple' once its provider is set up in Supabase
 const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', '写真', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp], ['filter', 'フィルター', ICON.filter],
   ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ...(ACCT_ON ? [['account', 'アカウント', ICON.user]] : []), ['settings', '設定', ICON.gear]];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
@@ -8543,7 +8543,7 @@ function acctRender() {
       ? `<div class="acctsent"><b>メールを送りました</b><p>${esc(acctSent)} に届いたリンクを、この端末で開いてください。この画面は閉じて大丈夫です。</p><p class="note">届かないときは、迷惑メールフォルダも確かめてください。</p><button class="btn" data-acct="again">別のアドレスにする</button></div>`
       : `<p class="note">ログインすると、ほかの端末と次のものを共有できます。ログインしなくても、これまで通り使えます。</p>
         <ul class="acctlist"><li>みんなの作品の投稿</li><li>マイ素材</li><li>作業中の作品</li><li>設定</li></ul>
-        <div class="acctbtns"><button class="btn acctp" data-acct="google"${dis}>Google で続ける</button><button class="btn acctp" data-acct="apple"${dis}>Apple で続ける</button></div>
+        <div class="acctbtns">${ACCT_PROVS.map(pv => `<button class="btn acctp" data-acct="${pv}"${dis}>${PROV_NAMES[pv]} で続ける</button>`).join('')}</div>
         <div class="acctor"><span>またはメールで</span></div>
         <form class="acctmail" id="acctMail"><input type="email" name="em" placeholder="メールアドレス" autocomplete="email" inputmode="email" aria-label="メールアドレス" required><button class="btn primary" type="submit"${dis}>${acctBusy ? '送信中…' : 'ログインリンクを送る'}</button></form>
         <p class="note">この端末でこれまでに投稿した作品は、そのままアカウントに引き継がれます。${navigator.onLine ? '' : '<br>いまはオフラインです。'}</p>`;
