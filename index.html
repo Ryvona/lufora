@@ -565,6 +565,10 @@ html.desk .matcats{flex-wrap:wrap;overflow-x:visible}
 .libgrid{grid-template-columns:repeat(auto-fill,minmax(calc(64px*var(--u)),1fr));gap:8px}
 .libit{position:relative;min-width:0}
 .libit .mat{width:100%}
+.libit .mat.libnew{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px dashed var(--accent);background:rgba(94,140,95,.07);color:var(--accent)}
+.libit .mat.libnew span{font-size:22px;line-height:1;font-weight:700}
+.libit .mat.libnew small{font-size:10.5px;font-weight:700;letter-spacing:0}
+.libgrid.libdrop{outline:2px dashed var(--accent);outline-offset:4px;border-radius:12px}
 .libit .mat img{width:100%;height:100%;object-fit:cover}
 .libit .mat.al{background:repeating-conic-gradient(#E9E3D6 0 25%,#FBF8F1 0 50%) 50%/12px 12px}
 .libit .mat.al img{width:90%;height:90%;object-fit:contain}
@@ -972,6 +976,7 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
 <input type="file" id="fileOpen" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileAdd" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileSlot" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
+<input type="file" id="fileLib" accept="image/*" multiple class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileFont" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" class="vh" tabindex="-1" aria-hidden="true">
 
 <script>
@@ -4841,7 +4846,7 @@ function libSave(src, alpha, quiet) {
 async function libSaveNow(src, alpha, quiet) {
   await libLoad();
   const c = scaledCopy(src, LIB_LONG), sig = libSig(c), dup = libList.find(x => x.sig === sig), now = Date.now();
-  if (dup && libList[0] === dup) { if (!quiet) toast('もうマイ素材に入っています'); return true; }
+  if (dup && libList[0] === dup) { if (!quiet) toast('もうマイ素材に入っています'); return 'dup'; }
   let meta = dup ? { ...dup, t: now } : null, rec = null;
   if (!meta) {
     const tc = scaledCopy(c, LIB_THUMB);
@@ -4855,7 +4860,7 @@ async function libSaveNow(src, alpha, quiet) {
   await idbOp('readwrite', st => { r = libPutIdx(st, meta, rec); });
   libSet(r.result); acctSyncSoon();
   if (!quiet) toast(dup ? 'もうマイ素材に入っています（先頭に移しました）' : 'マイ素材に保存しました');
-  return true;
+  return dup ? 'dup' : true;   // 'dup' is truthy too: callers that only check success are unaffected
 }
 async function libAdd(id) {
   try {
@@ -4890,10 +4895,30 @@ function libRestore() {
 }
 /* save a bitmap of the document (selected image, or the cut-out target) */
 function libSaveBmp(id) { const e = id && bitmaps.get(id); if (e) libSave(e.canvas, e.alpha); }
+/* 写真を追加: pictures from the device go straight into マイ素材 (not onto the canvas); several at once, one summary toast */
+async function libImport(files) {
+  files = [...files].filter(f => f && (/^image\//.test(f.type) || /\.(jpe?g|png|webp|gif|bmp|avif|hei[cf])$/i.test(f.name || '')));
+  if (!files.length) return;
+  if (files.length > LIB_MAX) { toast(`一度に追加できるのは${LIB_MAX}枚までです。最初の${LIB_MAX}枚を追加します`, 3200); files = files.slice(0, LIB_MAX); }
+  toast(files.length > 1 ? `${files.length}枚を追加しています…` : '追加しています…', 8000);
+  let added = 0, dup = 0, bad = null;
+  for (const f of files) {
+    try {
+      const { canvas, alpha } = await fileToCanvas(f, LIB_LONG);
+      const p = libQ.then(() => libSaveNow(canvas, alpha, true)); libQ = p.catch(() => { });
+      if (await p === 'dup') dup++; else added++;
+    } catch (e) { console.warn('library import', e); bad = bad || f; }
+  }
+  if (sideView !== 'upload' && !(matCat === 'lib' && (tool === 'stamp' || sideView === 'material'))) openLib();   // show where they went
+  const msg = added ? `${added}枚をマイ素材に追加しました` + (dup ? `（${dup}枚は追加済み）` : '') : dup ? 'もうマイ素材に入っています' : '';
+  if (bad && !added && !dup) toast(imgErr(bad)); else if (msg) toast(msg + (bad ? '。読み込めない写真がありました' : ''), 3200);
+}
+$('#fileLib').addEventListener('change', e => { const fs = [...e.target.files]; e.target.value = ''; libImport(fs); });
+const LIB_NEW = `<div class="libit"><button class="mat libnew" data-act="cmd" data-k="libImport" title="端末の写真をマイ素材に追加（複数選べます）" aria-label="写真をマイ素材に追加"><span aria-hidden="true">＋</span><small>写真を追加</small></button></div>`;
 function libGrid() {
   if (!libList) { libLoad().then(libRefresh); return hint('読み込み中…'); }
-  if (!libList.length) return hint(UI.libAuto ? 'まだありません。写真を開いたり重ねたりすると、ここに自動で残ります（この端末の中だけに保存）。' : 'まだありません。写真や素材は「マイ素材に保存」で残せます。自動保存はオフ（設定で変えられます）。');
-  return `<div class="matgrid libgrid">${libList.map(it => `<div class="libit"><button class="mat${it.alpha ? ' al' : ''}" data-act="cmd" data-k="libAdd" data-v="${J(it.id)}" title="キャンバスに追加" aria-label="マイ素材をキャンバスに追加（${it.w}×${it.h}）"><img src="${libUrl(it)}" alt="" draggable="false"></button>`
+  if (!libList.length) return `<div class="matgrid libgrid">${LIB_NEW}</div>` + hint(UI.libAuto ? 'まだありません。「写真を追加」で端末の写真を入れられます。写真を開いたり重ねたりしても、ここに自動で残ります（この端末の中だけに保存）。' : 'まだありません。「写真を追加」で端末の写真を入れられます。写真や素材は「マイ素材に保存」でも残せます。');
+  return `<div class="matgrid libgrid">${LIB_NEW}${libList.map(it => `<div class="libit"><button class="mat${it.alpha ? ' al' : ''}" data-act="cmd" data-k="libAdd" data-v="${J(it.id)}" title="キャンバスに追加" aria-label="マイ素材をキャンバスに追加（${it.w}×${it.h}）"><img src="${libUrl(it)}" alt="" draggable="false"></button>`
     + `<button class="libx" data-act="cmd" data-k="libDel" data-v="${J(it.id)}" title="マイ素材から削除" aria-label="マイ素材から削除">×</button></div>`).join('')}</div>`;
 }
 function libSection() { return `<div class="libhead">マイ素材<small>${libList ? libList.length + ' / ' + LIB_MAX + '枚・この端末だけ' : ''}</small></div>` + libGrid(); }
@@ -4902,7 +4927,7 @@ function renderUpload() {
     <button class="bigbtn primary" data-up="add"><span>写真を重ねる<small>今の画像の上に追加します</small></span></button>
     <button class="bigbtn" data-up="open"><span>別の写真を開く<small>今の編集内容と置き換わります</small></span></button></div>
     ${hint('写真はキャンバスへのドラッグ＆ドロップや Ctrl+V でも追加できます。白紙・サンプルは上の「開く」から。')}${libSection()}
-    ${libList && libList.length ? hint('クリックでキャンバスに追加。選んだ写真や切り抜いた素材は、右クリックメニューの「マイ素材に保存」で残せます。古いものから自動で消えます。' + (UI.libAuto ? '' : '自動保存はオフ（設定で変えられます）。')) : ''}`;
+    ${libList && libList.length ? hint('クリックでキャンバスに追加。「写真を追加」やここへのドラッグ＆ドロップで、端末の写真をマイ素材だけに入れられます。選んだ写真や切り抜いた素材は、右クリックメニューの「マイ素材に保存」で残せます。古いものから自動で消えます。' + (UI.libAuto ? '' : '自動保存はオフ（設定で変えられます）。')) : ''}`;
 }
 function openLib() {
   if (deskOn) { if (SIDE_TOOLS.has(tool)) setTool('select'); UI.side = true; saveUI(); sideView = 'upload'; renderSide(); }
@@ -5121,6 +5146,7 @@ function runCmd(k, v, final) {
     case 'chRows': case 'chCols': case 'chAdd': case 'chDel': case 'chS2': chartCmd(k, v, o); break;
     case 'slotPick': if (o && o.slot) pickSlot(o.id); break;
     case 'libAdd': libAdd(v); break;
+    case 'libImport': $('#fileLib').click(); break;
     case 'genGo': genGo(); break;
     case 'genEx': genQ = v; genSync(true); genFocus(); break;
     case 'genAdd': if (genRes[v]) genPlace(genRes[v].c); break;
@@ -5671,6 +5697,14 @@ const sidePanel = $('#sidePanel');
 /* on PC the フィルター・調整・背景削除 panels render into the left drawer instead of the top bar */
 const panelEl = () => deskOn && SIDE_TOOLS.has(tool) ? sidePanel : panel;
 [panel, sidePanel].forEach(el => el.addEventListener('pointerdown', e => { if (e.target.type === 'range') slActive = true; }));
+/* PC: drop picture files on the マイ素材 grid to add them there (not on the canvas) */
+[panel, sidePanel].forEach(el => {
+  const grid = e => e.target.closest && e.target.closest('.libgrid');
+  const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+  el.addEventListener('dragover', e => { const g = grid(e); if (!g || !hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; g.classList.add('libdrop'); });
+  el.addEventListener('dragleave', e => { const g = grid(e); if (g && !g.contains(e.relatedTarget)) g.classList.remove('libdrop'); });
+  el.addEventListener('drop', e => { const g = grid(e); if (!g || !hasFiles(e)) return; e.preventDefault(); e.stopPropagation(); g.classList.remove('libdrop'); libImport(e.dataTransfer.files); });
+});
 ['pointerup', 'pointercancel'].forEach(ev => document.addEventListener(ev, () => {
   if (!slActive) return;
   slActive = false;
