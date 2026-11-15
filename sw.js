@@ -7,8 +7,8 @@
  * - A new version waits until the page posts {type:'skipWaiting'} (after its "update available" toast).
  */
 'use strict';
-const CACHE = 'petaphoto-v25';
-const RT_CACHE = 'petaphoto-rt-v25';
+const CACHE = 'petaphoto-v26';
+const RT_CACHE = 'petaphoto-rt-v26';
 const PRECACHE = ['./', 'index.html', 'u2netp.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 const RT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];

@@ -499,6 +499,23 @@ html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--l
 .chip.ichip svg{width:20px;height:20px}
 .chip.ichip .nico{width:26px;height:26px;display:block}
 .chip.ichip .nico.sico{width:30px;height:30px}
+/* ==== account ==== */
+.acctrow{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);text-align:left}
+.acctrow>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.acctrow small{font-size:12px;color:var(--muted)}
+.acctlist{margin:6px 0 14px;padding-left:1.3em;line-height:1.8;font-size:14px}
+.acctbtns{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.acctbtns .btn,.acctmail .btn,#acctBody>.btn,.acctsent .btn{flex:none;width:100%}
+.acctor{display:flex;align-items:center;gap:10px;margin:14px 0 8px;font-size:12px;color:var(--muted)}
+.acctor::before,.acctor::after{content:'';flex:1;height:1px;background:var(--line)}
+.acctmail{display:flex;flex-direction:column;gap:8px}
+.acctmail input{height:46px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);font:inherit;font-size:16px;outline:none}
+.acctmail input:focus{border-color:var(--accent)}
+.acctsent{padding:6px 0}.acctsent p{line-height:1.7}
+.acctcard{display:flex;align-items:center;gap:12px;margin:6px 0 10px}
+.acctcard>span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}.acctcard small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.acav{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:var(--accent-ink);font-weight:800;font-size:18px}
+.acctsync{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);margin:4px 0 6px}
 /* ==== template preview ==== */
 .tpvhead{display:flex;align-items:center;gap:10px;margin:2px 44px 10px 0}
 .tpvt{min-width:0}
@@ -911,9 +928,16 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
   <div id="galDetail" hidden></div>
 </div>
 
+<div class="sheet" id="sheetAccount" hidden>
+  <div class="grab"></div>
+  <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">アカウント</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
+  <div id="acctBody"></div>
+</div>
+
 <div class="sheet" id="sheetUI" hidden>
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">設定</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
+  <div id="uiAcct"></div>
   <h3 style="margin-top:8px">表示サイズ</h3>
   <div class="wrap" id="uiSize"></div>
   <h3>操作</h3>
@@ -2531,6 +2555,7 @@ const ICON = {
   none: I('<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>')
 };
 /* more line icons: pen kinds, mosaic, cut-out modes, crop, the select legend, adjust sliders */
+Object.assign(ICON, { user: I('<circle cx="12" cy="8.2" r="3.6"/><path d="M4.6 20c.9-3.7 3.9-5.9 7.4-5.9s6.5 2.2 7.4 5.9"/>') });
 Object.assign(ICON, {
   hl: I('<path d="M8.5 13.5l7-8.5 4 4-8.5 7z"/><path d="M8.5 13.5 6 16v2.5h3.5l2-2.5"/><path d="M14 20h6"/>'),
   eraser: I('<path d="M9 20h11"/><path d="M4.6 14.6 14.4 4.8a2 2 0 0 1 2.8 0l2 2a2 2 0 0 1 0 2.8L10 18.8H8.2l-3.6-3.6a.4.4 0 0 1 0-.6z"/><path d="M9.2 10.2l4.6 4.6"/>'),
@@ -2625,7 +2650,7 @@ const TOOLS_KEY = 'petaphoto.tools', TOOLS_SAVED = ['pen', 'shape', 'mosaic', 't
   if (vs && vs.fc === undefined && typeof vs.fill === 'string') { const o = areaNorm({ type: 'shape', kind: 'rect', color: S.shape.color, fill: vs.fill }); S.shape.oc = o.oc === 'none' ? S.shape.color : o.oc; S.shape.fc = o.fc; S.shape.fa = o.fa; }
 })();
 let toolsT = 0;
-function saveTools() { clearTimeout(toolsT); try { localStorage.setItem(TOOLS_KEY, JSON.stringify(Object.fromEntries(TOOLS_SAVED.map(g => [g, S[g]])))); } catch (e) { } }
+function saveTools() { clearTimeout(toolsT); try { localStorage.setItem(TOOLS_KEY, JSON.stringify(Object.fromEntries(TOOLS_SAVED.map(g => [g, S[g]])))); } catch (e) { } if (typeof settingsChanged === 'function') settingsChanged(); }
 const saveToolsSoon = () => { clearTimeout(toolsT); toolsT = setTimeout(saveTools, 400); };
 addEventListener('pagehide', saveTools);
 const U = () => Math.max(doc.w, doc.h) / 1000;
@@ -4119,8 +4144,9 @@ function cutDab(t, c, a, b, r, restore) {
   const L = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(L / (r * 0.4)));
   for (let i = 0; i <= n; i++) { const x = a.x + (b.x - a.x) * i / n, y = a.y + (b.y - a.y) * i / n; g.moveTo(x + r, y); g.arc(x, y, r, 0, Math.PI * 2); }
   if (restore) {
-    g.clip(); g.clearRect(0, 0, c.width, c.height);
-    g.drawImage(bitmaps.get(tgtOrig(t)).canvas, 0, 0, c.width, c.height);
+    // paint the original back over (erasing only ever lowered alpha, the colours are unchanged). No clearRect first:
+    // clearing and redrawing through the same soft clip edge left a half-transparent ring at every dab.
+    g.clip(); g.drawImage(bitmaps.get(tgtOrig(t)).canvas, 0, 0, c.width, c.height);
   } else { g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000'; g.fill(); }
   g.restore(); bmpRev++;
   // edited in place: the cached blob is stale (draft save must re-encode) and the base cache key must change
@@ -4798,13 +4824,15 @@ async function libSaveNow(src, alpha, quiet) {
   }
   let r;
   await idbOp('readwrite', st => { r = libPutIdx(st, meta, rec); });
-  libSet(r.result);
+  libSet(r.result); acctSyncSoon();
   if (!quiet) toast(dup ? 'もうマイ素材に入っています（先頭に移しました）' : 'マイ素材に保存しました');
   return true;
 }
 async function libAdd(id) {
   try {
-    const r = await idbOp('readonly', st => st.get(libKey(id)));
+    let r = await idbOp('readonly', st => st.get(libKey(id)));
+    const it = (!r || !r.blob) && acct && libList && libList.find(x => x.id === id);   // synced from another device: fetch the picture on first use
+    if (it && it.cloud) { toast('ダウンロード中…'); const { c } = await sb(), b = await sbDown(c, 'library', `${it.cloud}/${id}.${it.ext || 'jpg'}`); await idbOp('readwrite', st => st.put({ blob: b }, libKey(id))); r = { blob: b }; }
     if (!r || !r.blob) { toast('この素材は見つかりませんでした'); return; }
     await addPhoto(r.blob, true);
   } catch (e) { console.warn('library', e); toast('マイ素材を読み込めませんでした'); }
@@ -4818,6 +4846,7 @@ function libDel(id) {
       rq.onsuccess = () => { const ids = libRows(rq.result); pos = ids.findIndex(x => x.id === id); meta = ids[pos] || null; out = ids.filter(x => x.id !== id); st.put(out, LIB_IDX); };
     });
     libSet(out);
+    if (meta && meta.cloud) { (acctLocal.libDel = acctLocal.libDel || []).push(id); acctSave(); acctSyncSoon(); }   // the next sync deletes the cloud copy too
     libUndo = meta && rec ? { meta, rec, pos } : null;
     if (libUndo) toastAct('マイ素材から削除しました', '元に戻す', libRestore); else toast('削除しました');
   }).catch(e => { console.warn('library', e); toast('削除できませんでした'); });
@@ -4826,6 +4855,7 @@ function libRestore() {
   const u = libUndo; libUndo = null; if (!u) return;
   libQ = libQ.then(async () => {
     let r; await idbOp('readwrite', st => { r = libPutIdx(st, u.meta, u.rec, Math.max(0, u.pos)); });
+    if (acctLocal.libDel) { acctLocal.libDel = acctLocal.libDel.filter(x => x !== u.meta.id); acctSave(); }
     libSet(r.result); toast('元に戻しました');
   }).catch(e => { console.warn('library', e); toast('元に戻せませんでした'); });
 }
@@ -5783,7 +5813,7 @@ function loadUI() {
 }
 const UI = loadUI();
 S.cut.model = UI.aiModel;
-function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify(UI)); } catch (e) { } }
+function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify(UI)); } catch (e) { } if (typeof settingsChanged === 'function') settingsChanged(); }
 /* ==== phone bottom panel height ==== 小 (tools only) / 中 / 大. The grab handle cycles or drags between them; a tap on empty
    canvas folds it to 小 and back; picking something to edit reopens it. UI.ph is only the starting height (設定). */
 const dockEl = $('.dock');
@@ -5874,8 +5904,10 @@ function setTool(t) {
 
 /* ==== sidebar (PC) ==== icon rail + drawer. フィルター・調整・背景削除 are ordinary tools whose panel renders into the drawer. */
 const sideEl = $('#side'), railEl = $('#rail'), drawer = $('#drawer'), zoomPct = $('#zoomPct');
+/* アカウント (login + sync): turn on once supabase/DEPLOY-account.md is done (schema_account.sql, providers, URLs) */
+const ACCT_ON = false;
 const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', '写真', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp], ['filter', 'フィルター', ICON.filter],
-  ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ['settings', '設定', ICON.gear]];
+  ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ...(ACCT_ON ? [['account', 'アカウント', ICON.user]] : []), ['settings', '設定', ICON.gear]];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
@@ -5918,7 +5950,7 @@ function syncSide() {
 }
 /* PC: みんなの作品 and 設定 open in the drawer like 写真 (pushing the stage) instead of as bottom sheets.
    The sheet element itself moves into #sidePanel (keeping its listeners) as .sheet.indrawer, and goes back to <body> when the drawer shows something else. */
-const DRAWER_SHEETS = { gallery: '#sheetGallery', settings: '#sheetUI' };
+const DRAWER_SHEETS = { gallery: '#sheetGallery', settings: '#sheetUI', account: '#sheetAccount' };
 function dockSheet(id) {
   const el = $(DRAWER_SHEETS[id]);
   undockSheets(el);
@@ -5966,6 +5998,7 @@ railEl.addEventListener('click', e => {
     closeMobSide(true);
     if (id === 'gallery') openGallery();
     else if (id === 'settings') openUISheet();
+    else if (id === 'account') openAccount();
     else if (id === 'upload') { renderNB(); openSheet('#sheetNew'); }
     else if (id === 'template') openTplSheet();
     else if (id === 'search') openCmd();
@@ -5976,6 +6009,7 @@ railEl.addEventListener('click', e => {
   if (sideView === id) { closeDrawer(); return; }   // tapping the open item again folds the drawer
   if (id === 'gallery') { openGallery(); return; }
   if (id === 'settings') { openUISheet(); return; }
+  if (id === 'account') { openAccount(); return; }
   if (SIDE_TOOLS.has(id)) { setTool(id); return; }
   if (SIDE_TOOLS.has(tool)) setTool('select');
   sideView = id; renderSide();
@@ -7099,6 +7133,7 @@ function cmdItems() {
   add('すべて選択', 'Ctrl+A', ['select all', '全選択', 'すべて ぜんせんたく'], () => { setTool('select'); const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id); if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; } refreshPanel(); requestDraw(); });
   add('みんなの作品', 'ギャラリー', ['gallery', '投稿', '公開', 'みんなのさくひん とうこう'], () => openGallery());
   add('設定', '表示サイズ・演出', ['settings', 'size', '表示', 'せってい'], openUISheet);
+  if (SUPA.url && ACCT_ON) add('アカウント', 'ログイン・同期', ['account', 'login', 'ろぐいん', 'あかうんと', 'どうき', 'sync', 'google', 'apple', 'めーる'], openAccount);
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
   Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], 'フィルター', ['filter', id, f[0]], () => { if (deskOn) setTool('filter'); runCmd('preset', id); }));
@@ -7303,6 +7338,7 @@ async function saveDraftNow() {
       blobs[id] = b;
     }
     await idbOp('readwrite', st => st.put({ v: 1, doc: d, blobs }, 'draft'));
+    cloudSoon();   // signed in: the cloud copy follows a little later
   } catch (e) {
     console.warn('draft save', e);
     if (!saveWarned) { saveWarned = true; toast('下書きを保存できませんでした（端末の空き容量が足りない可能性があります）', 4200); }
@@ -7316,8 +7352,11 @@ async function blobToCanvas(blob) {
   return canvas;
 }
 async function loadDraft() {
+  try { return await restoreDraft(await idbOp('readonly', st => st.get('draft'))); } catch (e) { return false; }
+}
+/* {doc, blobs} → the open document (also used for the cloud draft from another device; force = replace what is open) */
+async function restoreDraft(d, force) {
   try {
-    const d = await idbOp('readonly', st => st.get('draft'));
     if (!d || !d.doc || !d.blobs) return false;
     let lost = 0;
     // decode each bitmap on its own: one unreadable image only drops that image, not the whole draft
@@ -7325,7 +7364,7 @@ async function loadDraft() {
       try { if (!blob) throw 0; bitmaps.set(id, { canvas: await blobToCanvas(blob), blob, alpha: blob.type === 'image/png' }); }
       catch (e) { lost++; }
     }
-    if (doc) return null;                     // the user opened something while we were decoding: theirs wins
+    if (doc && !force) return null;           // the user opened something while we were decoding: theirs wins
     if (!bitmaps.has(d.doc.baseId)) {
       if (d.doc.baseOrig && bitmaps.has(d.doc.baseOrig)) { d.doc.baseId = d.doc.baseOrig; d.doc.baseOrig = null; }
       else return false;
@@ -7459,6 +7498,7 @@ const ordIds = () => UI.order.filter(id => !(deskOn && DESK_HIDE.has(id)));
 /* write back a reordered list of ordIds() while the unlisted tools keep their slots */
 function setOrd(list) { let k = 0; UI.order = UI.order.map(id => ordIds().includes(id) ? list[k++] : id); }
 function renderUISheet() {
+  acctRender();
   $('#uiSize').innerHTML = UI_SIZES.map(([v, l]) => `<button class="chip${UI.size === v ? ' on' : ''}" data-uis="${v}">${l}</button>`).join('');
   const opt = (k, list) => `<div class="wrap">${list.map(([v, l]) => `<button class="chip${UI[k] === v ? ' on' : ''}" aria-pressed="${UI[k] === v}" data-uiv="${k}:${v}">${l}</button>`).join('')}</div>`;
   $('#uiOps').innerHTML = `<div class="setlab">吸着（ピタッと整列）</div>` + opt('snap', [['off', 'オフ'], ['weak', '弱い'], ['normal', 'ふつう'], ['strong', '強い']])
@@ -7742,6 +7782,7 @@ function sb() {
       const c = sbClient || (sbClient = window.supabase.createClient(SUPA.url, SUPA.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'petaphoto.sb' } }));
       let { data: { session } } = await c.auth.getSession();
       if (!session) { const r = await c.auth.signInAnonymously(); if (r.error) throw r.error; session = r.data.session; }
+      acct = acctFrom(session); acctWire(c);
       return { c, uid: session.user.id };
     })();
     sbP.catch(() => { sbP = null; });
@@ -7749,6 +7790,286 @@ function sb() {
   return sbP;
 }
 const sbOk = r => { if (r && r.error) throw r.error; return r ? r.data : null; };
+const sbDown = async (c, bucket, path) => sbOk(await c.storage.from(bucket).download(path));
+/* ==== account ==== optional sign-in (Google / Apple / メールのログインリンク). An anonymous device LINKS the identity to its
+   own Supabase user (linkIdentity / updateUser email), so its gallery posts carry over; another device signs in normally.
+   Signed-in users sync settings (user_settings), マイ素材 (library_items + private bucket library: <uid>/<id>.<ext>, <uid>/<id>-t.<jpg|png>)
+   and one cloud draft (cloud_drafts + bucket drafts: <uid>/<bitmapId>.<jpg|png>). Server side: supabase/schema_account.sql,
+   setup steps for the owner: supabase/DEPLOY-account.md. RLS only lets non-anonymous users touch the sync tables. */
+const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto'];
+const acctLocal = (() => { let v = null; try { v = JSON.parse(localStorage.getItem(ACCT_KEY)); } catch (e) { } v = v && typeof v === 'object' ? v : {}; v.at = v.at && typeof v.at === 'object' ? v.at : {}; if (!v.dev) v.dev = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); return v; })();
+function acctSave() { try { localStorage.setItem(ACCT_KEY, JSON.stringify(acctLocal)); } catch (e) { } }
+let acct = null, acctBusy = false, acctSent = '', syncState = '', syncAt = 0, cloudInfo = null, acctWired = false;
+const PROV_NAMES = { google: 'Google', apple: 'Apple', email: 'メール' };
+function acctFrom(session) {
+  const u = session && session.user; if (!u || u.is_anonymous) return null;
+  const m = u.user_metadata || {};
+  return { id: u.id, email: u.email || m.email || '', name: m.full_name || m.name || '', provs: [...new Set((u.identities || []).map(i => i.provider).filter(p => PROV_NAMES[p]))] };
+}
+/* a signed-in (not anonymous) session stored on this device? (checked without loading supabase-js) */
+function acctStored() { try { const v = JSON.parse(localStorage.getItem('petaphoto.sb')), u = v && (v.user || (v.currentSession && v.currentSession.user)); return !!(u && !u.is_anonymous); } catch (e) { return false; } }
+function acctWire(c) {
+  if (acctWired) return; acctWired = true;
+  c.auth.onAuthStateChange((ev, session) => {
+    const was = acct && acct.id; acct = acctFrom(session);
+    if (session) sbP = Promise.resolve({ c, uid: session.user.id });   // gallery ownership follows the current user
+    if (acct && acct.id !== was) setTimeout(syncAll, 0);
+    acctRender();
+  });
+}
+const authRedirect = () => location.origin + location.pathname;
+const errKey = e => ((e && (e.code || '')) + ' ' + (e && (e.message || '')) + ' ' + (e && e.status === 429 ? 'rate' : '')).toLowerCase();
+function acctErr(e) {
+  const k = errKey(e);
+  if (!navigator.onLine) return 'オフラインのためログインできません';
+  if (/rate|too many/.test(k)) return '短い間に何度も試したため、少し待ってからもう一度お試しください';
+  if (/manual_linking_disabled|provider is not enabled|unsupported provider|provider_disabled|validation_failed/.test(k)) return 'このログイン方法はまだ準備中です';
+  if (/otp_expired|expired/.test(k)) return 'リンクの有効期限が切れています。もう一度送ってください';
+  return 'ログインできませんでした。もう一度お試しください';
+}
+/* Google / Apple: link to this device's user (posts carry over), or sign in when there is no anonymous session to keep */
+async function acctOAuth(provider) {
+  if (!navigator.onLine) { toast(acctErr()); return; }
+  acctBusy = true; acctRender();
+  try {
+    await saveDraft();   // the page leaves for the provider: keep the work
+    const { c } = await sb(), { data: { session } } = await c.auth.getSession();
+    try { sessionStorage.setItem('lf.auth', provider); } catch (e) { }
+    const opt = { provider, options: { redirectTo: authRedirect() } };
+    sbOk(session && session.user.is_anonymous ? await c.auth.linkIdentity(opt) : await c.auth.signInWithOAuth(opt));   // success navigates away
+  } catch (e) { console.warn('auth', e); toast(acctErr(e)); acctBusy = false; acctRender(); }
+}
+/* the provider identity already belongs to an account (made on another device): sign in to that one instead */
+async function acctSwitch(provider) {
+  try { await saveDraft(); const { c } = await sb(); sbOk(await c.auth.signInWithOAuth({ provider, options: { redirectTo: authRedirect() } })); }
+  catch (e) { console.warn('auth', e); toast(acctErr(e)); }
+}
+/* メール: an anonymous user adds the address (same user); an address that already has an account gets a normal login link */
+async function acctEmail(email) {
+  email = String(email || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('メールアドレスを確かめてください'); return; }
+  if (!navigator.onLine) { toast(acctErr()); return; }
+  acctBusy = true; acctRender();
+  try {
+    const { c } = await sb(), { data: { session } } = await c.auth.getSession(), to = authRedirect();
+    let r = null;
+    if (session && session.user.is_anonymous) {
+      r = await c.auth.updateUser({ email }, { emailRedirectTo: to });
+      if (r.error && /email_exists|already|registered|taken/.test(errKey(r.error))) r = null;   // that address has an account: log in to it
+    }
+    if (!r || r.error) r = await c.auth.signInWithOtp({ email, options: { emailRedirectTo: to } });
+    sbOk(r); acctSent = email;
+  } catch (e) { console.warn('auth', e); toast(acctErr(e)); }
+  acctBusy = false; acctRender();
+}
+/* back from Google / Apple / the e-mail link: tokens in the hash, errors in the hash or the query */
+const authParams = () => { const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1)); return k => h.get(k) || q.get(k); };
+const authInUrl = () => { const g = authParams(); return !!(g('access_token') || g('error_code') || g('error_description')); };
+const cleanAuthUrl = () => { const q = new URLSearchParams(location.search); ['error', 'error_code', 'error_description'].forEach(k => q.delete(k)); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '')); };
+async function authReturn() {
+  const g = authParams(), err = g('error_code') || g('error'), desc = (g('error_description') || '').replace(/\+/g, ' ');
+  let prov = null; try { prov = sessionStorage.getItem('lf.auth'); sessionStorage.removeItem('lf.auth'); } catch (e) { }
+  if (err) {
+    cleanAuthUrl();
+    if (/identity_already_exists|already (linked|exists|associated)/i.test(err + ' ' + desc) && prov && prov !== 'email') {
+      toast('このアカウントはほかの端末で使われています。そのアカウントでログインします', 3600);
+      setTimeout(() => acctSwitch(prov), 1200); return;
+    }
+    toast(/otp_expired|expired/i.test(err + desc) ? 'リンクの有効期限が切れています。もう一度送ってください' : 'ログインできませんでした' + (desc ? `（${desc.slice(0, 60)}）` : ''), 4600); return;
+  }
+  try {
+    const { c } = await sb();
+    let { data: { session } } = await c.auth.getSession();
+    cleanAuthUrl();
+    // the is_anonymous claim changes only in a new token: refresh once so the sync tables let us in
+    if (session && !session.user.is_anonymous) { const r = await c.auth.refreshSession(); if (!r.error && r.data.session) session = r.data.session; }
+    acct = acctFrom(session);
+    if (acct) { toast('ログインしました。ほかの端末と同期します'); acctSyncSoon(500); }
+  } catch (e) { console.warn('auth', e); toast(acctErr(e)); }
+}
+async function acctOut() {
+  try {
+    clearTimeout(cloudT); await cloudPush();   // the last changes reach the cloud first
+    const { c } = await sb(); sbOk(await c.auth.signOut());
+  } catch (e) { console.warn('auth', e); }
+  acct = null; sbP = null; acctLocal.at = {}; acctLocal.sig = ''; acctLocal.libDel = []; acctSave(); cloudInfo = null; syncState = ''; syncAt = 0;
+  acctRender(); toast('ログアウトしました。この端末の作品やマイ素材はそのまま残ります', 3600);
+}
+/* ---- sync ---- */
+let syncP = null, syncAgain = false, syncT = 0;
+function acctSyncSoon(ms = 3000) { if (!acct) return; clearTimeout(syncT); syncT = setTimeout(syncAll, ms); }
+function syncAll() {
+  if (!acct || !navigator.onLine) return Promise.resolve();
+  if (syncP) { syncAgain = true; return syncP; }
+  syncState = 'busy'; acctRender();
+  syncP = (async () => { const { c } = await sb(); if (!acct) return; await syncSettings(c); await syncLib(c); await cloudCheck(c); })()
+    .then(() => { syncState = 'ok'; syncAt = Date.now(); }, e => { console.warn('sync', e); syncState = 'err'; syncAt = Date.now(); })
+    .finally(() => { syncP = null; acctRender(); if (syncAgain) { syncAgain = false; syncAll(); } });
+  return syncP;
+}
+// settings: last write wins (acctLocal.at.settings = when this device last changed them)
+let setT = 0, setApplying = false;
+const settingsSig = () => JSON.stringify([UI_SYNC.map(k => UI[k]), TOOLS_SAVED.map(g => S[g])]);
+function settingsChanged() {
+  if (setApplying) return;
+  const sig = settingsSig(); if (sig === acctLocal.sig) return;
+  acctLocal.sig = sig; acctLocal.at.settings = Date.now(); acctSave();
+  if (acct) { clearTimeout(setT); setT = setTimeout(() => sb().then(({ c }) => pushSettings(c)).catch(e => console.warn('sync', e)), 4000); }
+}
+async function pushSettings(c) {
+  if (!acct) return;
+  sbOk(await c.from('user_settings').upsert({ owner: acct.id, ui: Object.fromEntries(UI_SYNC.map(k => [k, UI[k]])), tools: Object.fromEntries(TOOLS_SAVED.map(g => [g, S[g]])), updated_at: new Date(acctLocal.at.settings || Date.now()).toISOString() }));
+}
+async function syncSettings(c) {
+  const row = sbOk(await c.from('user_settings').select('ui,tools,updated_at').eq('owner', acct.id).maybeSingle());
+  const rt = row ? Date.parse(row.updated_at) || 0 : 0, lt = acctLocal.at.settings || 0;
+  if (row && rt > lt) applySettings(row.ui, row.tools, rt); else if (!row || lt > rt) await pushSettings(c);
+}
+function applySettings(ui, tools, at) {
+  setApplying = true;
+  try {
+    if (ui && typeof ui === 'object') {
+      let cur = {}; try { cur = JSON.parse(localStorage.getItem(UI_KEY)) || {}; } catch (e) { }
+      UI_SYNC.forEach(k => { if (k in ui) cur[k] = ui[k]; });
+      try { localStorage.setItem(UI_KEY, JSON.stringify(cur)); } catch (e) { }
+      Object.assign(UI, loadUI());   // the same checks as at start-up
+    }
+    if (tools && typeof tools === 'object') for (const g of TOOLS_SAVED) { const src = tools[g]; if (!src || typeof src !== 'object') continue; for (const k in S[g]) if (typeof src[k] === typeof S[g][k]) S[g][k] = src[k]; }
+    saveUI(); saveTools(); S.cut.model = UI.aiModel; applyUISize(); applyHand(); renderTools(); refreshPanel();
+  } catch (e) { console.warn('settings', e); }
+  acctLocal.at.settings = at; acctLocal.sig = settingsSig(); acctSave(); setApplying = false;
+}
+// マイ素材: merge both sides newest first (max LIB_MAX); remote-only items bring their thumbnail now, the picture on first use
+const libTPath = (uid, id, alpha) => `${uid}/${id}-t.${alpha ? 'png' : 'jpg'}`;
+function syncLib(c) { const p = libQ.then(() => syncLibNow(c)); libQ = p.catch(() => { }); return p; }
+async function syncLibNow(c) {
+  await libLoad(); if (!acct) return;
+  const uid = acct.id, rows = sbOk(await c.from('library_items').select('id,sig,w,h,alpha,ext,t').eq('owner', uid)) || [];
+  const gone = new Set(acctLocal.libDel || []), R = new Map(rows.map(r => [r.id, r])), L = libList.slice();
+  const keepL = L.filter(x => !(x.cloud === uid && !R.has(x.id)));   // deleted on another device
+  const have = new Set(keepL.map(x => x.id)), sigs = new Set(keepL.map(x => x.sig));
+  const all = [...keepL, ...rows.filter(r => !have.has(r.id) && !gone.has(r.id) && !sigs.has(r.sig)).map(r => ({ id: r.id, sig: r.sig, w: r.w, h: r.h, alpha: !!r.alpha, ext: r.ext, t: +r.t || 0, cloud: uid, remote: true }))];
+  all.sort((a, b) => (b.t || 0) - (a.t || 0));
+  const fin = all.slice(0, LIB_MAX), finIds = new Set(fin.map(x => x.id));
+  for (const it of fin) if (it.remote) { try { it.thumb = await sbDown(c, 'library', libTPath(uid, it.id, it.alpha)); } catch (e) { } delete it.remote; }
+  for (const it of fin) if (!R.has(it.id) && it.thumb) await libUp(c, it, uid);
+  const drop = rows.filter(r => !finIds.has(r.id));   // deleted here, or pushed out by newer ones
+  if (drop.length) {
+    await c.storage.from('library').remove(drop.flatMap(r => [`${uid}/${r.id}.${r.ext}`, libTPath(uid, r.id, r.alpha)]));
+    sbOk(await c.from('library_items').delete().eq('owner', uid).in('id', drop.map(r => r.id)));
+  }
+  acctLocal.libDel = []; acctSave();
+  const out = fin.filter(x => x.thumb), ids = new Set(out.map(x => x.id));
+  await idbOp('readwrite', st => { L.forEach(x => { if (!ids.has(x.id)) st.delete(libKey(x.id)); }); st.put(out, LIB_IDX); });
+  libSet(out);
+}
+async function libUp(c, it, uid) {
+  const rec = await idbOp('readonly', st => st.get(libKey(it.id))); if (!rec || !rec.blob) return;
+  const ext = ({ 'image/webp': 'webp', 'image/png': 'png' })[rec.blob.type] || 'jpg';
+  sbOk(await c.storage.from('library').upload(`${uid}/${it.id}.${ext}`, rec.blob, { upsert: true, contentType: rec.blob.type || 'image/jpeg' }));
+  sbOk(await c.storage.from('library').upload(libTPath(uid, it.id, it.alpha), it.thumb, { upsert: true, contentType: it.alpha ? 'image/png' : 'image/jpeg' }));
+  sbOk(await c.from('library_items').upsert({ owner: uid, id: it.id, sig: String(it.sig || '').slice(0, 200), w: it.w | 0, h: it.h | 0, alpha: !!it.alpha, ext, t: it.t || Date.now() }));
+  it.cloud = uid; it.ext = ext;
+}
+// 作業中の作品: one cloud copy per account, pushed a little after each local draft save; other devices are offered to open it
+let cloudT = 0, cloudBusy = false;
+const cloudSent = new WeakMap();   // blob → path already uploaded (a bitmap edited in place gets a new blob)
+function cloudSoon(ms = 15000) { if (!acct) return; clearTimeout(cloudT); cloudT = setTimeout(cloudPush, ms); }
+async function cloudPush() {
+  clearTimeout(cloudT); cloudT = 0;
+  if (!acct || !doc || !navigator.onLine || cloudBusy) return false;
+  cloudBusy = true;
+  try {
+    const { c } = await sb(), uid = acct.id, d = JSON.parse(snapshot()), files = {};
+    const used = [d.baseId, d.baseOrig, ...d.objects.filter(o => o.type === 'image').flatMap(o => [o.bmp, o.orig])].filter(Boolean);
+    for (const id of new Set(used)) {
+      const e = bitmaps.get(id); if (!e) continue;
+      if (!e.blob) { cloudSoon(5000); return false; }   // the local draft save has not encoded it yet
+      const path = `${uid}/${id}.${e.blob.type === 'image/png' ? 'png' : 'jpg'}`; files[id] = path;
+      if (cloudSent.get(e.blob) === path) continue;
+      sbOk(await c.storage.from('drafts').upload(path, e.blob, { upsert: true, contentType: e.blob.type || 'image/jpeg' })); cloudSent.set(e.blob, path);
+    }
+    const at = new Date().toISOString();
+    sbOk(await c.from('cloud_drafts').upsert({ owner: uid, doc: d, files, device: acctLocal.dev, updated_at: at }));
+    acctLocal.seen = Date.parse(at); acctSave(); cloudInfo = { at: acctLocal.seen, mine: true };
+    const keep = new Set(Object.values(files)), ls = sbOk(await c.storage.from('drafts').list(uid, { limit: 1000 })) || [];
+    const old = ls.map(f => `${uid}/${f.name}`).filter(p => !keep.has(p));
+    if (old.length) await c.storage.from('drafts').remove(old);   // pictures the draft no longer uses
+    return true;
+  } catch (e) { console.warn('cloud draft', e); return false; }
+  finally { cloudBusy = false; acctRender(); }
+}
+const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'たった今' : m < 60 ? m + '分前' : m < 1440 ? Math.round(m / 60) + '時間前' : Math.round(m / 1440) + '日前'; };
+async function cloudCheck(c) {
+  const row = sbOk(await c.from('cloud_drafts').select('device,updated_at').eq('owner', acct.id).maybeSingle());
+  if (!row) { cloudInfo = null; return; }
+  const at = Date.parse(row.updated_at) || 0; cloudInfo = { at, mine: row.device === acctLocal.dev };
+  if (!cloudInfo.mine && at > (acctLocal.seen || 0)) toastAct(`別の端末で作業した作品があります（${ago(at)}）`, '開く', cloudOpen);
+}
+async function cloudOpen() {
+  if (!acct) return;
+  try {
+    toast('クラウドから読み込んでいます…', 8000);
+    const { c } = await sb(), row = sbOk(await c.from('cloud_drafts').select('doc,files,updated_at').eq('owner', acct.id).maybeSingle());
+    if (!row) { toast('クラウドに作業中の作品がありません'); return; }
+    const blobs = {};
+    for (const [id, path] of Object.entries(row.files || {})) { try { blobs[id] = await sbDown(c, 'drafts', path); } catch (e) { } }
+    acctLocal.seen = Date.parse(row.updated_at) || Date.now(); acctSave();
+    const ok = await restoreDraft({ doc: row.doc, blobs }, true);
+    if (ok) { closeSheets(true); refreshPanel(); scheduleSave(); toast('別の端末の作品を開きました'); } else toast('開けませんでした');
+  } catch (e) { console.warn('cloud draft', e); toast('クラウドから読み込めませんでした'); }
+}
+/* ---- the アカウント sheet (PC: in the drawer) and the account row at the top of 設定 ---- */
+function openAccount() {
+  acctRender();
+  if (deskOn) openInDrawer('account'); else openSheet('#sheetAccount');
+  if (SUPA.url && navigator.onLine) sb().then(() => { acctRender(); if (acct && Date.now() - syncAt > 60000) syncAll(); }).catch(() => acctRender());
+}
+const acctShown = () => { const el = $('#sheetAccount'); return !!el && !el.hidden; };
+function acctRender() {
+  const ui = $('#uiAcct');
+  if (ui) ui.innerHTML = SUPA.url && ACCT_ON ? `<button class="acctrow" data-acct="open">${ICON.user}<span><b>${acct ? esc(acct.name || acct.email || 'ログイン中') : 'ログインしていません'}</b><small>${acct ? 'ほかの端末と同期しています' : 'ログインすると、ほかの端末と作品や素材を共有できます'}</small></span><span aria-hidden="true">›</span></button>` : '';
+  if (!acctShown()) return;
+  const b = $('#acctBody'); if (!b) return;
+  if (!SUPA.url) { b.innerHTML = '<p class="note">この版ではアカウント機能を使えません。</p>'; return; }
+  const dis = acctBusy ? ' disabled' : '';
+  if (!acct) {
+    b.innerHTML = acctSent
+      ? `<div class="acctsent"><b>メールを送りました</b><p>${esc(acctSent)} に届いたリンクを、この端末で開いてください。この画面は閉じて大丈夫です。</p><p class="note">届かないときは、迷惑メールフォルダも確かめてください。</p><button class="btn" data-acct="again">別のアドレスにする</button></div>`
+      : `<p class="note">ログインすると、ほかの端末と次のものを共有できます。ログインしなくても、これまで通り使えます。</p>
+        <ul class="acctlist"><li>みんなの作品の投稿</li><li>マイ素材</li><li>作業中の作品</li><li>設定</li></ul>
+        <div class="acctbtns"><button class="btn acctp" data-acct="google"${dis}>Google で続ける</button><button class="btn acctp" data-acct="apple"${dis}>Apple で続ける</button></div>
+        <div class="acctor"><span>またはメールで</span></div>
+        <form class="acctmail" id="acctMail"><input type="email" name="em" placeholder="メールアドレス" autocomplete="email" inputmode="email" aria-label="メールアドレス" required><button class="btn primary" type="submit"${dis}>${acctBusy ? '送信中…' : 'ログインリンクを送る'}</button></form>
+        <p class="note">この端末でこれまでに投稿した作品は、そのままアカウントに引き継がれます。${navigator.onLine ? '' : '<br>いまはオフラインです。'}</p>`;
+    return;
+  }
+  const st = syncState === 'busy' ? '同期しています…' : syncState === 'err' ? '同期できませんでした（あとでもう一度試します）' : syncAt ? `同期しました（${ago(syncAt)}）` : '';
+  const cl = !cloudInfo ? 'クラウドにはまだありません' : cloudInfo.mine ? `この端末の作品を保存済み（${ago(cloudInfo.at)}）` : `別の端末の作品があります（${ago(cloudInfo.at)}）`;
+  const nm = acct.name || acct.email || 'ログイン中', sub = [acct.name ? acct.email : '', (acct.provs.map(p => PROV_NAMES[p]).join('・') || 'アカウント') + ' でログイン中'].filter(Boolean).join(' ・ ');
+  b.innerHTML = `<div class="acctcard"><span class="acav" aria-hidden="true">${esc([...nm][0].toUpperCase())}</span><span><b>${esc(nm)}</b><small>${esc(sub)}</small></span></div>
+    <div class="acctsync"><span>${st}</span><button class="chip" data-acct="sync"${syncState === 'busy' ? ' disabled' : ''}>今すぐ同期</button></div>
+    <h3>作業中の作品</h3><p class="note">${cl}</p>
+    <div class="acctbtns">${cloudInfo && !cloudInfo.mine ? '<button class="btn primary" data-acct="cloudOpen">別の端末の作品を開く</button>' : ''}<button class="btn" data-acct="cloudPush">今の作品をクラウドに保存</button></div>
+    <p class="note">作業中の作品・マイ素材・設定は自動で同期します。みんなの作品の投稿は、どの端末からでも編集・削除できます。</p>
+    <button class="btn" data-acct="out">ログアウト</button>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-acct]'); if (!b) return;
+  const k = b.dataset.acct;
+  if (k === 'open') openAccount();
+  else if (k === 'google' || k === 'apple') acctOAuth(k);
+  else if (k === 'again') { acctSent = ''; acctRender(); }
+  else if (k === 'sync') syncAll();
+  else if (k === 'cloudOpen') cloudOpen();
+  else if (k === 'cloudPush') saveDraft().then(cloudPush).then(ok => toast(ok ? 'クラウドに保存しました' : 'クラウドに保存できませんでした'));
+  else if (k === 'out') acctOut();
+});
+document.addEventListener('submit', e => { if (e.target.id !== 'acctMail') return; e.preventDefault(); acctEmail(e.target.elements.em.value); });
+// coming back to the app / back online: catch up (at most once a minute); leaving: push the pending cloud copy now
+document.addEventListener('visibilitychange', () => { if (!document.hidden && acct && Date.now() - syncAt > 60000) syncAll(); if (document.hidden && cloudT) cloudPush(); });
+addEventListener('online', () => { if (acct) syncAll(); acctRender(); });
+
 const durlBlob = u => fetch(u).then(r => r.blob());
 const rowItem = (r, uid) => ({
   id: r.id, title: r.title || '', tags: Array.isArray(r.tags) ? r.tags : [], visibility: r.visibility,
@@ -8173,6 +8494,8 @@ document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closes
   const pid = hashPost(); if (pid) openSharedPost(pid);
   else if (!UI.seen && !navigator.webdriver) { UI.seen = true; saveUI(); setTimeout(() => openSheet('#sheetWelcome'), 400); }   // first visit: a short welcome (not in automated test browsers)
   registerSW();
+  if (SUPA.url && ACCT_ON && authInUrl()) authReturn();   // back from Google / Apple / the e-mail link
+  else if (SUPA.url && ACCT_ON && acctStored() && navigator.onLine) setTimeout(() => sb().then(() => { if (acct) syncAll(); }).catch(e => console.warn('sync', e)), 1500);
 })();
 $('#sheetWelcome').addEventListener('click', e => {
   const b = e.target.closest('[data-wl]'); if (!b) return;
