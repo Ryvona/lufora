@@ -216,6 +216,8 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
 .gcard .gm{padding:0 9px 8px;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gbadge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:5px;margin-right:4px;background:var(--line);color:var(--fg);font-weight:600;vertical-align:1px}
 .gbadge.sample{background:#3A3F7A;color:#DCE0FF}
+.gbadge.ai{background:linear-gradient(135deg,#7A5CFF,#E35DB4);color:#fff;letter-spacing:.04em}
+.note.aiwork b{display:inline-block;padding:0 6px;margin-right:4px;border-radius:5px;background:linear-gradient(135deg,#7A5CFF,#E35DB4);color:#fff;font-size:11px}
 .gbadge.pub{background:var(--accent);color:var(--accent-ink)}
 .gempty{text-align:center;padding:28px 12px;color:var(--muted);font-size:13px;line-height:1.8}
 .gempty b{display:block;font-size:30px;margin-bottom:6px}
@@ -487,6 +489,24 @@ html:not(.desk)[data-hand="left"] .topbar{flex-direction:row-reverse}
 .wsteps .wi{font-size:28px;line-height:1.2}
 .wsteps b{font-size:13.5px}
 .wsteps small{font-size:11px;color:var(--muted)}
+/* ==== install (PWA) ==== slim hint under the top bar (phones, takes layout space so it never covers the photo or the panel) + the steps sheet */
+#instHint{display:flex;align-items:center;gap:8px;margin:0 8px 6px;padding:5px 5px 5px 12px;border-radius:16px;background:var(--chrome);border:1px solid var(--line);box-shadow:0 2px 10px rgba(60,70,50,.08);font-size:calc(12.5px*var(--u));line-height:1.4;animation:instIn .35s var(--spring)}
+#instHint[hidden]{display:none}
+#instHint>svg{flex:none;width:20px;height:20px;color:var(--accent)}
+#instHint>span{flex:1;min-width:0}
+#instHint .chip{height:calc(32px*var(--u));padding:0 12px;background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700}
+#instHint .xbtn{position:static;flex:none;width:30px;height:30px;font-size:18px}
+@keyframes instIn{from{opacity:0;transform:translateY(-6px)}}
+#sheetInstall .wsteps .wi{display:flex;height:34px;align-items:center}
+#sheetInstall .wsteps .wi svg{width:30px;height:30px;color:var(--accent)}
+#sheetInstall .wsteps b{font-size:12.5px;letter-spacing:-.02em}
+.instlink{display:flex;gap:8px;padding:14px 0 0;flex-wrap:wrap}
+.instlink input{flex:1 1 180px;min-width:0;height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--chrome2);font-size:12.5px;color:var(--muted)}
+.instlink .btn{flex:1 1 160px;display:flex;align-items:center;justify-content:center;gap:6px}
+.instlink .btn svg{width:20px;height:20px}
+#uiInst .chip{display:flex;align-items:center;gap:5px;color:var(--accent-ink);background:var(--accent);border-color:transparent;font-weight:700}
+#uiInst .chip svg{width:18px;height:18px}
+#uiInst:not(:empty){margin-bottom:10px}
 html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--line);background:var(--chrome2);color:var(--muted)}
 /* phone: rarely used settings fold under もっと見る / 詳細 */
 .more{margin:2px 0 4px}
@@ -796,6 +816,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
     <button class="tbtn" id="btnRedo" aria-label="やり直し"></button>
     <button class="tbtn primary" id="btnSave">保存</button>
   </header>
+  <div id="instHint" role="region" aria-label="インストールの案内" hidden></div>
   <div id="work">
     <aside id="side" aria-label="サイドバー">
       <div class="dhead mhead"><h2 id="sideTitle">メニュー</h2><button class="xbtn" id="sideClose" aria-label="閉じる" title="閉じる">×</button></div>
@@ -928,6 +949,15 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <p class="note" style="text-align:center">いまはサンプル写真で試せます。使い方は「？」からいつでも。</p>
 </div>
 
+<div class="sheet" id="sheetInstall" hidden>
+  <div class="grab"></div>
+  <h2 id="instTitle">ホーム画面に追加</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
+  <p class="wlead" id="instLead"></p>
+  <ol class="wsteps" id="instSteps"></ol>
+  <div id="instAct"></div>
+  <p class="note" id="instNote"></p>
+</div>
+
 <div class="sheet" id="sheetTpl" hidden>
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">テンプレート</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
@@ -985,6 +1015,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">設定</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
   <div id="uiAcct"></div>
+  <div id="uiInst"></div>
   <h3 style="margin-top:8px">表示サイズ</h3>
   <div class="wrap" id="uiSize"></div>
   <h3>操作</h3>
@@ -6164,7 +6195,7 @@ function loadUI() {
   if (!['s', 'm', 'l'].includes(u.ph)) u.ph = 'm';
   if (!['right', 'left'].includes(u.hand)) u.hand = 'right';
   if (!['off', 'weak', 'normal', 'strong'].includes(u.snap)) u.snap = 'normal';
-  u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.seen = !!u.seen;
+  u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.seen = !!u.seen; u.visits = Math.min(99, +u.visits | 0); u.instHint = !!u.instHint;
   return u;
 }
 const UI = loadUI();
@@ -6263,13 +6294,124 @@ function setTool(t) {
 const sideEl = $('#side'), railEl = $('#rail'), drawer = $('#drawer'), zoomPct = $('#zoomPct');
 /* アカウント (login + sync): turn on once supabase/DEPLOY-account.md is done (schema_account.sql, providers, URLs) */
 const ACCT_ON = true, ACCT_PROVS = ['google'];   // add 'apple' once its provider is set up in Supabase
+/* ==== install (PWA) ==== 「アプリとしてインストール」 shows only where installing is possible and the app is not installed yet.
+   Chrome / Edge / Android: the saved beforeinstallprompt event. iOS Safari (and iOS Chrome / Edge / Firefox, 16.4+): a steps sheet (共有 → ホーム画面に追加).
+   Android without the event (Samsung, Firefox, …): menu steps. In-app browsers (LINE, Instagram, Gmail…): open in Safari / Chrome first, with リンクをコピー. */
+Object.assign(ICON, {
+  instApp: I('<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12 7v6.5M9.2 10.8 12 13.6l2.8-2.8M10.5 18.3h3"/>'),
+  instShare: I('<path d="M8.5 9.5H7A1.5 1.5 0 0 0 5.5 11v8A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 17 9.5h-1.5"/><path d="M12 14.5V3.5M8.7 6.8 12 3.5l3.3 3.3"/>'),
+  instAdd: I('<rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M12 8.5v7M8.5 12h7"/>'),
+  instOk: I('<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3l2.6 2.6 5-5.3"/>'),
+  instMenu: I('<path d="M12 5.5h.01M12 12h.01M12 18.5h.01" stroke-width="3.2"/>'),
+  instWeb: I('<circle cx="12" cy="12" r="8.5"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>')
+});
+const UA = navigator.userAgent || '';
+const isIOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1), isAndroid = /Android/.test(UA);
+const INAPP_RE = /\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger|KAKAOTALK|Twitter|TikTok|musical_ly|Bytedance|Snapchat|Pinterest|GSA\/|Gmail|YJApp|; wv\)/i;
+const DM = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay'].map(m => matchMedia(`(display-mode: ${m})`));
+const standalone = () => navigator.standalone === true || DM.some(m => m.matches);
+let instEvt = null, instDone = false, instReady = false;
+/* 'prompt' | 'ios' | 'iosx' (iOS non-Safari) | 'android' (menu steps) | 'inapp' | null (installed / not possible here) */
+function instKind() {
+  if (instDone || standalone() || !/^https?:$/.test(location.protocol)) return null;
+  if (instEvt) return 'prompt';
+  if (INAPP_RE.test(UA) || (isIOS && !/Safari\//.test(UA))) return isIOS || isAndroid ? 'inapp' : null;
+  if (isIOS) return /CriOS|FxiOS|EdgiOS|OPiOS/.test(UA) ? 'iosx' : 'ios';
+  return isAndroid ? 'android' : null;
+}
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); instEvt = e; instSync(); });
+addEventListener('appinstalled', () => { instEvt = null; instDone = true; instSync(); if (!$('#sheetInstall').hidden) closeSheets(); toast('インストールしました。ホーム画面のアイコンから開けます'); });
+DM.forEach(m => m.addEventListener && m.addEventListener('change', () => instSync()));
+function instSync() { renderRail(); instRow(); instHintSync(); }
+async function instGo() {
+  const k = instKind(); if (!k) return;
+  instHintOff();
+  if (k !== 'prompt') { instSheet(k); return; }
+  const ev = instEvt; instEvt = null;
+  try { await ev.prompt(); const r = await ev.userChoice; if (r && r.outcome === 'accepted') instDone = true; } catch (e) { console.warn('install', e); }
+  instSync();
+}
+const instUrl = () => location.origin + location.pathname;
+function instSheet(k) {
+  const st = (ic, b, s) => `<li><span class="wn"></span><span class="wi">${ICON[ic]}</span><b>${b}</b><small>${s}</small></li>`;
+  const T = {
+    ios: ['ホーム画面に追加', 'Safari の共有メニューから追加すると、アプリのようにすぐ開けます。',
+      [['instShare', '共有', '画面の下（iPad は右上）のボタン'], ['instAdd', 'ホーム画面に追加', 'メニューを下へスクロール'], ['instOk', '追加', '右上の「追加」をタップ']], ''],
+    iosx: ['ホーム画面に追加', 'アドレスバーの共有ボタンから追加できます（iOS 16.4 以降）。うまくいかないときは Safari で開いてください。',
+      [['instShare', '共有', 'アドレスバーの右のボタン'], ['instAdd', 'ホーム画面に追加', 'メニューを下へスクロール'], ['instOk', '追加', '右上の「追加」をタップ']], 1],
+    android: ['ホーム画面に追加', 'ブラウザのメニューから追加すると、アプリのようにすぐ開けます。',
+      [['instMenu', 'メニュー', '右上の ⋮ など'], ['instApp', 'インストール', '「アプリをインストール」か「ホーム画面に追加」'], ['instOk', '完了', 'ホーム画面にアイコンができます']], ''],
+    inapp: ['ブラウザで開いてください', 'このアプリの中のブラウザからはインストールできません。Safari（Android は Chrome）で開いてからインストールしてください。',
+      [['instMenu', 'メニュー', '… や 共有ボタン'], ['instWeb', 'ブラウザで開く', '「Safariで開く」など'], ['instAdd', 'ホーム画面に追加', '開いたブラウザで']], 1]
+  }[k];
+  $('#instTitle').textContent = T[0]; $('#instLead').textContent = T[1];
+  $('#instSteps').innerHTML = T[2].map((s, i) => st(...s).replace('<span class="wn"></span>', `<span class="wn">${i + 1}</span>`)).join('');
+  $('#instAct').innerHTML = T[3] ? `<div class="instlink"><input id="instUrlIn" readonly value="${esc(instUrl())}" aria-label="このページのリンク"><button class="btn primary" data-instcopy="1">${ICON.copy}リンクをコピー</button></div>` : '';
+  $('#instNote').textContent = k === 'inapp' ? 'メニューが見つからないときは、リンクをコピーして Safari / Chrome のアドレス欄に貼り付けてください。' : 'ホーム画面のアイコンから開くと、全画面で使えてオフラインでも動きます。';
+  openSheet('#sheetInstall');
+}
+$('#sheetInstall').addEventListener('click', async e => {
+  const b = e.target.closest('[data-instcopy]'); if (!b) return;
+  try { await navigator.clipboard.writeText(instUrl()); toast('リンクをコピーしました'); return; } catch (err) { }
+  const i = $('#instUrlIn'); i.focus(); i.select();
+  try { if (document.execCommand('copy')) { toast('リンクをコピーしました'); return; } } catch (err) { }
+  toast('リンクを長押ししてコピーしてください', 4000);
+});
+document.addEventListener('click', e => { const b = e.target.closest('[data-inst]'); if (b) instGo(); });
+/* 設定 sheet row */
+function instRow() {
+  const el = $('#uiInst'); if (!el) return;
+  const k = instKind();
+  el.innerHTML = k ? `<h3 style="margin-top:8px">アプリ</h3><div class="setrow"><span class="st">アプリとしてインストール<small>ホーム画面からすぐ開けて、オフラインでも使えます</small></span><button class="chip" data-inst="ui">${ICON.instApp}インストール</button></div>`
+    : standalone() ? `<h3 style="margin-top:8px">アプリ</h3><div class="setrow quiet"><span class="st">アプリとして使用中<small>ホーム画面のアイコンから開いています</small></span></div>` : '';
+}
+/* phones: a one-time, dismissible hint from the 2nd visit on (UI.instHint = dismissed). Never in automated browsers. */
+function instHintSync(force) {
+  const el = $('#instHint'), k = instKind();
+  const on = !!k && k !== 'inapp' && !deskOn && !UI.instHint && (force || (instReady && UI.visits >= 2 && !navigator.webdriver));
+  if (on && el.hidden) el.innerHTML = `${ICON.instApp}<span>ホーム画面に追加できます</span><button class="chip" data-inst="hint">インストール</button><button class="xbtn" id="instHintX" aria-label="案内を閉じる" title="閉じる">×</button>`;
+  el.hidden = !on;
+}
+function instHintOff() { if (UI.instHint && $('#instHint').hidden) return; UI.instHint = true; saveUI(); $('#instHint').hidden = true; }
+$('#instHint').addEventListener('click', e => { if (e.target.closest('#instHintX')) instHintOff(); });
+/* launch extras, run once from boot: visit count, manifest shortcuts (?a=tpl / ?a=new) and photos shared from other apps (Android share_target, ?shared=N) */
+async function appLaunch() {
+  UI.visits = Math.min(99, (UI.visits || 0) + 1); saveUI();
+  setTimeout(() => { instReady = true; instHintSync(); }, 3000);   // Chrome fires beforeinstallprompt a moment after load
+  if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then(l => { if (l && l.length) { instDone = true; instSync(); } }).catch(() => {});
+  const u = new URL(location.href), a = u.searchParams.get('a'), sh = u.searchParams.has('shared');
+  if (a == null && !sh) return false;
+  u.searchParams.delete('a'); u.searchParams.delete('shared');
+  try { history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { }
+  if (sh) return takeShared();
+  if (a === 'tpl') { deskOn ? openInDrawer('template') : openTplSheet(); return true; }
+  if (a === 'new') { renderNB(); openSheet('#sheetNew'); return true; }
+  return false;
+}
+async function takeShared() {
+  const bad = () => toast('共有された写真を読み込めませんでした');
+  if (!('caches' in window)) { bad(); return true; }
+  try {
+    const c = await caches.open('lufora-share'), keys = (await c.keys()).sort((x, y) => (+x.url.split('/').pop() || 0) - (+y.url.split('/').pop() || 0)), files = [];
+    for (const k of keys) {
+      const r = await c.match(k); await c.delete(k); if (!r) continue;
+      const b = await r.blob(); files.push(new File([b], decodeURIComponent(r.headers.get('x-name') || '') || 'photo', { type: b.type || r.headers.get('content-type') || 'image/jpeg' }));
+    }
+    if (!files.length) { bad(); return true; }
+    const [f, ...rest] = files, { canvas, resized, alpha } = await fileToCanvas(f, 4096);
+    setDoc(canvas, resized ? null : f, [], alpha); scheduleSave(); libSave(canvas, alpha, true);
+    for (const g of rest) await addPhoto(g);
+    toast(rest.length ? `共有された写真 ${files.length}枚を開きました` : '共有された写真を開きました');
+  } catch (e) { console.warn('share', e); bad(); }
+  return true;
+}
 const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', '写真', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp], ['filter', 'フィルター', ICON.filter],
-  ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ...(ACCT_ON ? [['account', 'アカウント', ICON.user]] : []), ['settings', '設定', ICON.gear]];
+  ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ...(ACCT_ON ? [['account', 'アカウント', ICON.user]] : []), ['install', 'インストール', ICON.instApp], ['settings', '設定', ICON.gear]];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
   const cur = deskOn ? sideView : (SIDE_TOOLS.has(tool) ? tool : null);
-  railEl.innerHTML = (deskOn ? '' : `<button class="ritem msearch" data-side="search">${ICON.search}<span>機能をさがす</span></button>`) + SIDE_ITEMS.filter(([id]) => deskOn || id !== 'upload').map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
+  railEl.innerHTML = (deskOn ? '' : `<button class="ritem msearch" data-side="search">${ICON.search}<span>機能をさがす</span></button>`) + SIDE_ITEMS.filter(([id]) => (deskOn || id !== 'upload') && (id !== 'install' || instKind())).map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
 }
 /* phone: ☰ opens the rail as a modal slide-in menu (not saved; UI.side is the PC setting) */
 let sideMob = false;
@@ -6354,6 +6496,7 @@ railEl.addEventListener('click', e => {
   if (!deskOn) {   // phone menu: run the item and fold the menu
     closeMobSide(true);
     if (id === 'gallery') openGallery();
+    else if (id === 'install') instGo();
     else if (id === 'settings') openUISheet();
     else if (id === 'account') openAccount();
     else if (id === 'upload') { renderNB(); openSheet('#sheetNew'); }
@@ -6364,6 +6507,7 @@ railEl.addEventListener('click', e => {
     return;
   }
   if (sideView === id) { closeDrawer(); return; }   // tapping the open item again folds the drawer
+  if (id === 'install') { instGo(); return; }
   if (id === 'gallery') { openGallery(); return; }
   if (id === 'settings') { openUISheet(); return; }
   if (id === 'account') { openAccount(); return; }
@@ -7519,6 +7663,7 @@ function cmdItems() {
   add('すべて選択', 'Ctrl+A', ['select all', '全選択', 'すべて ぜんせんたく'], () => { setTool('select'); const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id); if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; } refreshPanel(); requestDraw(); });
   add('みんなの作品', 'ギャラリー', ['gallery', '投稿', '公開', 'みんなのさくひん とうこう'], () => openGallery());
   add('設定', '表示サイズ・演出', ['settings', 'size', '表示', 'せってい'], openUISheet);
+  if (instKind()) add('アプリとしてインストール', 'ホーム画面に追加', ['install', 'pwa', 'app', 'home', 'いんすとーる', 'あぷり', 'ほーむがめん ついか'], instGo);
   add('最近の作品', 'ほかの作品に切り替える', ['works', 'recent', 'さくひん', 'さいきん', 'きりかえ', 'したがき'], () => { renderNB(); openSheet('#sheetNew'); });
   add('グループにする', '選んだ物をまとめる', ['group', 'ぐるーぷ', 'まとめる'], () => groupObjs(true));
   add('グループ解除', 'グループをばらす', ['ungroup', 'ぐるーぷかいじょ'], () => groupObjs(false));
@@ -7991,7 +8136,7 @@ const ordIds = () => UI.order.filter(id => !(deskOn && DESK_HIDE.has(id)));
 /* write back a reordered list of ordIds() while the unlisted tools keep their slots */
 function setOrd(list) { let k = 0; UI.order = UI.order.map(id => ordIds().includes(id) ? list[k++] : id); }
 function renderUISheet() {
-  acctRender();
+  acctRender(); instRow();
   $('#uiSize').innerHTML = UI_SIZES.map(([v, l]) => `<button class="chip${UI.size === v ? ' on' : ''}" data-uis="${v}">${l}</button>`).join('');
   const opt = (k, list) => `<div class="wrap">${list.map(([v, l]) => `<button class="chip${UI[k] === v ? ' on' : ''}" aria-pressed="${UI[k] === v}" data-uiv="${k}:${v}">${l}</button>`).join('')}</div>`;
   $('#uiOps').innerHTML = `<div class="setlab">吸着（ピタッと整列）</div>` + opt('snap', [['off', 'オフ'], ['weak', '弱い'], ['normal', 'ふつう'], ['strong', '強い']])
@@ -8684,9 +8829,9 @@ const Gallery = {
   async list(scope) {
     const items = await this.adapter.list(scope);
     // while there is no server, みんなの作品 = my public posts + built-in samples
-    return scope === 'public' && this.adapter.local ? [...items, ...galSamples()] : items;
+    return scope === 'public' ? [...items, ...(this.adapter.local ? galSamples() : []), ...await aiWorks()] : items;   // AI作例 are always listed, after real posts
   },
-  get(id) { const s = galSamples().find(x => x.id === id); return s ? Promise.resolve(s) : this.adapter.get(id); },
+  async get(id) { const s = galSamples().find(x => x.id === id) || (/^ai-/.test(id) && (await aiWorks()).find(x => x.id === id)); return s || this.adapter.get(id); },
   publish(item) { return this.adapter.publish(item); },
   update(id, patch) { return this.adapter.update(id, patch); },
   unpublish(id) { return this.adapter.unpublish(id); },
@@ -8741,9 +8886,61 @@ const GAL_SAMPLE_DEF = [
   ['s6', '夢かわピンク', ['夢かわ', 'エモ'], 480, 560, ['#F6B7D2', '#FCE0EC', '#FFF4F8'], '#C67AA8', { preset: 'dreamy', amt: 70, tint: 6 }]
 ];
 let galSampleCache = null;
-function galSamples() {
-  if (galSampleCache) return galSampleCache;
-  galSampleCache = GAL_SAMPLE_DEF.map(([id, title, tags, W, H, sky, land, adj], i) => {
+/* ==== AI作例 ==== works edited by the AI (Claude) for みんなの作品: the photo is a scene drawn by code (sceneCanvas), the edit is
+   an ordinary document (filter + template-style specs) rendered with renderDoc. Always listed (also with the server), marked AI. */
+const AI_WORKS_DEF = [
+  ['a1', '夕焼けの約束', ['エモ', '夕焼け'], 600, 750, ['#2E4A8C', '#E58FA0', '#FFD49A'], '#2A3A6E', 0, null, { preset: 'dusk', amt: 90, warm: 6 },
+    [{ t: 'text', x: .5, y: .16, text: 'golden hour', font: 'Caveat', size: .14, color: '#FFFFFF', bold: false, shadow: true }, { t: 'deco', kind: 'kira', x: .82, y: .3, s: 1.1, color: '#FFE08A' }]],
+  ['a2', '夜の街とネオン', ['夜', 'サイバー'], 600, 800, ['#0B0F2E', '#3B2470', '#C2508A'], '#14143A', 2, 'night', { preset: 'cyber', amt: 85, glow: 18 },
+    [{ t: 'text', x: .5, y: .14, text: 'TOKYO NIGHT', font: 'Bebas Neue', size: .15, color: '#FF7AD9', bold: false, outline: '#2A0A3A', maxW: .88 }, { t: 'text', x: .5, y: .24, text: '眠らない街の、いちばん静かな時間', font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', shadow: true, maxW: .86 }]],
+  ['a3', '透明感の空', ['透明感', '空'], 600, 600, ['#8EC9F0', '#D8EEFA', '#FFFFFF'], '#5C8FB0', 3, null, { preset: 'clear', amt: 100, bri: 6 },
+    [{ t: 'text', x: .5, y: .2, text: 'blue day', font: 'Pacifico', size: .12, color: '#FFFFFF', bold: false, shadow: true }, { t: 'deco', kind: 'heart', x: .8, y: .38, s: .6, color: '#FFFFFF' }]],
+  ['a4', 'フィルムの記憶', ['フィルム', 'レトロ'], 600, 450, ['#7FB4D8', '#F2E2C0', '#F7C98E'], '#8A5A44', 1, 'day', { preset: 'film', amt: 90, fade: 12, grain: 20 },
+    [{ t: 'text', x: .93, y: .9, anchor: 'right', text: "'26 11 16", font: 'Oswald', size: .065, color: '#FF8A2A', bold: false, shadow: true }]],
+  ['a5', '夢かわ放課後', ['夢かわ', 'ピンク'], 600, 700, ['#F6B7D2', '#FCE0EC', '#FFF4F8'], '#C67AA8', 5, null, { preset: 'dreamy', amt: 75, tint: 6 },
+    [{ t: 'note', x: .3, y: .2, w: .34, h: .34, shape: 'sticker', color: '#FFFFFF', text: 'すき♡', deco: 'none', tcolor: '#E0457B', font: 'Hachi Maru Pop', rot: -.12 },
+     { t: 'deco', kind: 'heart', x: .78, y: .14, s: .7, color: '#FF8FB1' }, { t: 'deco', kind: 'kira', x: .86, y: .3, s: .8, color: '#FFFFFF' }]],
+  ['a6', '白黒の朝', ['モノクロ', '静か'], 600, 750, ['#6C7A8C', '#C9CED6', '#F2F2F2'], '#2E3440', 4, null, { preset: 'bwfilm', amt: 90 },
+    [{ t: 'text', x: .86, y: .32, text: '静かな朝', font: 'Shippori Mincho', size: .085, color: '#FFFFFF', vert: true, shadow: true }]],
+  ['a7', '夏の思い出', ['夏', 'ポップ'], 600, 600, ['#4FB3F0', '#9EDCFA', '#FFF1B8'], '#2F8A6A', 7, null, { preset: 'summer', amt: 90, vib: 0 },
+    [{ t: 'text', x: .5, y: .16, text: 'SUMMER', font: 'Bungee', size: .15, color: '#FFE45C', bold: false, outline: '#1E5FA8' }, { t: 'stamp', x: .82, y: .78, ch: '🌻', size: .14 }]],
+  ['a8', 'レトロ喫茶の夕方', ['昭和', 'レトロ'], 600, 750, ['#5A4A7A', '#D98A6A', '#F6C88A'], '#5A3A2A', 8, 'day', { preset: 'showa', amt: 85 },
+    [{ t: 'text', x: .5, y: .15, text: '純喫茶', font: 'Dela Gothic One', size: .12, color: '#FFF3D6', outline: '#7A2E1E' }, { t: 'text', x: .5, y: .25, text: 'COFFEE & MEMORIES', font: 'Oswald', size: .045, color: '#FFF3D6', bold: false, shadow: true }]]
+];
+let aiWorkCache = null, aiWorkP = null;
+/* fonts first (at most ~3 s), so the titles are drawn in their own typefaces */
+function aiWorks() {
+  if (aiWorkCache) return Promise.resolve(aiWorkCache);
+  return aiWorkP || (aiWorkP = (async () => {
+    const fams = [...new Set(AI_WORKS_DEF.flatMap(w => w[10].map(x => x.font)).filter(Boolean))];
+    fams.forEach(f => familyCSS(f));
+    // the Google Fonts stylesheets arrive first, then the faces: poll until every family can draw (or ~4 s passed)
+    const ready = f => document.fonts.check(`700 40px "${f}"`, 'あAa') && [...document.fonts].some(ff => ff.family.replace(/"/g, '') === f && ff.status === 'loaded');
+    for (let t = 0; t < 20 && !fams.every(ready); t++) {
+      fams.forEach(f => document.fonts.load(`700 40px "${f}"`, 'あAa').catch(() => { }));
+      await new Promise(r => setTimeout(r, 200));
+    }
+    layoutMemo.clear();
+    return aiWorksNow();
+  })());
+}
+function aiWorksNow() {
+  aiWorkCache = AI_WORKS_DEF.map(([id, title, tags, W, H, sky, land, seed, town, adj, specs]) => {
+    const base = sceneCanvas(W, H, sky, land, seed, town), adjust = cleanAdjust(adj), d0 = doc, bid = regBitmap(base, null, false);
+    const c = mk(1, 1);
+    try {
+      doc = normDoc({ w: W, h: H, baseId: bid, bg: null, adjust: { ...DEFAULT_ADJ, ...adjust }, objects: [] });
+      doc.objects = specs.map(tplObj).filter(Boolean);
+      doc.objects.forEach(o => { if (o.font) familyCSS(o.font); });
+      renderDoc(c, 1, { cache: false });
+    } finally { doc = d0; bitmaps.delete(bid); }
+    return { id: 'ai-' + id, title, tags, visibility: 'public', createdAt: 0, w: W, h: H, thumb: c.toDataURL('image/jpeg', 0.86),
+      recipe: { v: 1, adjust, fonts: [...new Set(specs.map(x => x.font).filter(Boolean))], counts: {} }, author: { name: 'Lufora AI' }, mine: false, sample: true, ai: true };
+  });
+  return aiWorkCache;
+}
+/* a landscape drawn by code (sky gradient, sun, hills, optional town lights): no outside image, so no copyright questions */
+function sceneCanvas(W, H, sky, land, i, town) {
     const c = mk(W, H), g = c.getContext('2d'), hz = H * (0.55 + 0.08 * Math.sin(i * 1.7));
     let gr = g.createLinearGradient(0, 0, 0, hz); sky.forEach((col, j) => gr.addColorStop(j / (sky.length - 1), col));
     g.fillStyle = gr; g.fillRect(0, 0, W, H);
@@ -8756,12 +8953,18 @@ function galSamples() {
       g.lineTo(W, H); g.closePath(); g.fill();
     }
     g.globalAlpha = 1;
-    if (i === 2 || i === 1) for (let k = 0; k < 14; k++) { // little buildings / lights
-      const bw = 18 + (k * 13) % 22, bh = 40 + (k * 53) % 120, bx = k * W / 14;
+    if (town) for (let k = 0; k < 14; k++) { // little buildings / lights
+      const bw = (18 + (k * 13) % 22) * W / 480, bh = (40 + (k * 53) % 120) * H / 600, bx = k * W / 14;
       g.fillStyle = 'rgba(10,10,25,.85)'; g.fillRect(bx, H - bh, bw, bh);
-      g.fillStyle = i === 2 ? 'rgba(255,210,120,.9)' : 'rgba(255,255,240,.6)';
+      g.fillStyle = town === 'night' ? 'rgba(255,210,120,.9)' : 'rgba(255,255,240,.6)';
       for (let y = H - bh + 8; y < H - 6; y += 14) if ((y + k) % 3) g.fillRect(bx + 5, y, 4, 5);
     }
+    return c;
+}
+function galSamples() {
+  if (galSampleCache) return galSampleCache;
+  galSampleCache = GAL_SAMPLE_DEF.map(([id, title, tags, W, H, sky, land, adj], i) => {
+    const c = sceneCanvas(W, H, sky, land, i, i === 2 ? 'night' : i === 1 ? 'day' : null);
     const adjust = cleanAdjust(adj);
     processCanvas(c, effParams(adjust));
     return { id: 'sample-' + id, title, tags, visibility: 'public', createdAt: 0, w: W, h: H, thumb: c.toDataURL('image/jpeg', 0.85),
@@ -8773,7 +8976,7 @@ function galSamples() {
 const GV = { tab: 'public', tag: null, items: [], cur: null, delArm: false };
 const safeImg = u => typeof u === 'string' && /^(data:image\/(jpeg|png|webp);base64,|https:\/\/)/.test(u) ? u : '';
 const fmtDate = t => { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
-const galBadges = it => (it.sample ? '<span class="gbadge sample">サンプル</span>' : '') + (it.mine ? `<span class="gbadge${it.visibility === 'public' ? ' pub' : ''}">${esc(VIS_NAME[it.visibility] || '非公開')}</span>` : '');
+const galBadges = it => (it.ai ? '<span class="gbadge ai">AI</span>' : it.sample ? '<span class="gbadge sample">サンプル</span>' : '') + (it.mine ? `<span class="gbadge${it.visibility === 'public' ? ' pub' : ''}">${esc(VIS_NAME[it.visibility] || '非公開')}</span>` : '');
 function openGallery(tab) {
   GV.tab = tab === 'mine' ? 'mine' : 'public'; GV.tag = null; GV.cur = null;
   if (deskOn) { closeSheets(true); openInDrawer('gallery'); } else { openSheet('#sheetGallery'); $('#sheetGallery').scrollTop = 0; }
@@ -8811,7 +9014,8 @@ function renderGalDetail(it) {
   const canLink = Gallery.online && !it.sample && it.visibility !== 'private';
   const linkBtn = canLink ? '<button class="btn" data-g="link">🔗 リンクをコピー</button>' : '';
   d.innerHTML = `<img class="gdimg" src="${esc(safeImg(it.full || it.thumb))}" alt="${esc(it.title || '')}">
-    <div class="gtags">${galBadges(it)}${(it.tags || []).map(t => `<span>#${esc(t)}</span>`).join('')}<span style="margin-left:auto">${esc(it.sample ? 'Lufora公式' : (it.author && it.author.name) || 'あなた')}${it.createdAt ? '・' + fmtDate(it.createdAt) : ''}</span></div>
+    <div class="gtags">${galBadges(it)}${(it.tags || []).map(t => `<span>#${esc(t)}</span>`).join('')}<span style="margin-left:auto">${esc(it.ai ? 'Lufora AI' : it.sample ? 'Lufora公式' : (it.author && it.author.name) || 'あなた')}${it.createdAt ? '・' + fmtDate(it.createdAt) : ''}</span></div>
+    ${it.ai ? '<p class="note aiwork"><b>AI</b>が編集した作例です。元の写真はプログラムで描いた風景なので、著作権の心配はありません。</p>' : ''}
     <h3>この作品のレシピ</h3><div class="grecipe">${recipeText(it.recipe)}</div>
     <div class="actions" style="padding:12px 0 0"><button class="btn primary" data-g="apply">この色味を使う</button></div>
     <p class="note">今編集中の写真に、この作品のフィルター・調整をそのまま適用します。「元に戻す」で取り消せます。</p>
@@ -9071,8 +9275,8 @@ document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closes
   if (ok) toast('前回の下書きを開きました');
   else if (ok === false && !doc) { loadSample(); if (!welcome) toast('サンプル写真を表示中。左上の「開く」から写真を選べます', 4200); }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layoutMemo.clear(); invalidate(); });
-  const pid = hashPost(); if (pid) openSharedPost(pid);
-  else if (!UI.seen && !navigator.webdriver) { UI.seen = true; saveUI(); setTimeout(() => openSheet('#sheetWelcome'), 400); }   // first visit: a short welcome (not in automated test browsers)
+  const pid = hashPost(), launch = await appLaunch(); if (pid) openSharedPost(pid);
+  else if (!launch && !UI.seen && !navigator.webdriver) { UI.seen = true; saveUI(); setTimeout(() => openSheet('#sheetWelcome'), 400); }   // first visit: a short welcome (not in automated test browsers)
   registerSW();
   if (SUPA.url && ACCT_ON && authInUrl()) authReturn();   // back from Google / Apple / the e-mail link
   else if (SUPA.url && ACCT_ON && acctStored() && navigator.onLine) setTimeout(() => sb().then(() => { if (acct) syncAll(); }).catch(e => console.warn('sync', e)), 1500);

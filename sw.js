@@ -7,8 +7,8 @@
  * - A new version waits until the page posts {type:'skipWaiting'} (after its "update available" toast).
  */
 'use strict';
-const CACHE = 'petaphoto-v41';
-const RT_CACHE = 'petaphoto-rt-v41';
+const CACHE = 'petaphoto-v42';
+const RT_CACHE = 'petaphoto-rt-v42';
 const PRECACHE = ['./', 'index.html', 'u2netp.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 const RT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
@@ -69,6 +69,29 @@ async function staleWhileRevalidate(e) {
   }
   return net;
 }
+
+/* Android share_target (manifest: POST multipart to ./?share-target, field "photos"): keep the files in the
+   'lufora-share' cache (not 'petaphoto-', so activate never clears it) and send the page to ./?shared=N, which reads and deletes them. */
+const SHARE_CACHE = 'lufora-share';
+async function takeShare(req) {
+  const scope = self.registration.scope;
+  try {
+    const fd = await req.formData();
+    const files = fd.getAll('photos').filter(f => f && typeof f === 'object' && f.size && /^image\//.test(f.type || '')).slice(0, 10);
+    const c = await caches.open(SHARE_CACHE);
+    for (const k of await c.keys()) await c.delete(k);
+    await Promise.all(files.map((f, i) => c.put(new URL('__share/' + i, scope).href,
+      new Response(f, { headers: { 'content-type': f.type, 'x-name': encodeURIComponent(f.name || '') } }))));
+    return Response.redirect(new URL('./?shared=' + files.length, scope).href, 303);
+  } catch (err) {
+    return Response.redirect(scope, 303);
+  }
+}
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'POST') return;
+  const url = new URL(e.request.url);
+  if (url.origin === self.location.origin && url.searchParams.has('share-target')) e.respondWith(takeShare(e.request));
+});
 
 self.addEventListener('fetch', e => {
   const req = e.request;
