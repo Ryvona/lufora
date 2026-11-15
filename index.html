@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Lufora</title>
-<meta name="description" content="Lufora（ルフォラ）— Creativity grows naturally. スマホとパソコンで使える写真編集アプリ。写真の貼り付け、文字、ペン、付箋、モザイク、切り抜き、色調整。">
+<meta name="description" content="Lufora（ルフォラ）— Creativity grows naturally. スマホとパソコンで使える写真編集アプリ。写真の貼り付け、文字、ペン、付箋、モザイク、トリミング、補正（色調整）。">
 <meta name="theme-color" content="#FBF8F1">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -873,15 +873,39 @@ html:not(.desk) .pcb{grid-template-columns:repeat(4,minmax(0,1fr))}
 html:not(.desk) .lyr .lbtn{width:38px;height:38px}
 html:not(.desk) .lyr{gap:4px}
 html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
+/* ==== operation redesign (2026-11) ==== phone toolbar = 8 tools + その他 without scrolling; 補正 tabs; one 詳細 fold; rail groups */
+html:not(.desk):not(.tab) .dock .tools{gap:0;padding-left:2px;padding-right:2px}
+html:not(.desk):not(.tab) .dock .tools .tool{flex:1 1 0;width:auto;min-width:40px;padding:0;font-size:min(calc(10.5px*var(--u)),2.75vw);letter-spacing:0}
+html:not(.desk) #btnHelp{display:none}
+.moregrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:6px 0 4px}
+.moregrid .tool{width:auto;height:auto;min-height:calc(72px*var(--u));border:1px solid var(--line);background:rgba(255,255,255,.6);color:var(--fg)}
+.moregrid .tool.on{color:var(--accent)}
+.moregrid .tool.off span{opacity:.6}
+.moregrid .tool small{font-size:10px;color:var(--muted)}
+.ctabs{display:flex;gap:4px;padding:4px;margin:0 14px 10px;background:var(--chrome2);border-radius:12px}
+.ctab{flex:1 1 0;min-height:calc(36px*var(--u));border-radius:9px;font-weight:700;font-size:calc(12.5px*var(--u));color:var(--muted)}
+.ctab.on{background:#FFFFFF;color:var(--accent);box-shadow:0 1px 3px rgba(60,70,50,.14)}
+html.desk #sidePanel .ctabs{margin:0 0 10px}
+.more>summary small{font-weight:400;color:var(--muted);font-size:calc(11.5px*var(--u))}
+.objhead .gbadge{min-height:calc(34px*var(--u))}
+#rail .rsep{flex:0 0 auto;border:0;border-top:1px solid var(--line);margin:auto 10px 4px;width:auto}
+html:not(.desk) #side.mob #rail .rsep{margin:6px 4px}
+html:not(.desk) .pcb{grid-template-columns:repeat(3,minmax(0,1fr))}
+#sheetUI #uiLib .wrap{grid-template-columns:1fr}
+#sheetUI #uiLib .wrap .chip{height:auto;min-height:calc(34px*var(--u));padding:4px 10px;justify-content:flex-start;white-space:normal;text-align:left}
+#sheetUI #uiSave .wrap{grid-template-columns:repeat(auto-fit,minmax(calc(120px*var(--u)),1fr))}
+#sheetUI #uiSave .wrap .chip{height:auto;min-height:calc(34px*var(--u));white-space:normal}
+html:not(.desk) .legend:has(>span:nth-child(4):last-child){grid-template-columns:repeat(4,minmax(0,1fr))}
+html:not(.desk):not(.tab) .dock .tools .tool span.tl{font-size:.8em}
 </style>
 
 <div id="app">
   <header class="topbar">
     <button class="tbtn" id="btnSide" aria-label="サイドバーを開く・閉じる" aria-controls="side"></button>
     <button class="tbtn" id="btnNew" aria-label="写真を開く・新規作成"></button>
-    <button class="tbtn" id="btnHelp" aria-label="使い方"></button>
     <button class="tbtn" id="btnCmd" aria-label="クイック検索（Ctrl+K）" title="クイック検索（Ctrl+K）"></button>
     <div class="brand"><svg class="blogo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="var(--accent)"/><path d="M21 13v35h24" fill="none" stroke="#FBF8F1" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M27.5 40.5c.8-11.5 7.6-18.6 19.5-21.5-.9 12-8.1 19.3-19.5 21.5z" fill="#FBF8F1"/><path d="M31 37l11-12.5" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/><path d="M29.5 27.5c-1.3-6.4 1.7-11.4 8-13.6 1.2 6.4-1.8 11.3-8 13.6z" fill="#C9DBB9"/></svg><span>Lu<b>fora</b></span></div>
+    <button class="tbtn" id="btnHelp" aria-label="使い方（?）" title="使い方（?）"></button>
     <button class="tbtn" id="btnUndo" aria-label="元に戻す"></button>
     <button class="tbtn" id="btnRedo" aria-label="やり直し"></button>
     <button class="tbtn primary" id="btnSave">保存</button>
@@ -898,7 +922,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
     </aside>
     <main id="stage"><canvas id="cv"></canvas>
       <textarea id="inlineEd" hidden rows="1" spellcheck="false" autocomplete="off" aria-label="文字を入力"></textarea>
-      <button id="objMore" hidden aria-label="操作メニュー" aria-haspopup="menu" aria-expanded="false">⋯</button>
+      <button id="objMore" hidden aria-label="メニュー"aria-haspopup="menu" aria-expanded="false">⋯</button>
       <div id="objMenu" role="menu" hidden></div>
       <div id="objBar" role="toolbar" aria-label="選んだ物の操作" hidden></div>
       <div id="zoomBox" role="toolbar" aria-label="表示倍率"><button data-z="out" aria-label="縮小">−</button><button data-z="fit" id="zoomPct" aria-label="全体を表示">100%</button><button data-z="in" aria-label="拡大">＋</button><button id="zFocus" data-z="focus" aria-pressed="false" aria-label="集中モード（パネルを畳む）" title="集中モード（Ctrl+\）">⛶</button></div>
@@ -922,7 +946,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <div class="grab"></div>
   <h2>開く・新規作成</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
   <div class="stack">
-    <button class="bigbtn primary" data-nb="open"><span>写真を選んで編集<small>カメラロール・ファイルから</small></span></button>
+    <button class="bigbtn primary" data-nb="open"><span>写真を開く<small>カメラロール・ファイルから</small></span></button>
     <button class="bigbtn" data-nb="sample"><span>サンプル写真で試す<small>夕焼けの湖の写真が開きます</small></span></button>
     <button class="bigbtn" data-gal="open"><span>みんなの作品を見る<small>色味のレシピを参考にできます・自分の投稿の管理</small></span></button>
   </div>
@@ -967,38 +991,38 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <!-- PC and phone each get their own short guide (only the matching one is shown) -->
   <div class="help-pc">
     <div class="hcards">
-      <div class="hcard"><span class="hic" data-ic="layout"></span><b>画面</b><ul><li>左：みんなの作品・写真・テンプレート・素材・フィルター・背景削除・調整</li><li>その右：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="mouse"></span><b>基本の操作</b><ul><li>クリックで選択、ドラッグで移動</li><li>角の● で拡大縮小、上の● で回転</li><li>ダブルクリックで文字を書き換え</li><li>右クリックでメニュー</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="layout"></span><b>画面</b><ul><li>左：写真・テンプレート・素材・補正・背景削除（下にみんなの作品・設定）</li><li>中央の列：編集ツール</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="mouse"></span><b>基本の操作</b><ul><li>クリックで選択、ドラッグで移動</li><li>角の● で拡大縮小、上の● で回転</li><li>ダブルクリックで文字を書き換え</li><li>物を右クリック：複製・重なり順・ロック・削除</li><li>何もない所を右クリック：貼り付け・すべて選択</li></ul></div>
       <div class="hcard"><span class="hic" data-ic="photo"></span><b>写真を入れる</b><ul><li>ドラッグ＆ドロップ、または Ctrl+V</li><li>写真枠はダブルクリックかドロップ</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>テンプレート・素材でかんたんデコ</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>編集は自動で下書き保存</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>Ctrl+K で何でも検索</li><li>補正の「おまかせ」で色を自動で整える</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>編集は自動で下書き保存・キー一覧は下の表</li></ul></div>
     </div>
   </div>
   <div class="help-sp">
     <div class="hcards">
-      <div class="hcard"><span class="hic" data-ic="layout"></span><b>画面</b><ul><li>編集ツール：下（横向きのタブレットでは左）。長押しで並び替え</li><li>☰：作品・テンプレート・素材・フィルターなど</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="layout"></span><b>画面</b><ul><li>編集ツール：下（横向きのタブレットでは左）。8個＋「その他」。長押しで並び替え</li><li>☰：機能をさがす・テンプレート・作品・使い方・設定</li></ul></div>
       <div class="hcard"><span class="hic" data-ic="tap"></span><b>基本の操作</b><ul><li>タップで選択、ドラッグで移動</li><li>2本指で拡大・回転</li><li>ダブルタップで文字を書き換え</li><li>2本指タップで元に戻す（3本指でやり直し）</li><li>2本指で長押しすると、加工前の写真と比べられます</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="hold"></span><b>長押しメニュー</b><ul><li>物を長押し：コピー・切り取り・貼り付け・反転・複製・削除など</li><li>何もない所を長押し：貼り付け・すべて選択・全体を表示</li><li>下のパネル右上の ⋯ でも開けます</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="group"></span><b>まとめて操作</b><ul><li>メニューの「複数選択」→ 物をタップして追加</li><li>2つ以上で「グループにする」・揃える・等間隔・反転</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="photo"></span><b>写真を入れる</b><ul><li>「開く」から写真を選ぶ。前の作品は「最近の作品」から</li><li>写真枠はダブルタップ</li><li>素材 →「マイ素材」の「写真を追加」で端末の写真をためておける</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>色の横のスポイトで、写真から色を拾う</li><li>図形の「線」でくにゃくにゃ線・カギ線・矢印</li><li>背景削除は AI で自動。編集は自動で下書き保存</li><li>☰ の「機能をさがす」で何でも検索</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="hold"></span><b>長押しメニュー</b><ul><li>物を長押し（またはパネル右上の ⋯）：複製・コピー・重なり順・ロック・削除</li><li>何もない所を長押し：貼り付け・写真を追加・複数選択・囲んで選ぶ</li><li>反転・位置などはパネルの「詳細」に</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="group"></span><b>まとめて操作</b><ul><li>何もない所を長押し →「複数選択」→ 物をタップして追加</li><li>2つ以上で「グループにする」・揃える・等間隔・反転</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="photo"></span><b>写真を入れる</b><ul><li>ツールの「写真」で今の作品に写真を追加</li><li>作品ごと替えるときは「開く」。前の作品は ☰ の「最近の作品」から</li><li>写真枠はダブルタップ</li><li>素材 →「マイ素材」の「写真を追加」で端末の写真をためておける</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>色の横のスポイトで、写真から色を拾う</li><li>図形の「線」でくにゃくにゃ線・カギ線・矢印</li><li>補正の「おまかせ」で色を自動で整える。背景削除は AI で自動</li><li>編集は自動で下書き保存</li><li>☰ の「機能をさがす」で何でも検索</li></ul></div>
     </div>
   </div>
   <h3 class="keysh">キーボードショートカット（パソコン）</h3>
   <div class="keys">
     <div><h4>ツール</h4><dl>
       <dt><kbd>V</kbd></dt><dd>選択</dd><dt><kbd>T</kbd></dt><dd>文字</dd><dt><kbd>P</kbd></dt><dd>ペン</dd><dt><kbd>R</kbd></dt><dd>図形</dd>
-      <dt><kbd>N</kbd></dt><dd>付箋</dd><dt><kbd>K</kbd></dt><dd>素材</dd><dt><kbd>M</kbd></dt><dd>モザイク</dd><dt><kbd>C</kbd></dt><dd>切り抜き</dd>
+      <dt><kbd>N</kbd></dt><dd>付箋</dd><dt><kbd>K</kbd></dt><dd>素材（左の引き出し）</dd><dt><kbd>M</kbd></dt><dd>モザイク</dd><dt><kbd>C</kbd></dt><dd>トリミング</dd>
     </dl></div>
     <div><h4>編集</h4><dl>
       <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></dt><dd>元に戻す / やり直し</dd><dt><kbd>Ctrl</kbd>+<kbd>D</kbd></dt><dd>複製</dd>
       <dt><kbd>Delete</kbd></dt><dd>削除</dd><dt><kbd>Ctrl</kbd>+<kbd>A</kbd></dt><dd>すべて選択</dd>
       <dt><kbd>Ctrl</kbd>+<kbd>]</kbd> / <kbd>[</kbd></dt><dd>前面へ / 背面へ</dd><dt><kbd>←↑↓→</kbd></dt><dd>少し動かす（<kbd>Shift</kbd>で大きく）</dd>
-      <dt><kbd>Shift</kbd>+ドラッグ</dt><dd>囲んで選ぶ</dd><dt><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd></dt><dd>選んだ物をコピー / 切り取り / 貼り付け</dd><dt><kbd>Shift</kbd> / <kbd>Ctrl</kbd>+クリック</dt><dd>選択に追加 / 外す</dd><dt><kbd>Ctrl</kbd>+<kbd>G</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></dt><dd>グループにする / グループ解除</dd><dt><kbd>Shift</kbd>+<kbd>H</kbd> / <kbd>V</kbd></dt><dd>左右反転 / 上下反転</dd><dt><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></dt><dd>できあがった画像をコピー</dd><dt>図形で<kbd>Shift</kbd>+ドラッグ</dt><dd>線は15°ごと・四角や丸は正方形／正円</dd><dt><kbd>Alt</kbd>+ドラッグ</dt><dd>吸着しないで動かす・描く</dd><dt><kbd>Ctrl</kbd>+<kbd>V</kbd></dt><dd>画像を貼り付け</dd><dt>右クリック</dt><dd>操作メニュー</dd>
+      <dt><kbd>Shift</kbd>+ドラッグ</dt><dd>囲んで選ぶ</dd><dt><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd></dt><dd>選んだ物をコピー / 切り取り / 貼り付け</dd><dt><kbd>Shift</kbd> / <kbd>Ctrl</kbd>+クリック</dt><dd>選択に追加 / 外す</dd><dt><kbd>Ctrl</kbd>+<kbd>G</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></dt><dd>グループにする / グループ解除</dd><dt><kbd>Shift</kbd>+<kbd>H</kbd> / <kbd>V</kbd></dt><dd>左右反転 / 上下反転</dd><dt><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></dt><dd>できあがった画像をコピー</dd><dt>図形で<kbd>Shift</kbd>+ドラッグ</dt><dd>線は15°ごと・四角や丸は正方形／正円</dd><dt><kbd>Alt</kbd>+ドラッグ</dt><dd>吸着しないで動かす・描く</dd><dt><kbd>Ctrl</kbd>+<kbd>V</kbd></dt><dd>画像を貼り付け</dd><dt>右クリック</dt><dd>メニュー（物の上・何もない所）</dd>
     </dl></div>
     <div><h4>表示</h4><dl>
       <dt><kbd>Space</kbd>+ドラッグ</dt><dd>画面を動かす</dd><dt><kbd>Ctrl</kbd>+<kbd>0</kbd></dt><dd>全体を表示</dd><dt><kbd>Ctrl</kbd>+<kbd>1</kbd></dt><dd>等倍</dd>
       <dt><kbd>Shift</kbd>+<kbd>2</kbd></dt><dd>選んだ物に合わせる</dd><dt><kbd>Ctrl</kbd>+<kbd>+</kbd> / <kbd>−</kbd></dt><dd>拡大 / 縮小</dd>
-      <dt><kbd>\</kbd>（押している間）</dt><dd>調整前と比べる</dd><dt><kbd>Ctrl</kbd>+<kbd>\</kbd></dt><dd>集中モード</dd>
+      <dt><kbd>\</kbd>（押している間）</dt><dd>元の写真と比べる</dd><dt><kbd>Ctrl</kbd>+<kbd>\</kbd></dt><dd>集中モード</dd>
     </dl></div>
     <div><h4>その他</h4><dl>
       <dt><kbd>Ctrl</kbd>+<kbd>K</kbd> / <kbd>/</kbd></dt><dd>クイック検索</dd><dt><kbd>Ctrl</kbd>+<kbd>S</kbd></dt><dd>保存</dd><dt><kbd>?</kbd></dt><dd>この使い方</dd><dt><kbd>Esc</kbd></dt><dd>閉じる・選択解除</dd>
@@ -1017,7 +1041,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
     <li><span class="wn">3</span><span class="wi" data-ic="save"></span><b>保存する</b><small>上の「保存」ボタン</small></li>
   </ol>
   <div class="actions" style="padding:14px 0 0"><button class="btn" data-wl="tpl">テンプレートを見る</button><button class="btn primary" data-wl="open">写真をえらぶ</button></div>
-  <p class="note" style="text-align:center">いまはサンプル写真で試せます。使い方は「？」からいつでも。</p>
+  <p class="note" style="text-align:center">いまはサンプル写真で試せます。使い方は「？」（スマホは ☰ の「使い方」）からいつでも。</p>
 </div>
 
 <div class="sheet" id="sheetInstall" hidden>
@@ -1102,22 +1126,23 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">設定</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
   <div id="uiAcct"></div>
-  <div id="uiInst"></div>
-  <h3 style="margin-top:8px">表示サイズ</h3>
+  <h3 style="margin-top:8px">表示</h3>
+  <div class="setlab">表示サイズ</div>
   <div class="wrap" id="uiSize"></div>
+  <div id="uiView"></div>
   <h3>操作</h3>
   <div id="uiOps"></div>
-  <h3>表示</h3>
-  <div id="uiView"></div>
   <h3>保存</h3>
   <div id="uiSave"></div>
   <h3>演出</h3>
   <div id="uiFx"></div>
-  <h3>マイ素材</h3>
+  <h3>データ</h3>
   <div id="uiLib"></div>
-  <h3>AI背景削除</h3>
   <div class="setrow quiet"><span class="st">AIモデルのキャッシュ<small>高精度モデル・最大 約115MB</small></span><button class="chip" id="uiAiClear">削除</button></div>
-  <p class="note">この端末だけに保存されます。ツールの並び替えはツール欄の「並び替え」から。</p>
+  <h3>アプリ</h3>
+  <div id="uiInst"></div>
+  <div class="setrow"><span class="st">使い方<small>操作のしかたとキーボードショートカット</small></span><button class="chip" data-uihelp="1">開く</button></div>
+  <p class="note">この端末だけに保存されます。</p>
   <p class="note legal"><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a> ・ <a href="terms.html" target="_blank" rel="noopener">利用規約</a></p>
 </div>
 
@@ -1127,7 +1152,14 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <p class="note" style="margin:0 0 10px">左の ≡ をドラッグ、または ↑↓ で並べ替え。右のスイッチで表示・非表示を切り替えます（「選択」は常に表示）。</p>
   <div class="ordlist" id="uiOrder"></div>
   <div class="actions" style="padding:12px 0 0"><button class="btn" id="uiReset">初期の並びに戻す</button></div>
-  <p class="note">この端末だけに保存されます。表示サイズなどほかの設定は、サイドバー（☰）の「設定」から。</p>
+  <p class="note">この端末だけに保存されます。ツール欄に入るのは上から8個までで、9個目からと非表示のツールは「その他」から使えます。</p>
+  <div class="actions" style="padding:4px 0 0;justify-content:flex-start"><button class="chip" id="ordToUI">‹ 設定へ</button></div>
+</div>
+
+<div class="sheet" id="sheetMore" aria-labelledby="moreTitle" hidden>
+  <div class="grab"></div>
+  <div style="display:flex;align-items:center;gap:10px"><h2 id="moreTitle" style="flex:1;margin:4px 0 6px">その他のツール</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
+  <div class="moregrid" id="moreGrid"></div>
 </div>
 
 <canvas id="fx" aria-hidden="true"></canvas>
@@ -3009,6 +3041,8 @@ Object.assign(ICON, {
 ICON.keep = I('<path d="M12 3.8l2.5 5.1 5.6.8-4.05 3.95.95 5.6L12 16.6l-5 2.65.95-5.6L3.9 9.7l5.6-.8z"/>');   // マイ素材に保存
 /* phone: 複数選択 (pointer + plus), ⋯ (the long-press menu), 切り取り (scissors) */
 Object.assign(ICON, { addSel: I('<path d="M5 3.5l10.5 7.2-4.6 1.2-2.3 4.5z"/><path d="M17.5 14v7M14 17.5h7"/>'), more: I('<path d="M5.5 12h.01M12 12h.01M18.5 12h.01" stroke-width="3.2"/>'), lup: I('<path d="M6.5 14.5 12 9l5.5 5.5"/>'), ldn: I('<path d="M6.5 9.5 12 15l5.5-5.5"/>'), cutObj: I('<circle cx="6.5" cy="17.5" r="2.6"/><circle cx="17.5" cy="17.5" r="2.6"/><path d="M8.4 15.6 17 3.5M15.6 15.6 7 3.5"/>') });
+/* phone toolbar その他 (tools past the 8th), 最近の作品 (clock) */
+Object.assign(ICON, { tmore: I('<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><circle cx="16.75" cy="16.75" r="3.3"/>'), recent: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>') });
 /* icon + short word inside a chip */
 const IW = (ic, t) => `${ICON[ic]}<span>${t}</span>`;
 /* line icons that stand in for emoji in UI text (the app uses no emoji) */
@@ -3028,12 +3062,15 @@ document.querySelectorAll('[data-ic]').forEach(e => { e.innerHTML = ICON[e.datas
 const aspIco = r => { if (!r) return ICON.free; const w = r >= 1 ? 16 : 16 * r, h = r >= 1 ? 16 / r : 16; return I(`<rect x="${((24 - w) / 2).toFixed(1)}" y="${((24 - h) / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5"/>`); };
 /* a "none" dot that sits before colour swatches (縁取り・背景 なし) */
 const noneSw = (k, cur, act = 'o') => `<button class="swb nonesw${!cur || cur === 'none' ? ' on' : ''}" aria-pressed="${!cur || cur === 'none'}" data-act="${act}" data-k="${k}" data-v="${J('none')}" aria-label="なし" title="なし">${ICON.none}</button>`;
+/* 2026-11 redesign: フィルター + 調整 became one tool 補正 (id filter; 調整 is its tab, setTool('adjust') opens that tab).
+   Phones show the first BAR_MAX visible tools; the rest (and hidden ones) are under その他. */
 const TOOLS = [
-  ['select', '選択'], ['photo', '写真', 1], ['text', '文字', 1], ['pen', 'ペン'], ['shape', '図形'], ['note', '付箋', 1],
-  ['stamp', '素材'], ['filter', 'フィルター'], ['adjust', '調整'], ['cutout', '背景削除'], ['mosaic', 'モザイク'], ['crop', '切り抜き']
+  ['select', '選択'], ['photo', '写真', 1], ['text', '文字', 1], ['stamp', '素材'], ['shape', '図形'], ['pen', 'ペン'],
+  ['filter', '補正'], ['cutout', '背景削除'], ['note', '付箋', 1], ['mosaic', 'モザイク'], ['crop', 'トリミング']
 ];
-/* PC layout (html.desk): tools on top, a left sidebar holds these tools (DESK_HIDE drops them from the top strip) */
-const SIDE_TOOLS = new Set(['filter', 'adjust', 'cutout']), DESK_HIDE = new Set(['photo', 'filter', 'adjust', 'cutout']);
+const OLD_ORDER = 'select,photo,text,pen,shape,note,stamp,filter,adjust,cutout,mosaic,crop', BAR_MAX = 8;
+/* PC layout (html.desk): tools in a column, a left sidebar holds these tools (DESK_HIDE drops them from the column; 素材 = rail only) */
+const SIDE_TOOLS = new Set(['filter', 'cutout']), DESK_HIDE = new Set(['photo', 'stamp', 'filter', 'cutout']);
 const deskMQ = matchMedia('(min-width: 900px)');
 let deskOn = deskMQ.matches;
 document.documentElement.classList.toggle('desk', deskOn);
@@ -3064,7 +3101,7 @@ const S = {
   note: { color: '#FFE66D', shape: 'square', deco: 'tape', pattern: 'plain', tcolor: '#2A2724', stroke: 'none', font: 'Klee One', ratio: 'square', tail: 'bl' },
   num: { color: '#FF3B30' },
   image: { border: 'none', shadow: true, rad: 0 },
-  filterCat: 'all', fontCat: 'all', marq: false,
+  filterCat: 'all', fontCat: 'all', marq: false, colorTab: 'ai',
   cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true }
 };
 /* last-used tool settings survive reloads (per device). Only known keys whose type matches the default are restored. */
@@ -4191,7 +4228,7 @@ function applyCrop() {
   transformBase(r.w, r.h, (g, s) => g.drawImage(s, -r.x, -r.y));
   doc.objects.forEach(o => { o.x -= r.x; o.y -= r.y; });
   setTool('select'); fitView(); invalidate(); commit();
-  toast('切り抜きました');
+  toast('トリミングしました');
 }
 
 /* ============================================================
@@ -4977,7 +5014,7 @@ async function runAI() {
       const sess = await getSeg(); await nap();
       mask = await segMask(sess, SEG.u2, src);
     }
-    if (doc !== doc0 || !bitmaps.has(id0) || tgtId(cutTarget()) !== id0) { toast('編集内容が変わったため、AI切り抜きを中止しました', 3200); return; }
+    if (doc !== doc0 || !bitmaps.has(id0) || tgtId(cutTarget()) !== id0) { toast('編集内容が変わったため、AI背景削除を中止しました', 3200); return; }
     const c = forkTarget(t), g = c.getContext('2d');
     g.save(); g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     g.drawImage(mask, 0, 0, c.width, c.height); g.restore();
@@ -4986,7 +5023,7 @@ async function runAI() {
   } catch (err) {
     console.warn(err);
     toast(!navigator.onLine ? 'オフラインのためAIを準備できませんでした。一度通信できる所で使うと、次からはオフラインでも使えます'
-      : 'この端末ではAI切り抜きを使えませんでした。「色をタップで消す」やブラシで消してください', 4200);
+      : 'この端末ではAI背景削除を使えませんでした。「色で消す」やブラシで消してください', 4200);
   } finally { aiBusy = false; refreshPanel(); }
 }
 
@@ -5491,10 +5528,10 @@ function libGrid() {
 function libSection() { return `<div class="libhead">マイ素材<small>${libList ? libList.length + ' / ' + LIB_MAX + '枚・この端末だけ' : ''}</small></div>` + libGrid(); }
 function renderUpload() {
   sidePanel.innerHTML = `<div class="stack">
-    <button class="bigbtn primary" data-up="add"><span>写真を重ねる<small>今の画像の上に追加します</small></span></button>
+    <button class="bigbtn primary" data-up="add"><span>写真を追加<small>今の作品の上に重ねます</small></span></button>
     <button class="bigbtn" data-up="open"><span>別の写真を開く<small>今の編集内容と置き換わります</small></span></button></div>
     ${hint('写真はキャンバスへのドラッグ＆ドロップや Ctrl+V でも追加できます。白紙・サンプルは上の「開く」から。')}${libSection()}
-    ${libList && libList.length ? hint('クリックでキャンバスに追加。「写真を追加」やここへのドラッグ＆ドロップで、端末の写真をマイ素材だけに入れられます。選んだ写真や切り抜いた素材は、右クリックメニューの「マイ素材に保存」で残せます。古いものから自動で消えます。' + (UI.libAuto ? '' : '自動保存はオフ（設定で変えられます）。')) : ''}`;
+    ${libList && libList.length ? hint('クリックでキャンバスに追加。「写真を追加」やここへのドラッグ＆ドロップで、端末の写真をマイ素材だけに入れられます。選んだ写真や背景を消した素材は、写真パネルの「詳細」や背景削除の「マイ素材に保存」で残せます。古いものから自動で消えます。' + (UI.libAuto ? '' : '自動保存はオフ（設定で変えられます）。')) : ''}`;
 }
 function openLib() {
   if (deskOn) { if (SIDE_TOOLS.has(tool)) setTool('select'); UI.side = true; saveUI(); sideView = 'upload'; renderSide(); }
@@ -5623,41 +5660,35 @@ function placeObjMenu() {
   objMenu.style.left = clamp(x, 6, Math.max(6, stageW - mw - 6)) + 'px'; objMenu.style.top = clamp(y, 6, Math.max(6, stageH - mh - 6)) + 'px';
 }
 function openObjMenu(bare) {
+  /* one menu, the same on PC and phones, at most 8 items: single / several / empty canvas. Flip, cut, マイ素材に保存 and
+     ここを拡大 live in the panel 詳細 / quick search / keys; ungrouping one picked member is the panel head's グループ解除 */
   const it = (k, ic, l, cls = '') => `<button role="menuitem" class="${cls}" data-act="cmd" data-k="${k}"><span class="mi" aria-hidden="true">${ic}</span>${l}</button>`;
-  // phone extras (PC has Ctrl+X / Shift+click / Shift+2 for these)
-  const phX = () => deskOn ? '' : it('addSel', ICON.addSel, S.addSel ? '複数選択をやめる' : '複数選択') + it('zoomSel', ICON.zoom, 'ここを拡大');
-  const cutIt = () => deskOn ? '' : it('cut', ICON.cutObj, '切り取り');
-  if (bare) {   // phone: long-press on empty canvas
-    if (deskOn) return;
-    let h = (clip ? it('paste', ICON.paste, '貼り付け') : '') + it('addPhoto', ICON.photo, '写真を重ねる');
-    if (doc.objects.some(x => !x.locked && !x.hidden)) h += it('selAll', ICON.marq, 'すべて選択') + it('addSel', ICON.addSel, S.addSel ? '複数選択をやめる' : '複数選択');
-    h += it('fit', ICON.free, '全体を表示') + it('copyImg', ICON.clip, '画像をコピー');
+  const pasteIt = () => clip ? it('paste', ICON.paste, '貼り付け') : '';
+  if (bare) {   // empty canvas: phone long-press, PC right-click
+    let h = pasteIt() + it('addPhoto', ICON.photo, '写真を追加');
+    if (doc.objects.some(x => !x.locked && !x.hidden)) h += it('selAll', ICON.select, 'すべて選択') + (deskOn ? '' : it('addSel', ICON.addSel, S.addSel ? '複数選択をやめる' : '複数選択')) + it('marqOn', ICON.marq, S.marq ? '囲んで選ぶをやめる' : '囲んで選ぶ');
+    h += '<hr>' + it('fit', ICON.free, '全体を表示') + it('copyImg', ICON.clip, '画像をコピー');
     objMenu.innerHTML = h; objMenu.hidden = false; menuBare = true; placeObjMenu();
     objMenu.querySelector('button').focus({ preventScroll: true });
     return;
   }
   const ms = multiObjs();
-  if (ms.length) {   // several selected: group / ungroup, flip, copy, order, duplicate, delete — all at once
-    let h = isOneGroup(ms) ? it('ungroup', ICON.ungroup, 'グループ解除') : it('group', ICON.group, 'グループにする');
-    h += '<hr>';
-    if (ms.some(canFlip)) h += it('flipH', ICON.flipH, '左右反転') + it('flipV', ICON.flipV, '上下反転') + '<hr>';
-    h += it('copy', ICON.copy, 'コピー') + cutIt() + (clip ? it('paste', ICON.paste, '貼り付け') : '') + '<hr>';
-    h += it('mFront', ICON.front, '前面へ') + it('mBack', ICON.back, '背面へ') + it('mDup', ICON.dup, '複製') + phX() + '<hr>' + it('mDel', ICON.trash, `${ms.length}個を削除`, 'danger');
+  if (ms.length) {   // several selected
+    let h = (isOneGroup(ms) ? it('ungroup', ICON.ungroup, 'グループ解除') : it('group', ICON.group, 'グループにする')) + '<hr>';
+    h += it('mDup', ICON.dup, '複製') + it('copy', ICON.copy, 'コピー') + pasteIt() + '<hr>';
+    h += it('mFront', ICON.front, '前面へ') + it('mBack', ICON.back, '背面へ') + '<hr>' + it('mDel', ICON.trash, `${ms.length}個を削除`, 'danger');
     objMenu.innerHTML = h; objMenu.hidden = false; objMore.setAttribute('aria-expanded', 'true'); placeObjMenu();
     objMenu.querySelector('button').focus({ preventScroll: true });
     return;
   }
   const o = selObj(); if (!o) return;
-  let h = '';
-  if (!o.locked && (o.type === 'text' || o.type === 'note')) h += it('edit', ICON.pen, o.type === 'text' ? '文字を編集' : '付箋を編集');
-  if (!o.locked && o.type === 'image' && o.slot) h += it('slotPick', ICON.photo, o.bmp ? '写真を差し替え' : '写真を入れる');
-  else if (!o.locked && o.type === 'image') h += it('cutThis', ICON.cutout, '背景を削除');
-  if (o.type === 'image' && o.bmp) h += it('libSave', ICON.keep, 'マイ素材に保存');
+  let h = '';   // the one main action of this kind of object
+  if (!o.locked && (o.type === 'text' || o.type === 'note')) h = it('edit', ICON.pen, '文字を編集');
+  else if (!o.locked && o.type === 'image' && o.slot) h = it('slotPick', ICON.photo, o.bmp ? '写真を差し替え' : '写真を入れる');
+  else if (!o.locked && o.type === 'image') h = it('cutThis', ICON.cutout, '背景削除');
   if (h) h += '<hr>';
-  if (o.gid && (groupOf(o) || []).length > 1) h += it('ungroup', ICON.ungroup, 'グループ解除') + '<hr>';   // one member picked out of a group
-  if (canFlip(o)) h += it('flipH', ICON.flipH, '左右反転') + it('flipV', ICON.flipV, '上下反転') + '<hr>';
-  h += it('copy', ICON.copy, 'コピー') + (o.locked ? '' : cutIt()) + (clip ? it('paste', ICON.paste, '貼り付け') : '') + '<hr>';
-  h += it('front', ICON.front, '前面へ') + it('back', ICON.back, '背面へ') + it('dup', ICON.dup, '複製') + it('lock', o.locked ? ICON.unlock : ICON.lock, o.locked ? 'ロック解除' : 'ロック') + phX() + '<hr>' + it('del', ICON.trash, '削除', 'danger');
+  h += it('dup', ICON.dup, '複製') + it('copy', ICON.copy, 'コピー') + pasteIt() + '<hr>';
+  h += it('front', ICON.front, '前面へ') + it('back', ICON.back, '背面へ') + it('lock', o.locked ? ICON.unlock : ICON.lock, o.locked ? 'ロック解除' : 'ロック') + '<hr>' + it('del', ICON.trash, '削除', 'danger');
   objMenu.innerHTML = h; objMenu.hidden = false; objMore.setAttribute('aria-expanded', 'true'); placeObjMenu();
   objMenu.querySelector('button').focus({ preventScroll: true });
 }
@@ -5669,7 +5700,10 @@ cv.addEventListener('contextmenu', e => {
   e.preventDefault();   // also stops the phone's own long-press menu on the canvas
   if (!deskOn) return;
   const p = pt(e), d = screenToDoc(p.x, p.y), hit = pick(d.x, d.y);
-  if (!hit) { closeObjMenu(); return; }
+  if (!hit) {   // empty canvas: the same menu as the phone's long-press on empty space
+    if (tool === 'select' && (selId || multi.length)) { selId = null; multi = []; refreshPanel(); }
+    openObjMenuAt(p, true); return;
+  }
   if (tool !== 'select') setTool('select');
   if (multi.includes(hit.id)) { }   // inside the current multi selection: keep it, the menu acts on all of them
   else if (hit.gid && selId !== hit.id && (groupOf(hit) || []).length > 1) { selId = null; multi = groupOf(hit).map(x => x.id); refreshPanel(); }
@@ -5736,6 +5770,9 @@ function runCmd(k, v, final) {
       if (S.addSel) toast('タップした物を選択に追加・外します。終わるときはもう一度押します', 3200); break;
     case 'objMenu': menuAtSel(); break;
     case 'selAll': selectAll(); break;
+    case 'marqOn':   // 囲んで選ぶ from the empty-canvas menu: a drag on empty space draws a marquee until turned off
+      S.marq = !S.marq; if (tool !== 'select') setTool('select'); refreshPanel(); requestDraw();
+      if (S.marq) toast(deskOn ? '何もない所をドラッグして囲みます（Shift＋ドラッグでもいつでも囲めます）' : '何もない所をドラッグして囲みます。画面の移動は2本指で', 3200); break;
     case 'fit': fitView(); break;
     case 'zoomSel': zoomToSel(); break;
     case 'copyImg': copyImage(); break;
@@ -6113,7 +6150,7 @@ function aiApply(adj, name) {
   doc.adjust = { ...doc.adjust, ...adj };
   aiLast = { name, json: JSON.stringify(doc.adjust) };
   invalidate(); commit(); refreshPanel();
-  toast(`${name}に整えました。「調整」で細かく変えられます`);
+  toast(`${name}に整えました。「調整」タブで細かく変えられます`);
 }
 const aiIsOn = name => !!aiLast && aiLast.name === name && aiLast.json === JSON.stringify(doc.adjust);
 const aiRefInput = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*', id: 'fileRef', className: 'vh', tabIndex: -1 });
@@ -6146,23 +6183,35 @@ function aiPanel(where) {
   return h + hint('トレンド風の色味を写真ごとに計算。分析は端末の中だけで、ネットの写真は学習していません。');
 }
 
+const COLOR_TABS = [['ai', 'おまかせ'], ['filter', 'フィルター'], ['adjust', '調整']];
+const colorTabs = () => `<div class="ctabs" role="tablist" aria-label="補正">${COLOR_TABS.map(([v, l]) => `<button class="ctab${S.colorTab === v ? ' on' : ''}" role="tab" aria-selected="${S.colorTab === v}" data-act="s" data-k="colorTab" data-v="${J(v)}">${l}</button>`).join('')}</div>`;
+/* 補正 › 調整 tab: the manual sliders + reset */
+function adjHtml() {
+  const a = doc.adjust;
+  return [['bri', '明るさ', -100, 'aBri'], ['con', 'コントラスト', -100, 'aCon'], ['sat', '彩度', -100, 'aSat'], ['warm', '色温度', -100, 'aWarm'], ['tint', '色かぶり', -100, 'aTint'],
+        ['fade', '退色', 0, 'aFade'], ['glow', 'ふんわり', 0, 'aGlow'], ['grain', '粒子', 0, 'aGrain'], ['vig', '周辺減光', 0, 'aVig']]
+        .map(([k, l, lo, ic]) => slider('a:' + k, `<span class="aic" aria-hidden="true">${ICON[ic]}</span>${l}`, lo, 100, a[k])).join('')
+    + `<div class="actions"><button class="btn" data-act="cmd" data-k="adjReset">調整をリセット</button></div>`;
+}
 function objPanel(o) {
   const u = U();
   const editable = !o.locked && (o.type === 'text' || o.type === 'note');
-  let h = `<div class="objhead"><span class="badge${o.locked ? ' locked' : ''}">${TYPE_NAMES[o.type]}${o.locked ? '・ロック中' : ''}</span>${editable ? cmdBtn('edit', '✎ 文字を編集') : ''}${deskOn ? '' : quickBar(o)}</div>`;
-  // 前面へ・複製・ロック・削除 live in the object menu (long-press / right-click)
-  if (o.locked) return h + row('', cmdBtn('lock', IW('unlock', 'ロック解除'))) + hint('ロック中は動かしたり消したりできません。');
+  let h = `<div class="objhead"><span class="badge${o.locked ? ' locked' : ''}">${TYPE_NAMES[o.type]}${o.locked ? '・ロック中' : ''}</span>${headX(o)}${editable ? cmdBtn('edit', '✎ 文字を編集') : ''}${deskOn ? '' : quickBar(o)}</div>`;
+  // 前面へ・複製・ロック・削除 live in the object menu (long-press / right-click). Panel rule: head (one main action) →
+  // at most 3 everyday rows → one 詳細 fold (dt) with the rest, opacity / flip / position / align and the layers
+  let dt = '';
+  if (o.locked) return h + foldMore('詳細', layersPanel()) + row('', cmdBtn('lock', IW('unlock', 'ロック解除'))) + hint('ロック中は動かしたり消したりできません。');
   switch (o.type) {
     case 'text':
       h += row('書体', fontButton(o.font));
       h += row('色', swatches('o', 'color', o.color));
       h += slider('o:tsize', 'サイズ', 10, 300, o.size * o.sc / MIN() * 1000);
-      h += row('スタイル', [['bold', '<b>B</b> 太字'], ['italic', '<i>I</i> 斜体'], ['underline', '<u>U</u> 下線']]
+      dt += row('スタイル', [['bold', '<b>B</b> 太字'], ['italic', '<i>I</i> 斜体'], ['underline', '<u>U</u> 下線']]
         .map(([k, l]) => `<button class="chip tog${o[k] ? ' on' : ''}" aria-pressed="${!!o[k]}" data-act="o" data-k="${k}" data-v="${!o[k]}">${l}</button>`).join(''));
       // icons instead of words where a symbol says it (方向・揃え), colour dots instead of colour names (縁取り・背景)
-      h += row('方向', chips('o', 'vert', [[false, `${ICON.horiz}<span class="vh">横書き</span>`], [true, `${ICON.vert}<span class="vh">縦書き</span>`]], !!o.vert).replace(/class="chip/g, 'class="chip ichip'));
-      if (!o.vert) h += row('揃え', chips('o', 'align', [['left', `${ICON.alL}<span class="vh">左揃え</span>`], ['center', `${ICON.alC}<span class="vh">中央</span>`], ['right', `${ICON.alR}<span class="vh">右揃え</span>`]], o.align).replace(/class="chip/g, 'class="chip ichip'));
-      h += foldMore('もっと見る（縁取り・背景・影）', row('縁取り', noneSw('outline', o.outline) + swatches('o', 'outline', o.outline, ['#FFFFFF', '#111111', '#FF2D92', '#007AFF', '#FFD23F', '#5E8C5F']))
+      dt += row('方向', chips('o', 'vert', [[false, `${ICON.horiz}<span class="vh">横書き</span>`], [true, `${ICON.vert}<span class="vh">縦書き</span>`]], !!o.vert).replace(/class="chip/g, 'class="chip ichip'));
+      if (!o.vert) dt += row('揃え', chips('o', 'align', [['left', `${ICON.alL}<span class="vh">左揃え</span>`], ['center', `${ICON.alC}<span class="vh">中央</span>`], ['right', `${ICON.alR}<span class="vh">右揃え</span>`]], o.align).replace(/class="chip/g, 'class="chip ichip'));
+      dt += (row('縁取り', noneSw('outline', o.outline) + swatches('o', 'outline', o.outline, ['#FFFFFF', '#111111', '#FF2D92', '#007AFF', '#FFD23F', '#5E8C5F']))
         + row('背景', noneSw('bg', o.bg) + swatches('o', 'bg', o.bg, ['#FFFFFF', '#111111', '#FFD23F', '#FFB3C7', '#C9DBB9', 'rgba(0,0,0,0.5)']))
         + row('影', `<button class="chip ichip tog${o.shadow ? ' on' : ''}" aria-pressed="${!!o.shadow}" data-act="o" data-k="shadow" data-v="${!o.shadow}" title="影">${ICON.shadow}<span class="vh">影</span></button>`));
       break;
@@ -6173,20 +6222,20 @@ function objPanel(o) {
       h += `<div class="cgrp">` + row('塗り', swatches('o', 'color', o.color, NOTE_COLORS))
         + row('枠線', noneSw('stroke', o.stroke) + swatches('o', 'stroke', o.stroke || 'none', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#5E8C5F', '#FF8FB1']))
         + row('文字', swatches('o', 'tcolor', o.tcolor || '#2A2724', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#1F8A4C', '#8B5CF6'])) + `</div>`;
-      h += row('柄', chips('o', 'pattern', [['plain', '無地'], ['lines', '罫線'], ['grid', '方眼'], ['dots', 'ドット']], o.pattern || (o.shape === 'torn' ? 'lines' : 'plain')));
-      h += row('飾り', chips('o', 'deco', [['tape', 'テープ'], ['pin', 'ピン'], ['none', 'なし']], o.deco || 'tape'));
-      h += row('縦横', cmdBtn('noteRatio', '正方形', 'square') + cmdBtn('noteRatio', '横長', 'wide') + cmdBtn('noteRatio', '縦長', 'tall'));
+      dt += row('柄', chips('o', 'pattern', [['plain', '無地'], ['lines', '罫線'], ['grid', '方眼'], ['dots', 'ドット']], o.pattern || (o.shape === 'torn' ? 'lines' : 'plain')));
+      dt += row('飾り', chips('o', 'deco', [['tape', 'テープ'], ['pin', 'ピン'], ['none', 'なし']], o.deco || 'tape'));
+      dt += row('縦横', cmdBtn('noteRatio', '正方形', 'square') + cmdBtn('noteRatio', '横長', 'wide') + cmdBtn('noteRatio', '縦長', 'tall'));
       h += row('書体', fontButton(o.font || 'Klee One'));
       break;
     case 'image':
       if (o.slot) {   // collage slot: fill / replace the photo and frame it
-        h += row('写真', cmdBtn('slotPick', o.bmp ? IW('swap', '写真を差し替え') : '＋ 写真を入れる', undefined, o.bmp ? '' : 'on') + (o.bmp ? cmdBtn('slotFit', '枠に合わせ直す') : ''), true);
+        if (o.bmp) dt += row('写真', cmdBtn('slotFit', '枠に合わせ直す'));   // 写真を入れる / 差し替え is the head's main action
         if (o.bmp) h += slider('o:fz', '拡大', 100, 300, (o.fz || 1) * 100, 0.01) + slider('o:fx', '左右', -100, 100, (o.fx || 0) * 100, 0.01) + slider('o:fy', '上下', -100, 100, (o.fy || 0) * 100, 0.01);
         h += hint('枠をダブルクリック（ダブルタップ）するか、写真ファイルを枠にドロップしても入れられます。');
-      } else h += row('加工', cmdBtn('cutThis', IW('cutout', '背景を削除')) + cmdBtn('libSave', IW('keep', 'マイ素材に保存')), true);
-      h += row('枠', noneSw('border', o.border) + swatches('o', 'border', o.border, ['#FFFFFF', '#111111', '#F4EFE4', '#5E8C5F', '#FFB3C7']));
-      h += row('影', `<button class="chip ichip tog${o.shadow ? ' on' : ''}" aria-pressed="${!!o.shadow}" data-act="o" data-k="shadow" data-v="${!o.shadow}" title="影">${ICON.shadow}<span class="vh">影</span></button>`);
-      h += slider('o:rad', '角丸', 0, 100, o.rad);
+      } else dt += row('素材', cmdBtn('libSave', IW('keep', 'マイ素材に保存')));
+      { const fr = row('枠', noneSw('border', o.border) + swatches('o', 'border', o.border, ['#FFFFFF', '#111111', '#F4EFE4', '#5E8C5F', '#FFB3C7']))   // a slot keeps them in 詳細
+      + row('影', `<button class="chip ichip tog${o.shadow ? ' on' : ''}" aria-pressed="${!!o.shadow}" data-act="o" data-k="shadow" data-v="${!o.shadow}" title="影">${ICON.shadow}<span class="vh">影</span></button>`)
+      + slider('o:rad', '角丸', 0, 100, o.rad); if (o.slot) dt += fr; else h += fr; }
       break;
     case 'stroke':
       h += row('色', swatches('o', 'color', o.color));
@@ -6199,17 +6248,17 @@ function objPanel(o) {
         h += row('色', swatches('o', 'color', o.color));
         h += slider('o:width', '線の太さ', 1, 60, o.width / u, u);
         h += row('線の形', ichips('o', 'kind', LINE_GEO.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), geoChip(o)), true);
-        h += lineCapRows('o', '', B);
-        h += row('線種', lsChips('o', 'ls', lStyle(o), B), true);
-        if (shapeCtrl(o)) h += slider('o:bend', '曲がり', -100, 100, (o.bend == null ? 0.3 : o.bend) * 100, 0.01);
-        if (lineGeo(o) === 'wave') h += slider('o:wa', '波の高さ', 3, 80, Math.abs(o.wa == null ? 16 : o.wa)) + slider('o:wl', '波の長さ', 20, 150, o.wl == null ? 90 : o.wl);
+        dt += lineCapRows('o', '', B);
+        dt += row('線種', lsChips('o', 'ls', lStyle(o), B), true);
+        if (shapeCtrl(o)) dt += slider('o:bend', '曲がり', -100, 100, (o.bend == null ? 0.3 : o.bend) * 100, 0.01);
+        if (lineGeo(o) === 'wave') dt += slider('o:wa', '波の高さ', 3, 80, Math.abs(o.wa == null ? 16 : o.wa)) + slider('o:wl', '波の長さ', 20, 150, o.wl == null ? 90 : o.wl);
         h += hint(deskOn ? '端の●をドラッグで向きと長さ、真ん中の◆で曲げられます。Shift で 15°ごと、Alt で吸着なし。' : '端の●をドラッグで向きと長さ、真ん中の◆で曲げられます。');
       } else {
         const B = shapeBase(o);
         h += row('形', ichips('o', 'kind', AREA_KINDS.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), o.kind), true);
         h += areaColorRows('o', '', B);
         if (o.kind === 'rect') h += slider('o:rad', '角丸', 0, 100, o.rad || 0);
-        if (B.oc !== 'none') h += slider('o:width', '線の太さ', 1, 60, o.width / u, u) + row('線種', lsChips('o', 'ls', lStyle(o), { ...B, color: B.oc }), true);
+        if (B.oc !== 'none') dt += slider('o:width', '線の太さ', 1, 60, o.width / u, u) + row('線種', lsChips('o', 'ls', lStyle(o), { ...B, color: B.oc }), true);
       }
       break;
     case 'stamp':
@@ -6221,8 +6270,8 @@ function objPanel(o) {
       h += row('色', swatches('o', 'color', o.color));
       if (d && d.outl) h += row('枠線', noneSw('color2', o.color2) + swatches('o', 'color2', o.color2 || 'none', ['#2A2724', '#FFFFFF', '#5E8C5F', '#E8392F', '#2563EB', '#F7C948']));
       else if (d && d.color2 != null) h += row('色2', swatches('o', 'color2', o.color2 || d.color2));
-      if (d && d.cat === 'line') h += row('形', cmdBtn('decoSeed', IW('dice', '描き直す')));
-      if (d && d.full) h += row('大きさ', cmdBtn('decoFit', '写真全体に合わせる'));
+      if (d && d.cat === 'line') dt += row('形', cmdBtn('decoSeed', IW('dice', '描き直す')));
+      if (d && d.full) dt += row('大きさ', cmdBtn('decoFit', '写真全体に合わせる'));
       break;
     }
     case 'mosaic':
@@ -6231,15 +6280,29 @@ function objPanel(o) {
       break;
   }
   const flipRow = canFlip(o) ? row('反転', ['flipH', 'flipV'].map(k => `<button class="chip ichip" data-act="cmd" data-k="${k}" title="${k === 'flipH' ? '左右反転' : '上下反転'}" aria-label="${k === 'flipH' ? '左右反転' : '上下反転'}">${ICON[k]}</button>`).join('')) : '';
-  h += foldMore('詳細（不透明度・位置・整列）', slider('o:op', '不透明度', 10, 100, o.op * 100, 0.01) + flipRow + numsRow(o) + alignRow('写真に揃える'));
+  h += foldMore('詳細', dt + slider('o:op', '不透明度', 10, 100, o.op * 100, 0.01) + flipRow + numsRow(o) + alignRow('写真に揃える') + layersPanel());
+  return h;
+}
+/* panel head extras: グループ解除 for one member picked out of a group, and the main action of a photo / photo slot */
+function headX(o) {
+  let h = o.gid && (groupOf(o) || []).length > 1 ? `<button class="chip gbadge" data-act="cmd" data-k="ungroup" title="グループ解除">${IW('ungroup', 'グループ解除')}</button>` : '';
+  if (!o.locked && o.type === 'image') h += o.slot ? cmdBtn('slotPick', IW('photo', o.bmp ? '写真を差し替え' : '写真を入れる'), undefined, o.bmp ? '' : 'on') : cmdBtn('cutThis', IW('cutout', '背景削除'));
   return h;
 }
 /* phones: the PC #objBar's quick actions at the right of the panel head (複製・削除・⋯ = the long-press menu); the 複数選択
    chip shows only while that mode is on, so it can be turned off where it is seen */
 const qBtn = (k, ic, t, cls = '') => `<button class="chip ichip${cls}" data-act="cmd" data-k="${k}" title="${t}" aria-label="${t}">${ICON[ic]}</button>`;
-const quickBar = o => `<span class="qbar">${S.addSel ? togChip('cmd', 'addSel', true, ICON.addSel + '<span class="vh">複数選択</span>') : ''}${o && !o.locked ? qBtn('dup', 'dup', '複製') + qBtn('del', 'trash', '削除', ' danger') : ''}${qBtn('objMenu', 'more', 'そのほかの操作')}</span>`;
-/* phones fold rarely used rows under a もっと見る / 詳細 toggle (its open state is remembered); PC shows them inline */
+const quickBar = o => `<span class="qbar">${S.addSel ? togChip('cmd', 'addSel', true, ICON.addSel + '<span class="vh">複数選択</span>') : ''}${o && !o.locked ? qBtn('dup', 'dup', '複製') + qBtn('del', 'trash', '削除', ' danger') : ''}${qBtn('objMenu', 'more', 'メニュー')}</span>`;
+/* phones fold rarely used rows under the one 詳細 toggle per panel (its open state is remembered); PC shows them inline */
 const foldMore = (label, inner) => deskOn ? inner : `<details class="more" data-more="1"${UI.more ? ' open' : ''}><summary>${label}</summary>${inner}</details>`;
+/* the select panel's tips: tiles for the first few sessions (UI.legendN counts them), then one line */
+let legendCounted = false;
+function selGuide() {
+  if (!legendCounted) { legendCounted = true; UI.legendN = Math.min(99, (UI.legendN | 0) + 1); saveUI(); }
+  if (UI.legendN > 5) return hint(deskOn ? 'クリックで選ぶ・ドラッグで動かす・右クリックでメニュー・Shift＋ドラッグで囲んで選ぶ' : 'タップで選ぶ・ドラッグで動かす・2本指でズーム・長押しでメニュー');
+  return legend(deskOn ? [[ICON.select, '選ぶ', 'クリック'], [ICON.move, '動かす', 'ドラッグ'], [ICON.resize, '大きさ', '角の●'], [ICON.rotate, '回転', '上の●'], [ICON.mouse, 'メニュー', '右クリック'], [ICON.marq, '囲む', 'Shift+ドラッグ']]
+    : [[ICON.tap, '選ぶ', 'タップ'], [ICON.move, '動かす', 'ドラッグ'], [ICON.zoom, 'ズーム', '2本指'], [ICON.hold, 'メニュー', '長押し']]);
+}
 panel.addEventListener('toggle', e => { if (e.target.dataset && e.target.dataset.more) { UI.more = e.target.open; saveUI(); } }, true);
 /* PC: numeric position / angle / scale (Figma / Canva「詳細」style); kept in step with drags by syncNums() from draw() */
 const NUMV = { x: o => Math.round(o.x), y: o => Math.round(o.y), rot: o => Math.round(((o.rot * 180 / Math.PI) % 360 + 540) % 360 - 180), sc: o => Math.round(o.sc * 100) };
@@ -6348,18 +6411,17 @@ panel.addEventListener('drop', e => {
 /* PC inspector with nothing selected: the photo itself (size + shortcuts to the photo-wide tools) */
 function photoCard() {
   const fl = doc.adjust.preset && doc.adjust.preset !== 'none' ? `フィルター: ${FILTERS[doc.adjust.preset] ? FILTERS[doc.adjust.preset][0] : ''}` : 'フィルターなし';
-  return `<div class="pcard"><div class="pch">写真<small>${doc.w} × ${doc.h} px・${esc(fl)}</small></div><div class="pcb">`
-    + [['filter', 'フィルター'], ['adjust', '調整'], ['cutout', '背景削除'], ['crop', '切り抜き', '切り抜き・回転']].map(([t, l, ti]) => `<button class="pcbt" data-gotool="${t}" title="${ti || l}">${ICON[t]}<span>${l}</span></button>`).join('') + '</div></div>';
+  return `<div class="pcard"><div class="pch">元の写真<small>${doc.w} × ${doc.h} px・${esc(fl)}</small></div><div class="pcb">`
+    + [['filter', '補正', '補正（おまかせ・フィルター・調整）'], ['cutout', '背景削除'], ['crop', 'トリミング', 'トリミング・回転']].map(([t, l, ti]) => `<button class="pcbt" data-gotool="${t}" title="${ti || l}">${ICON[t]}<span>${l}</span></button>`).join('') + '</div></div>';
 }
 panel.addEventListener('click', e => { const b = e.target.closest('[data-gotool]'); if (b) setTool(b.dataset.gotool); });
 function multiPanel(ms) {
   const one = isOneGroup(ms);
-  return `<div class="objhead"><span class="badge">${one ? `グループ（${ms.length}個）` : `${ms.length}個を選択中`}</span>${deskOn ? '' : quickBar(null)}</div>`
-    + row('グループ', one ? cmdBtn('ungroup', IW('ungroup', 'グループ解除')) : cmdBtn('group', IW('group', 'グループにする')))
-    + row('操作', [['mFront', ICON.front, '前面へ'], ['mBack', ICON.back, '背面へ'], ['mDup', ICON.dup, '複製'], ['mDel', ICON.trash, '削除', ' danger']].map(([k, ic, t, c = '']) => `<button class="chip ichip${c}" data-act="cmd" data-k="${k}" title="${t}" aria-label="${t}">${ic}</button>`).join('') + cmdBtn('mClear', '選択を解除'), true)
+  return `<div class="objhead"><span class="badge">${one ? `グループ（${ms.length}個）` : `${ms.length}個を選択中`}</span>${one ? cmdBtn('ungroup', IW('ungroup', 'グループ解除')) : cmdBtn('group', IW('group', 'グループにする'))}${deskOn ? '' : quickBar(null)}</div>`
     + alignRow('揃える')
-    + row('等間隔', [['h', ICON.distH, '横に等間隔'], ['v', ICON.distV, '縦に等間隔']].map(([v, ic, t]) => `<button class="chip ichip" data-act="cmd" data-k="dist" data-v="${J(v)}" title="${t}" aria-label="${t}"${ms.length < 3 ? ' disabled' : ''}>${ic}</button>`).join('')
-      + ['flipH', 'flipV'].map(k => `<button class="chip ichip" data-act="cmd" data-k="${k}" title="${k === 'flipH' ? '左右反転' : '上下反転'}" aria-label="${k === 'flipH' ? 'まとめて左右反転' : 'まとめて上下反転'}">${ICON[k]}</button>`).join(''))
+    + row('等間隔', [['h', ICON.distH, '横に等間隔'], ['v', ICON.distV, '縦に等間隔']].map(([v, ic, t]) => `<button class="chip ichip" data-act="cmd" data-k="dist" data-v="${J(v)}" title="${t}" aria-label="${t}"${ms.length < 3 ? ' disabled' : ''}>${ic}</button>`).join(''))
+    + foldMore('詳細', row('操作', [['mFront', ICON.front, '前面へ'], ['mBack', ICON.back, '背面へ'], ['mDup', ICON.dup, '複製'], ['mDel', ICON.trash, '削除', ' danger']].map(([k, ic, t, c = '']) => `<button class="chip ichip${c}" data-act="cmd" data-k="${k}" title="${t}" aria-label="${t}">${ic}</button>`).join('') + cmdBtn('mClear', '選択を解除'), true)
+      + row('反転', ['flipH', 'flipV'].map(k => `<button class="chip ichip" data-act="cmd" data-k="${k}" title="${k === 'flipH' ? '左右反転' : '上下反転'}" aria-label="${k === 'flipH' ? 'まとめて左右反転' : 'まとめて上下反転'}">${ICON[k]}</button>`).join('')) + layersPanel())
     + hint(one ? `${ICON.move}枠の中をドラッグでまとめて移動。中の1つを${deskOn ? 'クリック' : 'タップ'}すると、それだけを編集できます` : `${ICON.move}枠の中をドラッグでまとめて移動`);
 }
 let panelKey = '', panelTool = 'select';
@@ -6395,11 +6457,13 @@ function refreshPanel() {
       const o = selObj(), ms = multiObjs();
       if (o) h = objPanel(o);
       else if (ms.length) h = multiPanel(ms);
-      else h = photoCard() + (S.addSel && !deskOn ? row('複数選択', togChip('cmd', 'addSel', true, ICON.addSel + '<span class="vh">複数選択をやめる</span>')) + hint('タップした物が選択に加わります') : '') + row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, IW('marq', '囲む')]], S.marq))
-        + (S.marq ? hint(deskOn ? '⬚ 何もない所をドラッグして囲む（画面の移動は Space＋ドラッグ）' : '⬚ 何もない所をドラッグして囲む（画面の移動は2本指）')
-          : legend(deskOn ? [[ICON.select, '選ぶ', 'クリック'], [ICON.move, '動かす', 'ドラッグ'], [ICON.resize, '大きさ', '角の●'], [ICON.rotate, '回転', '上の●'], [ICON.mouse, 'メニュー', '右クリック'], [ICON.marq, '囲む', 'Shift+ドラッグ'], [ICON.select, '追加で選ぶ', 'Shift/Ctrl+クリック']]
-            : [[ICON.tap, '選ぶ', 'タップ'], [ICON.move, '動かす', 'ドラッグ'], [ICON.resize, '大きさ', '角の●'], [ICON.rotate, '回転', '上の●'], [ICON.zoom, 'ズーム', '2本指'], [ICON.hold, 'メニュー', '長押し'], [ICON.addSel, '複数選ぶ', '長押しから'], [ICON.paste, '貼り付け', '余白を長押し'], ...(UI.gest ? [[ICON.undo, '元に戻す', '2本指タップ']] : [])]));
-      h += deskOn ? layersPanel() : foldMore('レイヤー（重なり順・表示）', layersPanel());
+      else {   // nothing selected: (phone) a head with 複数選択 / 囲む, the photo card, tips, then 詳細 = 範囲選択 (PC) + layers
+        const marqRow = row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, IW('marq', '囲む')]], S.marq));
+        h = (deskOn ? '' : `<div class="objhead"><span class="badge">選択</span><span class="qbar">${togChip('cmd', 'addSel', S.addSel, ICON.addSel + '<span class="vh">複数選択</span>').replace('class="chip', 'title="複数選択" class="chip')}${togChip('s', 'marq', S.marq, ICON.marq + '<span class="vh">囲んで選ぶ</span>').replace('class="chip', 'title="囲んで選ぶ" class="chip')}</span></div>`)
+          + photoCard() + (S.addSel && !deskOn ? hint('タップした物が選択に加わります。終わるときは上の複数選択をもう一度') : '')
+          + (S.marq ? (deskOn ? marqRow : '') + hint(deskOn ? '何もない所をドラッグして囲む（画面の移動は Space＋ドラッグ）' : '何もない所をドラッグして囲む（画面の移動は2本指）') : selGuide())
+          + foldMore('詳細', (deskOn && !S.marq ? marqRow : '') + layersPanel());
+      }
       break;
     }
     case 'pen':
@@ -6437,41 +6501,37 @@ function refreshPanel() {
       break;
     case 'crop':
       h = row('比率', ASPECTS.map(([k, l, r]) => `<button class="chip${crop.aspect === k ? ' on' : ''}" aria-pressed="${crop.aspect === k}" data-act="cmd" data-k="aspect" data-v="${J(k)}">${aspIco(r === 'orig' ? crop.orig : r)}<span>${l}</span></button>`).join(''));
-      h += row('回転', cmdBtn('rotL', IW('rotL', '左に90°')) + cmdBtn('rotR', IW('rotR', '右に90°')) + cmdBtn('flipH', IW('flipH', '左右反転')) + cmdBtn('flipV', IW('flipV', '上下反転')));
-      h += `<div class="actions"><button class="btn" data-act="cmd" data-k="cropCancel">キャンセル</button><button class="btn primary" data-act="cmd" data-k="cropApply">切り抜く</button></div>`;
+      h += row('写真全体', cmdBtn('rotL', IW('rotL', '左に90°')) + cmdBtn('rotR', IW('rotR', '右に90°')) + cmdBtn('flipH', IW('flipH', '左右反転')) + cmdBtn('flipV', IW('flipV', '上下反転')));
+      h += `<div class="actions"><button class="btn" data-act="cmd" data-k="cropCancel">キャンセル</button><button class="btn primary" data-act="cmd" data-k="cropApply">トリミング</button></div>`;
       break;
     case 'filter': {
       const a = doc.adjust;
       ensureThumbs();
-      h = aiPanel('filter') + row('種類', chips('s', 'filterCat', FILTER_CATS, S.filterCat));
+      h = colorTabs();   // 補正 = おまかせ / フィルター / 調整 tabs (S.colorTab; setTool('adjust') opens 調整)
+      if (S.colorTab === 'ai') { h += aiPanel('filter'); break; }
+      if (S.colorTab === 'adjust') { h += adjHtml(); break; }
+      h += row('種類', chips('s', 'filterCat', FILTER_CATS, S.filterCat));
       h += `<div class="fcards">` + Object.entries(FILTERS)
         .filter(([id, f]) => S.filterCat === 'all' || f[1] === S.filterCat || id === 'none')
         .map(([id, f]) => `<button class="fcard${a.preset === id ? ' on' : ''}" data-act="cmd" data-k="preset" data-v="${J(id)}">${thumbs[id] ? `<img src="${thumbs[id]}" alt="">` : '<span class="ph"></span>'}<span>${f[0]}</span></button>`)
         .join('') + `</div>`;
       if (a.preset && a.preset !== 'none') h += slider('a:amt', '強さ', 0, 100, a.amt ?? 100);
-      h += hint('明るさなどの細かい調整は「調整」で。フィルターと重ねて使えます。');
-      break;
-    }
-    case 'adjust': {
-      const a = doc.adjust;
-      h = aiPanel('adjust') + [['bri', '明るさ', -100, 'aBri'], ['con', 'コントラスト', -100, 'aCon'], ['sat', '彩度', -100, 'aSat'], ['warm', '色温度', -100, 'aWarm'], ['tint', '色かぶり', -100, 'aTint'],
-        ['fade', '退色', 0, 'aFade'], ['glow', 'ふんわり', 0, 'aGlow'], ['grain', '粒子', 0, 'aGrain'], ['vig', '周辺減光', 0, 'aVig']]
-        .map(([k, l, lo, ic]) => slider('a:' + k, `<span class="aic" aria-hidden="true">${ICON[ic]}</span>${l}`, lo, 100, a[k])).join('');
-      h += `<div class="actions"><button class="btn" data-act="cmd" data-k="adjReset">調整をリセット</button></div>`;
+      h += hint('明るさなどの細かい調整は「調整」タブで。フィルターと重ねて使えます。');
       break;
     }
     case 'cutout': {
       const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
-      if (imgs.length) h += row('対象', chips('s', 'cut.target', [['base', '土台の写真'], ...imgs.map((o, i) => [o.id, '貼った写真' + (i + 1)])], S.cut.target));
-      h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで自動で背景を消す'}</button>`;
-      h += row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
-      if (S.cut.model === 'rmbg') h += hint(ICON.warn + 'RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。');
-      else if (S.cut.model === 'biref') h += hint('高精度（BiRefNet・MITライセンス）は初回に約115MBをダウンロードします。Wi-Fiでの利用がおすすめです。');
+      if (imgs.length) h += row('対象', chips('s', 'cut.target', [['base', '元の写真'], ...imgs.map((o, i) => [o.id, '貼った写真' + (i + 1)])], S.cut.target));
+      h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで背景削除'}</button>`;
+      let dt = row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
+      if (S.cut.model === 'rmbg') dt += hint(ICON.warn + 'RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。');
+      else if (S.cut.model === 'biref') dt += hint('高精度（BiRefNet・MITライセンス）は初回に約115MBをダウンロードします。Wi-Fiでの利用がおすすめです。');
       h += row('手動', chips('s', 'cut.mode', [['tap', IW('drop', '色で消す')], ['erase', IW('eraser', '消す')], ['restore', IW('restore', '戻す')]], S.cut.mode));
       if (S.cut.mode === 'tap') h += slider('s:cut.tol', '許容範囲', 0, 100, S.cut.tol) + row('範囲', chips('s', 'cut.contig', [[true, 'つながった部分'], [false, '同じ色すべて']], S.cut.contig));
       else h += slider('s:cut.size', 'ブラシ', 3, 150, S.cut.size);
-      if (!t.o) h += row('背景色', `<button class="swb clear${!doc.bg ? ' on' : ''}" data-act="cmd" data-k="bg" data-v="null" aria-label="透明" title="透明" aria-pressed="${!doc.bg}"></button>` + swatches('cmd', 'bg', doc.bg || ''));
-      h += `<div class="actions"><button class="btn" data-act="cmd" data-k="cutReset">元の写真に戻す</button>${(t.o ? t.o.orig : doc.baseOrig) ? '<button class="btn" data-act="cmd" data-k="libSaveCut">マイ素材に保存</button>' : ''}${deskOn ? '' : '<button class="btn primary" data-act="cmd" data-k="cutDone">完了</button>'}</div>`;   // PC: the drawer's × closes
+      if (!t.o) dt += row('背景色', `<button class="swb clear${!doc.bg ? ' on' : ''}" data-act="cmd" data-k="bg" data-v="null" aria-label="透明" title="透明" aria-pressed="${!doc.bg}"></button>` + swatches('cmd', 'bg', doc.bg || ''));
+      dt += row('元に戻す', cmdBtn('cutReset', '元の写真に戻す') + ((t.o ? t.o.orig : doc.baseOrig) ? cmdBtn('libSaveCut', IW('keep', 'マイ素材に保存')) : ''), true);
+      h += foldMore('詳細', dt) + (deskOn ? '' : '<div class="actions"><button class="btn primary" data-act="cmd" data-k="cutDone">完了</button></div>');   // PC: the drawer's × closes
       h += hint((S.cut.mode === 'tap' ? '消したい所の色をタップすると、近い色がまとめて消えます。' : '') + '透明部分は PNG で保存すると透明のまま残ります。');
       break;
     }
@@ -6549,6 +6609,11 @@ const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, h
 function loadUI() {
   let v = null; try { v = JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { }
   const u = { ...UI_DEF, ...(v && typeof v === 'object' ? v : {}) }, ids = UI_DEF.order;
+  if (Array.isArray(u.order) && u.order.includes('adjust')) {   // saved before 補正 (フィルター + 調整 were two tools)
+    const hid = Array.isArray(u.hidden) ? u.hidden : [];
+    if (hid.includes('filter') && !hid.includes('adjust')) u.hidden = hid.filter(id => id !== 'filter');   // 補正 stays hidden only if both were
+    if (u.order.join() === OLD_ORDER) u.order = ids.slice();   // never reordered: the new default; a custom order is kept (adjust drops out below)
+  }
   u.order = (Array.isArray(u.order) ? u.order : []).filter((id, i, a) => ids.includes(id) && a.indexOf(id) === i);
   // tools added in a later version slot in after their default predecessor
   ids.forEach((id, i) => { if (!u.order.includes(id)) u.order.splice(i ? u.order.indexOf(ids[i - 1]) + 1 : 0, 0, id); });
@@ -6570,6 +6635,7 @@ function loadUI() {
   if (!['new', 'likes'].includes(u.galSort)) u.galSort = 'new';
   u.calm = !!u.calm;
   u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.seen = !!u.seen; u.visits = Math.min(99, +u.visits | 0); u.instHint = !!u.instHint;
+  u.legendN = Math.min(99, +u.legendN | 0);
   return u;
 }
 const UI = loadUI();
@@ -6611,13 +6677,31 @@ function litTool() { if (tool !== 'select') return tool; const o = selObj(); ret
 function syncToolLit() {
   const t = litTool();
   toolsEl.querySelectorAll('.tool[data-tool]').forEach(b => { const on = b.dataset.tool === t; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+  const mb = toolsEl.querySelector('[data-tmore]'); if (mb) mb.classList.toggle('on', moreIds().includes(t));
 }
+/* the toolbar: PC column = every visible tool (minus DESK_HIDE) + 並び替え; phones / tablets = the first BAR_MAX + その他 */
+const barIds = () => UI.order.filter(id => !UI.hidden.includes(id) && !(deskOn && DESK_HIDE.has(id)));
+const moreIds = () => deskOn ? [] : [...barIds().slice(BAR_MAX), ...UI.order.filter(id => UI.hidden.includes(id))];
+const toolBtn = (id, lit, cls = '') => `<button class="tool${cls}${lit === id ? ' on' : ''}"${lit === id ? ' aria-current="true"' : ''} data-tool="${id}"${TOOL_KEYS[id] ? ` title="${TOOL_MAP[id][1]}（${TOOL_KEYS[id]}）" aria-keyshortcuts="${TOOL_KEYS[id]}"` : ''}>${ICON[id]}<span${TOOL_MAP[id][1].length > 4 ? ' class="tl"' : ''}>${TOOL_MAP[id][1]}</span></button>`;
 function renderTools() {
-  const lit = litTool();
-  toolsEl.innerHTML = UI.order.filter(id => !UI.hidden.includes(id) && !(deskOn && DESK_HIDE.has(id))).map(id => `<button class="tool${lit === id ? ' on' : ''}"${lit === id ? ' aria-current="true"' : ''} data-tool="${id}"${TOOL_KEYS[id] ? ` title="${TOOL_MAP[id][1]}（${TOOL_KEYS[id]}）" aria-keyshortcuts="${TOOL_KEYS[id]}"` : ''}>${ICON[id]}<span>${TOOL_MAP[id][1]}</span></button>`).join('')
-    + `<button class="tool tedit" data-tedit="1" aria-label="編集ツールの並び替え">${ICON.sort}<span>並び替え</span></button>`;
+  const lit = litTool(), ids = barIds();
+  toolsEl.innerHTML = (deskOn ? ids : ids.slice(0, BAR_MAX)).map(id => toolBtn(id, lit)).join('')
+    + (deskOn ? `<button class="tool tedit" data-tedit="1" aria-label="編集ツールの並び替え">${ICON.sort}<span>並び替え</span></button>`
+      : `<button class="tool tmore${moreIds().includes(lit) ? ' on' : ''}" data-tmore="1" aria-haspopup="dialog" aria-label="その他のツール・並び替え">${ICON.tmore}<span>その他</span></button>`);
   toolEdges();
 }
+/* phone その他: tools past the 8th, hidden tools (still usable) and 並び替え */
+function openMoreSheet() {
+  const lit = litTool();
+  $('#moreGrid').innerHTML = moreIds().map(id => toolBtn(id, lit, UI.hidden.includes(id) ? ' off' : '')).join('')
+    + `<button class="tool" data-tedit="1">${ICON.sort}<span>並び替え</span></button>`;
+  openSheet('#sheetMore');
+}
+$('#moreGrid').addEventListener('click', e => {
+  const b = e.target.closest('[data-tool],[data-tedit]'); if (!b) return;
+  closeSheets(true);
+  if (b.dataset.tedit) openOrderSheet(); else useTool(b.dataset.tool);
+});
 function toolEdges() { const s = toolsEl.scrollLeft, m = toolsEl.scrollWidth - toolsEl.clientWidth; toolsEl.classList.toggle('fl', s > 2); toolsEl.classList.toggle('fr', s < m - 2); }
 function toolIntoView(smooth) {
   const b = toolsEl.querySelector('.tool.on'); if (!b || deskOn || tabOn) return;   // PC / tablet column: no horizontal scroll
@@ -6643,15 +6727,22 @@ toolsEl.addEventListener('pointermove', e => { if (lpXY && Math.hypot(e.clientX 
 toolsEl.addEventListener('contextmenu', e => e.preventDefault());
 toolsEl.addEventListener('click', e => {
   if (e.target.closest('[data-tedit]')) { openOrderSheet(); return; }
+  if (e.target.closest('[data-tmore]')) { if (doc) openMoreSheet(); return; }
   const b = e.target.closest('[data-tool]'); if (!b || !doc) return;
-  const id = b.dataset.tool;
-  if (!deskOn && phNow === 's' && !b.dataset.tool.match(/^(photo|text|note)$/)) setPH(phPrev);   // a tool button is an explicit wish to use its panel
+  useTool(b.dataset.tool);
+});
+/* a tool button, its key (V T P R N K M C), the その他 sheet and the quick search all go through here */
+function useTool(id) {
+  if (!doc || !TOOL_MAP[id]) return;
+  if (deskOn && id === 'stamp') { openInDrawer('material'); return; }   // PC: 素材 lives in the rail drawer (K opens it)
+  if (!deskOn && phNow === 's' && !/^(photo|text|note)$/.test(id)) setPH(phPrev);   // a tool button is an explicit wish to use its panel
   if (id === 'photo') { $('#fileAdd').click(); return; }
   if (id === 'text') { addText(); return; }
   if (id === 'note') { addNote(); return; }
   setTool(id);
-});
+}
 function setTool(t) {
+  if (t === 'adjust') { S.colorTab = 'adjust'; t = 'filter'; }   // 調整 is a tab of 補正 (old links, quick search, photo card)
   const prev = selObj();
   if (t === 'cutout' && doc) {
     if (prev && prev.type === 'image' && !prev.slot) S.cut.target = prev.id;
@@ -6738,8 +6829,8 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-inst
 function instRow() {
   const el = $('#uiInst'); if (!el) return;
   const k = instKind();
-  el.innerHTML = k ? `<h3 style="margin-top:8px">アプリ</h3><div class="setrow"><span class="st">アプリとしてインストール<small>ホーム画面からすぐ開けて、オフラインでも使えます</small></span><button class="chip" data-inst="ui">${ICON.instApp}インストール</button></div>`
-    : standalone() ? `<h3 style="margin-top:8px">アプリ</h3><div class="setrow quiet"><span class="st">アプリとして使用中<small>ホーム画面のアイコンから開いています</small></span></div>` : '';
+  el.innerHTML = k ? `<div class="setrow"><span class="st">アプリとしてインストール<small>ホーム画面からすぐ開けて、オフラインでも使えます</small></span><button class="chip" data-inst="ui">${ICON.instApp}インストール</button></div>`
+    : standalone() ? `<div class="setrow quiet"><span class="st">アプリとして使用中<small>ホーム画面のアイコンから開いています</small></span></div>` : '';
 }
 /* phones: a one-time, dismissible hint from the 2nd visit on (UI.instHint = dismissed). Never in automated browsers. */
 function instHintSync(force) {
@@ -6781,13 +6872,18 @@ async function takeShared() {
   } catch (e) { console.warn('share', e); bad(); }
   return true;
 }
-const SIDE_ITEMS = [['gallery', 'みんなの作品', ICON.gallery], ['upload', '写真', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp], ['filter', 'フィルター', ICON.filter],
-  ['cutout', '背景削除', ICON.cutout], ['adjust', '調整', ICON.adjust], ...(ACCT_ON ? [['account', 'アカウント', ICON.user]] : []), ['install', 'インストール', ICON.instApp], ['settings', '設定', ICON.gear]];
+/* rail items (PC) and ☰ menu items (phones). No edit tools in the phone menu (they are in the toolbar); アカウント and
+   インストール are reached from 設定 (the install hint bar stays). '|' = divider; on PC the lower block sits at the bottom. */
+const SIDE_ITEMS = [['search', '機能をさがす', ICON.search], ['upload', '写真', ICON.upload], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp],
+  ['filter', '補正', ICON.filter], ['cutout', '背景削除', ICON.cutout], ['gallery', 'みんなの作品', ICON.gallery], ['recent', '最近の作品', ICON.recent],
+  ['help', '使い方', ICON.help], ['account', 'アカウント', ICON.user], ['install', 'インストール', ICON.instApp], ['settings', '設定', ICON.gear]];
+const SIDE_PC = ['upload', 'template', 'material', 'filter', 'cutout', '|', 'gallery', 'settings'], SIDE_SP = ['search', 'template', 'gallery', 'recent', 'help', '|', 'settings'];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
-  const cur = deskOn ? sideView : (SIDE_TOOLS.has(tool) ? tool : null);
-  railEl.innerHTML = (deskOn ? '' : `<button class="ritem msearch" data-side="search">${ICON.search}<span>機能をさがす</span></button>`) + SIDE_ITEMS.filter(([id]) => (deskOn || id !== 'upload') && (id !== 'install' || instKind())).map(([id, l, ic]) => `<button class="ritem${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${ic}<span>${l}</span></button>`).join('');
+  const cur = deskOn ? sideView : null, M = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i]));
+  railEl.innerHTML = (deskOn ? SIDE_PC : SIDE_SP).map(id => id === '|' ? '<hr class="rsep">'
+    : `<button class="ritem${id === 'search' ? ' msearch' : ''}${cur === id ? ' on' : ''}" data-side="${id}"${cur === id ? ' aria-current="true"' : ''}>${M[id][2]}<span>${M[id][1]}</span></button>`).join('');
 }
 /* phone: ☰ opens the rail as a modal slide-in menu (not saved; UI.side is the PC setting) */
 let sideMob = false;
@@ -6879,6 +6975,8 @@ railEl.addEventListener('click', e => {
     else if (id === 'upload') { renderNB(); openSheet('#sheetNew'); }
     else if (id === 'template') openTplSheet();
     else if (id === 'search') openCmd();
+    else if (id === 'recent') { renderNB(); openSheet('#sheetNew'); setTimeout(() => { const p = $('#nbProj'); if (p && p.previousElementSibling) p.previousElementSibling.scrollIntoView({ block: 'start' }); }, 60); }
+    else if (id === 'help') openSheet('#sheetHelp');
     else if (id === 'material') setTool('stamp');
     else if (SIDE_TOOLS.has(id)) setTool(id);
     return;
@@ -8013,22 +8111,21 @@ addEventListener('keyup', e => { if (e.key === '\\') setCompare(false); });
 addEventListener('blur', () => setCompare(false));
 /* ==== quick search ==== (Canva「/」-style) type to find a tool, filter, look or command and run it with Enter */
 const kana = s => String(s).toLowerCase().replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
-function pressTool(id) {
-  const b = toolsEl.querySelector(`[data-tool="${id}"]`);
-  if (b) b.click(); else if (id === 'photo') $('#fileAdd').click(); else setTool(id);
-}
+function pressTool(id) { useTool(id); }
 function cmdItems() {
   // phones have no keyboard: the shortcut part of a subtitle (Ctrl+S, （V）…) is left out there
   const it = [], add = (l, sub, keys, run) => it.push({ l, sub: deskOn ? sub : sub.replace(/（[A-Z]）|(Ctrl|Shift)\+[^\s・]*\s*|^\?$/g, '').replace(/^\s*・\s*/, ''), k: kana([l, sub, ...keys].join(' ')), run });
-  const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'そざい すたんぷ えもじ ばんごう でこ ますきんぐてーぷ ひづけ', filter: 'ふぃるたー', adjust: 'ちょうせい あかるさ', cutout: 'はいけいさくじょ はいけい', mosaic: 'もざいく ぼかし', crop: 'きりぬき とりみんぐ かいてん' };
-  TOOLS.forEach(([id, l]) => add(l, 'ツール' + (TOOL_KEYS[id] ? '（' + TOOL_KEYS[id] + '）' : ''), [id, 'tool', YOMI[id] || ''], () => pressTool(id)));
+  const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'そざい すたんぷ えもじ ばんごう でこ ますきんぐてーぷ ひづけ', filter: 'ほせい いろみ ふぃるたー ちょうせい おまかせ', cutout: 'はいけいさくじょ はいけい くりぬき', mosaic: 'もざいく ぼかし', crop: 'とりみんぐ きりぬき かいてん' };
+  TOOLS.filter(([id]) => id !== 'photo').forEach(([id, l]) => add(l, 'ツール' + (TOOL_KEYS[id] ? '（' + TOOL_KEYS[id] + '）' : ''), [id, 'tool', YOMI[id] || ''], () => pressTool(id)));
   add('保存する', 'Ctrl+S', ['save', 'export', '書き出し', 'ダウンロード', 'jpeg', 'png', 'ほぞん かきだし'], () => $('#btnSave').click());
-  add('写真を開いて編集', '写真', ['open', 'upload', '読み込み', 'ファイル', 'ひらく よみこみ しゃしん'], () => $('#fileOpen').click());
-  add('写真を貼り付ける', '画像を重ねる', ['add', 'image', '画像', '追加', 'paste', 'はりつけ がぞう ついか'], () => $('#fileAdd').click());
+  add('フィルター', '補正のタブ', ['filter', 'ふぃるたー', 'ほせい'], () => { S.colorTab = 'filter'; setTool('filter'); });
+  add('調整', '補正のタブ・明るさや色', ['adjust', 'ちょうせい', 'あかるさ', 'ほせい'], () => setTool('adjust'));
+  add('写真を開く', '作品を新しい写真に置き換える', ['open', 'upload', '読み込み', 'ファイル', 'ひらく よみこみ しゃしん'], () => $('#fileOpen').click());
+  add('写真を追加', '今の作品に重ねる', ['add', 'image', '画像', '追加', 'paste', '写真を重ねる', 'はりつけ がぞう ついか かさねる しゃしん'], () => $('#fileAdd').click());
   add('マイ素材', '自分で入れた写真・素材', ['library', 'my', '保存', 'アップロード', '画像', 'まいそざい じぶん ほぞん しゃしん'], openLib);
   if (GEN_ON && SUPA.url) add('AIで素材を作る', '言葉からステッカーを作る', ['ai', 'えーあい そざい つくる あい', 'sticker', 'ステッカー', 'すてっかー', 'claude'], genOpen);
   add('新規作成・サンプル', '白紙', ['new', 'blank', '白紙', 'キャンバス', 'しんき はくし'], () => { renderNB(); openSheet('#sheetNew'); });
-  add('AIで背景を自動で消す', '背景削除', ['ai', 'background', 'remove', '切り抜き', 'くりぬき はいけい けす'], () => { setTool('cutout'); runCmd('ai'); });
+  add('AIで背景削除', '背景削除', ['ai', 'background', 'remove', '切り抜き', 'くりぬき はいけい けす'], () => { setTool('cutout'); runCmd('ai'); });
   add('AIおまかせ補正', '色を自動で整える', ['ai', 'auto', '自動', '補正', 'おまかせ じどう ほせい'], () => runCmd('aiAuto'));
   add('調整をリセット', '明るさなどを元に', ['reset', 'adjust', 'リセット', 'ちょうせい'], () => runCmd('adjReset'));
   add('元に戻す', 'Ctrl+Z', ['undo', 'もとにもどす'], undo);
@@ -8056,8 +8153,9 @@ function cmdItems() {
   if (!deskOn) add('複数選択', 'タップで選択に追加・外す', ['multi', 'select', 'ふくすうせんたく', 'ついか', 'まとめて'], () => runCmd('addSel'));
   if (SUPA.url && ACCT_ON) add('アカウント', 'ログイン・同期', ['account', 'login', 'ろぐいん', 'あかうんと', 'どうき', 'sync', 'google', 'apple', 'めーる'], openAccount);
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
+  if (!deskOn) add('その他のツール', 'ツール欄に入らないツール', ['more', 'tools', 'そのた', 'つーる'], openMoreSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
-  Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], 'フィルター', ['filter', id, f[0]], () => { if (deskOn) setTool('filter'); runCmd('preset', id); }));
+  Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], '補正のフィルター', ['filter', id, f[0]], () => { S.colorTab = 'filter'; if (deskOn) setTool('filter'); runCmd('preset', id); }));
   Object.entries(DECO).forEach(([id, d]) => add('素材：' + d.name, 'デコ素材', ['deco', 'でこ', 'そざい', d.yomi || '', id, (DECO_CATS.find(c => c[0] === d.cat) || ['', ''])[1]], () => addDeco(id)));
   DATE_FMTS.forEach((f, i) => add('日付：' + f[0], '今日の日付を入れる', ['date', 'ひづけ', 'きょう'], () => addDateStamp(i)));
   CHART_BASIC.forEach(p => add(p.name + 'を追加', p.sub, ['chart', 'graph', 'table', 'ひょう', 'ぐらふ', 'えんぐらふ ぼうぐらふ おれせん', p.kind], () => addMat('g:' + p.id)));
@@ -8515,7 +8613,7 @@ const UI_SIZES = [['m', '標準'], ['l', '大きめ'], ['xl', '特大']];
 const setRow = (k, t, d, on) => `<div class="setrow"><span class="st">${t}<small>${d}</small></span><button class="tg" role="switch" aria-checked="${!!on}" aria-label="${t}" data-uik="${k}"></button></div>`;
 function openUISheet() { renderUISheet(); if (deskOn) openInDrawer('settings'); else openSheet('#sheetUI'); }
 function openOrderSheet() { renderOrder(); openSheet('#sheetOrder'); }
-/* the tools listed for reordering: on PC the sidebar ones (写真・フィルター・調整・背景削除) are not edit tools there */
+/* the tools listed for reordering: on PC the sidebar ones (写真・素材・補正・背景削除) are not edit tools there */
 const ordIds = () => UI.order.filter(id => !(deskOn && DESK_HIDE.has(id)));
 /* write back a reordered list of ordIds() while the unlisted tools keep their slots */
 function setOrd(list) { let k = 0; UI.order = UI.order.map(id => ordIds().includes(id) ? list[k++] : id); }
@@ -8523,17 +8621,21 @@ function renderUISheet() {
   acctRender(); instRow();
   $('#uiSize').innerHTML = UI_SIZES.map(([v, l]) => `<button class="chip${UI.size === v ? ' on' : ''}" data-uis="${v}">${l}</button>`).join('');
   const opt = (k, list) => `<div class="wrap">${list.map(([v, l]) => `<button class="chip${String(UI[k]) === String(v) ? ' on' : ''}" aria-pressed="${String(UI[k]) === String(v)}" data-uiv="${k}:${v}">${l}</button>`).join('')}</div>`;
-  $('#uiOps').innerHTML = `<div class="setlab">吸着（ピタッと整列）</div>` + opt('snap', [['off', 'オフ'], ['weak', '弱い'], ['normal', 'ふつう'], ['strong', '強い']])
-    + (deskOn ? '' : `<div class="setlab">下のパネルの最初の高さ</div>` + opt('ph', [['s', '小'], ['m', '中'], ['l', '大']])
-      + `<div class="setlab">片手モード（上のボタンを寄せる側）</div>` + opt('hand', [['right', '右手'], ['left', '左手']])
-      + setRow('gest', '2本指タップで元に戻す', '3本指タップでやり直し', UI.gest));
-  $('#uiView').innerHTML = `<div class="setlab">グリッド線（配置の目安・保存される画像には写りません）</div>` + opt('grid', [['off', 'なし'], ['thirds', '三分割'], ['grid', '方眼']])
+  // sections: アカウント・表示・操作・保存・演出・データ・アプリ (2026-11 redesign)
+  $('#uiView').innerHTML = (deskOn ? '' : `<div class="setlab">片手モード（上のボタンを寄せる側）</div>` + opt('hand', [['right', '右手'], ['left', '左手']])
+      + `<div class="setlab">下のパネルの最初の高さ</div>` + opt('ph', [['s', '小'], ['m', '中'], ['l', '大']]))
+    + `<div class="setlab">グリッド線（配置の目安・保存される画像には写りません）</div>` + opt('grid', [['off', 'なし'], ['thirds', '三分割'], ['grid', '方眼']])
     + setRow('calm', '画面の動きを控えめに', 'パネルやシートのふわっとした動きを止めます', UI.calm);
-  $('#uiOps').innerHTML += `<div class="setlab">長押しの長さ（メニューが出るまで）</div>` + opt('lp', [['short', '短め'], ['normal', 'ふつう'], ['long', '長め']]);
+  $('#uiOps').innerHTML = `<div class="setlab">吸着（ピタッと整列）</div>` + opt('snap', [['off', 'オフ'], ['weak', '弱い'], ['normal', 'ふつう'], ['strong', '強い']])
+    + `<div class="setlab">長押しの長さ（メニューが出るまで）</div>` + opt('lp', [['short', '短め'], ['normal', 'ふつう'], ['long', '長め']])
+    + (deskOn ? '' : setRow('gest', '2本指タップで元に戻す', '3本指タップでやり直し', UI.gest))
+    + `<div class="setrow"><span class="st">ツールの並び替え<small>${deskOn ? '編集ツールの順番と表示・非表示' : 'ツール欄の順番・表示（9個目からは「その他」）'}</small></span><button class="chip" data-uiorder="1">並び替え ›</button></div>`;
   $('#uiSave').innerHTML = `<div class="setlab">保存形式の初期値</div>` + opt('exFmt', [['jpeg', 'JPEG（軽い）'], ['png', 'PNG（劣化なし）']])
     + (UI.exFmt === 'jpeg' ? `<div class="setlab">画質の初期値</div>` + opt('exQ', [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']]) : '')
     + `<div class="setlab">起動したとき</div>` + opt('boot', [['resume', '前回の続きから'], ['new', '「開く・新規作成」を出す']]);
-  $('#uiLib').innerHTML = setRow('libAuto', '写真をマイ素材に自動で残す', '開いた・重ねた写真をこの端末に保存', UI.libAuto);
+  $('#uiLib').innerHTML = setRow('libAuto', '写真をマイ素材に自動で残す', '開いた・重ねた写真をこの端末に保存', UI.libAuto)
+    + `<div class="setlab">背景削除のAIモデル（ふだん使うもの）</div>` + opt('aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]))
+    + (UI.aiModel === 'rmbg' ? hint('RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。') : '');
   $('#uiFx').innerHTML = setRow('fx', 'タップのきらめき', reduceMo.matches ? '端末の「視差効果を減らす」がオンのため表示されません' : '押すと小さな粒がはじけます', UI.fx)
     + (navigator.vibrate ? setRow('haptic', '振動フィードバック', '押すと軽く振動（対応端末のみ）', UI.haptic) : '');
 }
@@ -8552,6 +8654,7 @@ $('#sheetUI').addEventListener('click', e => {
     const [key, val] = ov.dataset.uiv.split(':'); UI[key] = key === 'exQ' ? +val : val;
     if (key === 'ph') setPH(val); if (key === 'hand') applyHand();
     if (key === 'grid') requestDraw(); if (key === 'exFmt' || key === 'exQ') exFromUI();
+    if (key === 'aiModel') { S.cut.model = val; if (tool === 'cutout') refreshPanel(); }
     renderUISheet();
   } else if (s) {
     UI.size = s.dataset.uis; applyUISize();
@@ -8560,6 +8663,8 @@ $('#sheetUI').addEventListener('click', e => {
     UI[k.dataset.uik] = !UI[k.dataset.uik]; k.setAttribute('aria-checked', String(UI[k.dataset.uik]));
     if (k.dataset.uik === 'libAuto') libRefresh();
     if (k.dataset.uik === 'calm') applyCalm();
+  } else if (e.target.closest('[data-uiorder]')) { openOrderSheet(); return;
+  } else if (e.target.closest('[data-uihelp]')) { openSheet('#sheetHelp'); return;
   } else if (e.target.closest('#uiAiClear')) {
     const b = e.target.closest('#uiAiClear'); b.disabled = true;
     clearModelCaches().then(ok => { b.disabled = false; if (ok !== false) toast('AIモデルのキャッシュを削除しました。次に使うときに再ダウンロードします'); });
@@ -8568,6 +8673,7 @@ $('#sheetUI').addEventListener('click', e => {
   saveUI();
 });
 $('#sheetOrder').addEventListener('click', e => {
+  if (e.target.closest('#ordToUI')) { closeSheets(true); openUISheet(); return; }   // the one way back to 設定
   const m = e.target.closest('[data-mv]'), v = e.target.closest('[data-vis]');
   const row = e.target.closest('.ordrow'), id = row && row.dataset.id;
   if (m) {
@@ -10605,8 +10711,7 @@ document.addEventListener('keydown', e => {
   const m = e.ctrlKey || e.metaKey, o = selObj(), ms = tool === 'select' ? multiObjs() : [];
   if (e.key === 'Escape' && sideMob) { closeMobSide(); return; }
   if (!m && !e.altKey && !e.shiftKey && !e.repeat && !e.isComposing && KEY_TOOL[e.key.toLowerCase()] && doc) {   // tool shortcut: same as clicking its button
-    const b = toolsEl.querySelector(`[data-tool="${KEY_TOOL[e.key.toLowerCase()]}"]`);
-    if (b) { e.preventDefault(); b.click(); return; }
+    e.preventDefault(); useTool(KEY_TOOL[e.key.toLowerCase()]); return;   // K on PC opens the rail's 素材 drawer
   }
   if (m && e.key.toLowerCase() === 'a' && tool === 'select' && doc) {
     e.preventDefault();
