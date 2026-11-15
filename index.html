@@ -771,6 +771,7 @@ html.desk .chip:hover,html.desk .tool:hover,html.desk .tbtn:hover{filter:brightn
 #fx{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:60}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+html.calm *,html.calm *::before,html.calm *::after{animation:none!important;transition:none!important}
 /* ==== UI polish (icons, compact legend, grids) ==== */
 #objBar{align-items:center}
 #objBar button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:32px;height:32px;padding:0 6px}
@@ -1091,6 +1092,10 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <div class="wrap" id="uiSize"></div>
   <h3>操作</h3>
   <div id="uiOps"></div>
+  <h3>表示</h3>
+  <div id="uiView"></div>
+  <h3>保存</h3>
+  <div id="uiSave"></div>
   <h3>演出</h3>
   <div id="uiFx"></div>
   <h3>マイ素材</h3>
@@ -3649,6 +3654,7 @@ function draw() {
   cx.fillStyle = checker(); cx.fillRect(view.tx, view.ty, doc.w * view.s, doc.h * view.s);
   cx.drawImage(comp, view.tx, view.ty, doc.w * view.s, doc.h * view.s);
   if (tool === 'cutout' && S.cut.target !== 'base') { const o = doc.objects.find(x => x.id === S.cut.target); if (o) drawSelection({ ...o, locked: true }); }
+  if (UI.grid !== 'off' && tool !== 'crop') drawGridOverlay();
   if (tool === 'crop') drawCropOverlay();
   else if (tool === 'select') {
     const o = selObj(), ms = multiObjs();
@@ -3765,6 +3771,18 @@ function dragCrop(h, r0, dx, dy) {
     if (h === 'e') w = clamp(w + dx, min, doc.w - x);
   }
   crop.r = { x, y, w, h: hh };
+}
+/* 設定 › グリッド線: rule of thirds or an even grid over the photo (screen only, not in the saved picture) */
+function drawGridOverlay() {
+  const x0 = view.tx, y0 = view.ty, W = doc.w * view.s, H = doc.h * view.s, xs = [], ys = [];
+  if (UI.grid === 'thirds') { xs.push(W / 3, W * 2 / 3); ys.push(H / 3, H * 2 / 3); }
+  else { const st = Math.min(W, H) / 8; for (let x = st; x < W - 1; x += st) xs.push(x); for (let y = st; y < H - 1; y += st) ys.push(y); }
+  cx.save(); cx.beginPath();
+  xs.forEach(x => { const X = Math.round(x0 + x) + 0.5; cx.moveTo(X, y0); cx.lineTo(X, y0 + H); });
+  ys.forEach(y => { const Y = Math.round(y0 + y) + 0.5; cx.moveTo(x0, Y); cx.lineTo(x0 + W, Y); });
+  cx.lineWidth = 3; cx.strokeStyle = 'rgba(0,0,0,.18)'; cx.stroke();
+  cx.lineWidth = 1; cx.strokeStyle = 'rgba(255,255,255,.7)'; cx.stroke();
+  cx.restore();
 }
 function drawCropOverlay() {
   const s = cropScreen();
@@ -3966,9 +3984,9 @@ cv.addEventListener('pointerdown', e => {
   shiftNow = e.shiftKey;
   startSingle(p, e.shiftKey, e.ctrlKey || e.metaKey);
   // long-press an object (touch or mouse) → its menu at the finger, like right-click on PC
-  if (G && (G.type === 'move' || G.type === 'gmove') && e.pointerType !== 'mouse') { const g0 = G; objLpT = setTimeout(() => { if (G === g0 && !G.moved && pointers.size === 1) { G = null; buzz(15); lpHold = true; openObjMenuAt(p); } }, 520); }
+  if (G && (G.type === 'move' || G.type === 'gmove') && e.pointerType !== 'mouse') { const g0 = G; objLpT = setTimeout(() => { if (G === g0 && !G.moved && pointers.size === 1) { G = null; buzz(15); lpHold = true; openObjMenuAt(p); } }, lpMs()); }
   // phone: long-press on empty canvas → 貼り付け・すべて選択・全体を表示 …
-  else if (G && G.type === 'pan' && tool === 'select' && !deskOn && e.pointerType !== 'mouse') { const g0 = G; objLpT = setTimeout(() => { if (G === g0 && !G.moved && pointers.size === 1) { G = null; buzz(15); lpHold = true; openObjMenuAt(p, true); } }, 520); }
+  else if (G && G.type === 'pan' && tool === 'select' && !deskOn && e.pointerType !== 'mouse') { const g0 = G; objLpT = setTimeout(() => { if (G === g0 && !G.moved && pointers.size === 1) { G = null; buzz(15); lpHold = true; openObjMenuAt(p, true); } }, lpMs()); }
 });
 cv.addEventListener('pointermove', e => {
   if (!pointers.has(e.pointerId)) return;
@@ -3985,6 +4003,7 @@ cv.addEventListener('pointermove', e => {
   moveSingle(p);
 });
 let objLpT = 0, phTapT = 0, touchG = false;
+const lpMs = () => ({ short: 380, normal: 520, long: 760 })[UI.lp] || 520;   // 設定 › 長押しの長さ
 /* how far a press may wander before it counts as a drag: fingers jitter more than a mouse */
 const slop = () => touchG ? 10 : 4;
 /* phone gestures: a quick 2-finger tap = 元に戻す, 3-finger tap = やり直し (設定 can turn them off) */
@@ -6271,7 +6290,8 @@ const toolsEl = $('#tools');
 /* ==== UI settings ==== per device (localStorage), never part of doc / undo history */
 const UI_KEY = 'petaphoto.ui', TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t[0], t]));
 const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [], recentMat: [],
-  ph: 'm', hand: 'right', gest: true, snap: 'normal', more: false, libAuto: true };
+  ph: 'm', hand: 'right', gest: true, snap: 'normal', more: false, libAuto: true,
+  grid: 'off', calm: false, lp: 'normal', exFmt: 'jpeg', exQ: 0.95, boot: 'resume' };
 function loadUI() {
   let v = null; try { v = JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { }
   const u = { ...UI_DEF, ...(v && typeof v === 'object' ? v : {}) }, ids = UI_DEF.order;
@@ -6288,6 +6308,12 @@ function loadUI() {
   if (!['s', 'm', 'l'].includes(u.ph)) u.ph = 'm';
   if (!['right', 'left'].includes(u.hand)) u.hand = 'right';
   if (!['off', 'weak', 'normal', 'strong'].includes(u.snap)) u.snap = 'normal';
+  if (!['off', 'thirds', 'grid'].includes(u.grid)) u.grid = 'off';
+  if (!['short', 'normal', 'long'].includes(u.lp)) u.lp = 'normal';
+  if (!['jpeg', 'png'].includes(u.exFmt)) u.exFmt = 'jpeg';
+  u.exQ = [0.95, 0.85, 0.7].includes(+u.exQ) ? +u.exQ : 0.95;
+  if (!['resume', 'new'].includes(u.boot)) u.boot = 'resume';
+  u.calm = !!u.calm;
   u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.seen = !!u.seen; u.visits = Math.min(99, +u.visits | 0); u.instHint = !!u.instHint;
   return u;
 }
@@ -6316,6 +6342,8 @@ setPH(phNow);
 const applyHand = () => document.documentElement.dataset.hand = UI.hand;
 applyHand();
 const applyUISize = () => { document.documentElement.dataset.ui = UI.size; };
+const applyCalm = () => document.documentElement.classList.toggle('calm', !!UI.calm);
+applyCalm();
 applyUISize();
 const buzz = ms => { if (UI.haptic && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) { } };
 /* the lit tool button: 文字 and 付箋 hand over to 選択 right after adding their object, so while a text / note is
@@ -6566,7 +6594,7 @@ function openInDrawer(id) {
 const rmq = matchMedia('(prefers-reduced-motion: reduce)');
 function smoothShow(el, show, shown, set, cls = 'closing') {
   clearTimeout(el._ct);
-  if (show || rmq.matches || !shown() || !el.offsetParent) { el.classList.remove(cls); set(show); return; }
+  if (show || rmq.matches || UI.calm || !shown() || !el.offsetParent) { el.classList.remove(cls); set(show); return; }
   if (el.classList.contains(cls)) return;
   el.classList.add(cls);
   el._ct = setTimeout(() => { el.classList.remove(cls); set(false); requestDraw(); }, 220);
@@ -8239,11 +8267,17 @@ function setOrd(list) { let k = 0; UI.order = UI.order.map(id => ordIds().includ
 function renderUISheet() {
   acctRender(); instRow();
   $('#uiSize').innerHTML = UI_SIZES.map(([v, l]) => `<button class="chip${UI.size === v ? ' on' : ''}" data-uis="${v}">${l}</button>`).join('');
-  const opt = (k, list) => `<div class="wrap">${list.map(([v, l]) => `<button class="chip${UI[k] === v ? ' on' : ''}" aria-pressed="${UI[k] === v}" data-uiv="${k}:${v}">${l}</button>`).join('')}</div>`;
+  const opt = (k, list) => `<div class="wrap">${list.map(([v, l]) => `<button class="chip${String(UI[k]) === String(v) ? ' on' : ''}" aria-pressed="${String(UI[k]) === String(v)}" data-uiv="${k}:${v}">${l}</button>`).join('')}</div>`;
   $('#uiOps').innerHTML = `<div class="setlab">吸着（ピタッと整列）</div>` + opt('snap', [['off', 'オフ'], ['weak', '弱い'], ['normal', 'ふつう'], ['strong', '強い']])
     + (deskOn ? '' : `<div class="setlab">下のパネルの最初の高さ</div>` + opt('ph', [['s', '小'], ['m', '中'], ['l', '大']])
       + `<div class="setlab">片手モード（上のボタンを寄せる側）</div>` + opt('hand', [['right', '右手'], ['left', '左手']])
       + setRow('gest', '2本指タップで元に戻す', '3本指タップでやり直し', UI.gest));
+  $('#uiView').innerHTML = `<div class="setlab">グリッド線（配置の目安・保存される画像には写りません）</div>` + opt('grid', [['off', 'なし'], ['thirds', '三分割'], ['grid', '方眼']])
+    + setRow('calm', '画面の動きを控えめに', 'パネルやシートのふわっとした動きを止めます', UI.calm);
+  $('#uiOps').innerHTML += `<div class="setlab">長押しの長さ（メニューが出るまで）</div>` + opt('lp', [['short', '短め'], ['normal', 'ふつう'], ['long', '長め']]);
+  $('#uiSave').innerHTML = `<div class="setlab">保存形式の初期値</div>` + opt('exFmt', [['jpeg', 'JPEG（軽い）'], ['png', 'PNG（劣化なし）']])
+    + (UI.exFmt === 'jpeg' ? `<div class="setlab">画質の初期値</div>` + opt('exQ', [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']]) : '')
+    + `<div class="setlab">起動したとき</div>` + opt('boot', [['resume', '前回の続きから'], ['new', '「開く・新規作成」を出す']]);
   $('#uiLib').innerHTML = setRow('libAuto', '写真をマイ素材に自動で残す', '開いた・重ねた写真をこの端末に保存', UI.libAuto);
   $('#uiFx').innerHTML = setRow('fx', 'タップのきらめき', reduceMo.matches ? '端末の「視差効果を減らす」がオンのため表示されません' : '押すと小さな粒がはじけます', UI.fx)
     + (navigator.vibrate ? setRow('haptic', '振動フィードバック', '押すと軽く振動（対応端末のみ）', UI.haptic) : '');
@@ -8260,8 +8294,9 @@ function renderOrder() {
 $('#sheetUI').addEventListener('click', e => {
   const s = e.target.closest('[data-uis]'), k = e.target.closest('[data-uik]'), ov = e.target.closest('[data-uiv]');
   if (ov) {
-    const [key, val] = ov.dataset.uiv.split(':'); UI[key] = val;
+    const [key, val] = ov.dataset.uiv.split(':'); UI[key] = key === 'exQ' ? +val : val;
     if (key === 'ph') setPH(val); if (key === 'hand') applyHand();
+    if (key === 'grid') requestDraw(); if (key === 'exFmt' || key === 'exQ') exFromUI();
     renderUISheet();
   } else if (s) {
     UI.size = s.dataset.uis; applyUISize();
@@ -8269,6 +8304,7 @@ $('#sheetUI').addEventListener('click', e => {
   } else if (k) {
     UI[k.dataset.uik] = !UI[k.dataset.uik]; k.setAttribute('aria-checked', String(UI[k.dataset.uik]));
     if (k.dataset.uik === 'libAuto') libRefresh();
+    if (k.dataset.uik === 'calm') applyCalm();
   } else if (e.target.closest('#uiAiClear')) {
     const b = e.target.closest('#uiAiClear'); b.disabled = true;
     clearModelCaches().then(ok => { b.disabled = false; if (ok !== false) toast('AIモデルのキャッシュを削除しました。次に使うときに再ダウンロードします'); });
@@ -8403,6 +8439,7 @@ $('#sheetNew').addEventListener('click', e => {
 });
 
 const EX = { fmt: 'jpeg', q: 0.95, scale: 1 };
+const exFromUI = () => { EX.fmt = UI.exFmt; EX.q = UI.exQ; };   // 設定 › 保存の初期値 (changes in the 保存 sheet last until the next settings change)
 function renderEX() {
   $('#exFmt').innerHTML = [['jpeg', 'JPEG（写真向け・軽い）'], ['png', 'PNG（劣化なし）']].map(([v, l]) => `<button class="chip${EX.fmt === v ? ' on' : ''}" data-exf="${v}">${l}</button>`).join('');
   $('#exQ').innerHTML = EX.fmt === 'jpeg' ? [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']].map(([v, l]) => `<button class="chip${EX.q === v ? ' on' : ''}" data-exq="${v}">${l}</button>`).join('') : '';
@@ -8560,7 +8597,7 @@ const sbDown = async (c, bucket, path) => sbOk(await c.storage.from(bucket).down
    Signed-in users sync settings (user_settings), マイ素材 (library_items + private bucket library: <uid>/<id>.<ext>, <uid>/<id>-t.<jpg|png>)
    and one cloud draft (cloud_drafts + bucket drafts: <uid>/<bitmapId>.<jpg|png>). Server side: supabase/schema_account.sql,
    setup steps for the owner: supabase/DEPLOY-account.md. RLS only lets non-anonymous users touch the sync tables. */
-const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto'];
+const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto', 'grid', 'calm', 'lp', 'exFmt', 'exQ', 'boot'];
 const acctLocal = (() => { let v = null; try { v = JSON.parse(localStorage.getItem(ACCT_KEY)); } catch (e) { } v = v && typeof v === 'object' ? v : {}; v.at = v.at && typeof v.at === 'object' ? v.at : {}; if (!v.dev) v.dev = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); return v; })();
 function acctSave() { try { localStorage.setItem(ACCT_KEY, JSON.stringify(acctLocal)); } catch (e) { } }
 let acct = null, acctBusy = false, acctSent = '', syncState = '', syncAt = 0, cloudInfo = null, acctWired = false;
@@ -9706,6 +9743,8 @@ document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closes
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layoutMemo.clear(); invalidate(); });
   const pid = hashPost(), launch = await appLaunch(); if (pid) openSharedPost(pid);
   else if (!launch && !UI.seen && !navigator.webdriver) { UI.seen = true; saveUI(); setTimeout(() => openSheet('#sheetWelcome'), 400); }   // first visit: a short welcome (not in automated test browsers)
+  exFromUI();
+  if (UI.boot === 'new' && UI.seen && !hashPost() && !navigator.webdriver && $('#sheetWelcome').hidden) setTimeout(() => { if (backdrop.hidden) { renderNB(); openSheet('#sheetNew'); } }, 600);   // 設定 › 起動したとき
   registerSW();
   if (SUPA.url && ACCT_ON && authInUrl()) authReturn();   // back from Google / Apple / the e-mail link
   else if (SUPA.url && ACCT_ON && acctStored() && navigator.onLine) setTimeout(() => sb().then(() => { if (acct) syncAll(); }).catch(e => console.warn('sync', e)), 1500);
