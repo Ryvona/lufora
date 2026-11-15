@@ -219,6 +219,22 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
 .gbadge.ai{background:linear-gradient(135deg,#7A5CFF,#E35DB4);color:#fff;letter-spacing:.04em}
 .note.aiwork b{display:inline-block;padding:0 6px;margin-right:4px;border-radius:5px;background:linear-gradient(135deg,#7A5CFF,#E35DB4);color:#fff;font-size:11px}
 .gbadge.pub{background:var(--accent);color:var(--accent-ink)}
+.gbadge.hid{background:#B5713A;color:#fff}
+.gwarn{padding:8px 10px;border-radius:10px;background:#F6E7D6;color:#7A4A22}
+.grep{margin-top:10px;padding:2px 12px 12px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line)}
+.grep .pubin{margin-top:10px}
+#galAdm:not(:empty){display:flex;margin:0 0 10px}
+.modrow{display:grid;grid-template-columns:72px 1fr;gap:8px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.modth{width:72px;height:72px;border-radius:10px;overflow:hidden;background:var(--stage);border:1px solid var(--line);padding:0}
+.modth img{width:100%;height:100%;object-fit:cover;display:block}
+.modinfo{min-width:0;font-size:13px;line-height:1.5}
+.modinfo b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modinfo small{display:block;color:var(--muted);font-size:11px}
+.modreps{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.modrep{font-size:11px;padding:1px 7px;border-radius:6px;background:var(--line)}
+.modreps .gbadge{margin:0}
+.modnotes{margin:4px 0 0;padding-left:16px;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.modbtns{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
 .gempty{text-align:center;padding:28px 12px;color:var(--muted);font-size:13px;line-height:1.8}
 .gempty b{display:block;font-size:30px;margin-bottom:6px}
 .gdimg{display:block;width:100%;max-height:46vh;object-fit:contain;border-radius:12px;background:var(--stage)}
@@ -535,6 +551,8 @@ html.desk .projit:hover .libx,html.desk .projit:focus-within .libx{opacity:1}
 /* phones: みんなの作品 uses the whole screen (it is a place to browse, not a quick setting) */
 html:not(.desk) #sheetGallery:not(.indrawer){top:0;max-height:none;height:100%;max-width:none;border-radius:0;border:0;padding-top:max(10px,env(safe-area-inset-top,0px))}
 /* ==== account ==== */
+#nameMsg.bad{color:var(--danger)}
+#pubWho b{color:var(--accent)}
 .note.legal a{color:var(--accent);font-weight:700}
 .acctrow{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--chrome2);color:var(--fg);text-align:left}
 .acctrow>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -883,7 +901,8 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <div id="pubForm" hidden>
     <input id="pubTitle" class="pubin" maxlength="40" placeholder="タイトル（例：夕焼けエモ）" autocomplete="off">
     <input id="pubTags" class="pubin" maxlength="60" placeholder="タグ（スペース区切り　例：エモ 夕焼け）" autocomplete="off">
-    <input id="pubNick" class="pubin" maxlength="20" placeholder="ニックネーム（空欄なら「ゲスト」）" autocomplete="nickname">
+    <input id="pubNick" class="pubin" maxlength="20" hidden tabindex="-1" aria-hidden="true">
+    <p class="note" id="pubWho"></p>
     <p class="note" id="pubNote"></p>
   </div>
   <div class="pubdone" id="pubDone" hidden><span id="pubDoneMsg"></span><button class="chip" data-gal="mine">見る</button></div>
@@ -999,10 +1018,24 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 10px" id="galTitle">みんなの作品</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
   <div id="galList">
     <div class="galtabs" role="tablist"><button data-gtab="public" role="tab">みんなの作品</button><button data-gtab="mine" role="tab">自分の投稿</button></div>
+    <div id="galAdm"></div>
     <div class="fcats" id="galTags"></div>
     <div id="galGrid"></div>
   </div>
   <div id="galDetail" hidden></div>
+  <div id="galAdmin" hidden></div>
+</div>
+
+<div class="sheet" id="sheetName" hidden>
+  <div class="grab"></div>
+  <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">ユーザーネームを決めてください</h2><button class="xbtn" id="nameX" data-ex="close" aria-label="閉じる" title="閉じる" hidden>×</button></div>
+  <p class="note">みんなの作品に投稿したときに、作者名として表示されます。ほかの人と同じ名前は使えません。あとからアカウント画面で変えられます。</p>
+  <form id="nameForm" class="acctmail" autocomplete="off">
+    <input id="nameIn" maxlength="20" placeholder="例：yui_photo" aria-label="ユーザーネーム" autocomplete="username" enterkeyhint="done">
+    <p class="note" id="nameMsg" aria-live="polite">2〜20文字。空白と &lt; &gt; " ' &amp; / \ @ # は使えません。</p>
+    <button class="btn primary" type="submit" id="nameGo">この名前にする</button>
+  </form>
+  <p class="note legal" id="nameOut"><a href="#" data-acct="out">ログアウトする</a></p>
 </div>
 
 <div class="sheet" id="sheetAccount" hidden>
@@ -7663,6 +7696,7 @@ function cmdItems() {
   add('すべて選択', 'Ctrl+A', ['select all', '全選択', 'すべて ぜんせんたく'], () => { setTool('select'); const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id); if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; } refreshPanel(); requestDraw(); });
   add('みんなの作品', 'ギャラリー', ['gallery', '投稿', '公開', 'みんなのさくひん とうこう'], () => openGallery());
   add('設定', '表示サイズ・演出', ['settings', 'size', '表示', 'せってい'], openUISheet);
+  if (SUPA.url && modIsAdmin()) add('通報の管理', '管理者・通報された投稿', ['moderation', 'report', 'admin', 'つうほう', 'かんり', 'ひひょうじ'], openModAdmin);
   if (instKind()) add('アプリとしてインストール', 'ホーム画面に追加', ['install', 'pwa', 'app', 'home', 'いんすとーる', 'あぷり', 'ほーむがめん ついか'], instGo);
   add('最近の作品', 'ほかの作品に切り替える', ['works', 'recent', 'さくひん', 'さいきん', 'きりかえ', 'したがき'], () => { renderNB(); openSheet('#sheetNew'); });
   add('グループにする', '選んだ物をまとめる', ['group', 'ぐるーぷ', 'まとめる'], () => groupObjs(true));
@@ -7691,7 +7725,10 @@ function cmdItems() {
   return it;
 }
 let cmdAll = [], cmdHits = [], cmdCur = 0;
-function openCmd() { if (!doc) return; cmdAll = cmdItems(); $('#cmdQ').value = ''; renderCmd(); openSheet('#sheetCmd', true); }
+function openCmd() {
+  if (!doc) return; cmdAll = cmdItems(); $('#cmdQ').value = ''; renderCmd(); openSheet('#sheetCmd', true);
+  if (Gallery.online && acct && modAdm.uid !== acct.id) Gallery.isAdmin().then(v => { if (v && !$('#sheetCmd').hidden) { cmdAll = cmdItems(); renderCmd(); } });   // 通報の管理 appears once the admin check answers
+}
 function renderCmd() {
   const q = kana($('#cmdQ').value.trim()), words = q.split(/\s+/).filter(Boolean);
   // names that contain the words come before matches found only in aliases / readings
@@ -8035,6 +8072,7 @@ function sameCtl(el) {
   try { return document.querySelector(ks.map(a => `[data-${a}="${CSS.escape(el.dataset[a])}"]`).join('')); } catch (e) { return null; }
 }
 function openSheet(id, light) {
+  if (nameRequired && id !== '#sheetName') return;
   // sheet → sheet keeps the first opener; otherwise a stale one (left by closeSheets(true)) must not be reused
   const opener = (!backdrop.hidden && sheetOpener) || document.activeElement;
   closeSheets(true); sheetOpener = opener;
@@ -8043,6 +8081,7 @@ function openSheet(id, light) {
   requestAnimationFrame(() => { const f = s.querySelector('#cmdQ') || s.querySelector('button:not([disabled]),input:not([type=hidden]):not(.vh),[tabindex="0"]'); (f || s).focus({ preventScroll: true }); });
 }
 function closeSheets(keepFocus) {
+  if (nameRequired && !$('#sheetName').hidden) return;   // the username must be chosen first (or log out)
   const wasFont = !$('#sheetFont').hidden, wasOpen = !backdrop.hidden;
   backdrop.hidden = true; document.querySelectorAll('.sheet:not(.indrawer)').forEach(s => { s.hidden = true; });
   if (wasFont) refreshPanel();
@@ -8553,11 +8592,65 @@ async function authReturn() {
     if (acct) { toast('ログインしました。ほかの端末と同期します'); acctSyncSoon(500); }
   } catch (e) { console.warn('auth', e); toast(acctErr(e)); }
 }
+/* ==== username ==== signed-in users pick a unique user name (table profiles, supabase/schema_profiles.sql); right after the
+   first login it is required (#sheetName without ×; closeSheets / openSheet hold it until saved or logged out).
+   Posts show it as the author (set on the server by a trigger; guests are ゲスト). */
+let acctName = null, profOff = false, nameRequired = false, nameT = 0;
+const NAME_BAD = /[\s<>"'&/\\@#]/;
+const nameOk = v => v.length >= 2 && v.length <= 20 && !NAME_BAD.test(v);
+const missingTable = e => /PGRST20[25]|42P01|42883|schema cache|does not exist|404/.test(((e && (e.code || '')) + ' ' + (e && (e.message || '')) + ' ' + (e && e.status || '')));
+async function loadProfile(c) {
+  if (!acct || profOff) return;
+  const r = await c.from('profiles').select('username').eq('owner', acct.id).maybeSingle();
+  if (r.error) { if (missingTable(r.error)) { profOff = true; return; } throw r.error; }
+  acctName = r.data ? r.data.username : null;
+  if (!acctName) openNameSheet(true);
+  acctRender();
+}
+function openNameSheet(required) {
+  if (!acct || profOff) return;
+  nameRequired = !!required;
+  $('#nameX').hidden = nameRequired; $('#nameOut').hidden = !nameRequired;
+  const i = $('#nameIn'); i.value = acctName || ''; $('#nameMsg').textContent = '2〜20文字。空白と < > " \' & / \\ @ # は使えません。'; $('#nameMsg').classList.remove('bad');
+  if (!nameRequired) closeSheets(true);
+  openSheet('#sheetName');
+  setTimeout(() => i.focus(), 200);
+}
+async function nameCheck(v) {
+  const m = $('#nameMsg');
+  if (!nameOk(v)) { m.textContent = v.length < 2 ? '2文字以上にしてください' : v.length > 20 ? '20文字までです' : '使えない文字が入っています（空白 < > " \' & / \\ @ #）'; m.classList.add('bad'); return false; }
+  try {
+    const { c } = await sb(), r = await c.rpc('username_available', { p_name: v });
+    if (r.error) throw r.error;
+    m.textContent = r.data ? `「${v}」は使えます` : `「${v}」はほかの人が使っています`; m.classList.toggle('bad', !r.data); return !!r.data;
+  } catch (e) { m.textContent = ''; return true; }   // the save itself checks again
+}
+$('#nameIn').addEventListener('input', e => { clearTimeout(nameT); const v = e.target.value.trim(); nameT = setTimeout(() => nameCheck(v), 350); });
+$('#nameForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const v = $('#nameIn').value.trim(), b = $('#nameGo'); if (b.disabled) return;
+  if (!nameOk(v)) { nameCheck(v); return; }
+  if (v === acctName) { nameRequired = false; closeSheets(); return; }
+  b.disabled = true;
+  try {
+    const { c } = await sb();
+    const r = await c.from('profiles').upsert({ owner: acct.id, username: v });
+    if (r.error) {
+      const k = (r.error.code || '') + ' ' + (r.error.message || '');
+      $('#nameMsg').textContent = /23505|duplicate/.test(k) ? `「${v}」はほかの人が使っています` : /23514|check/.test(k) ? '使えない文字が入っています' : '保存できませんでした。もう一度お試しください';
+      $('#nameMsg').classList.add('bad'); return;
+    }
+    acctName = v; nameRequired = false; closeSheets(); acctRender(); renderPub();
+    toast(`ユーザーネームを「${v}」にしました`);
+  } catch (err) { console.warn('username', err); $('#nameMsg').textContent = netErr('保存できませんでした'); $('#nameMsg').classList.add('bad'); }
+  finally { b.disabled = false; }
+});
 async function acctOut() {
   try {
     clearTimeout(cloudT); await cloudPush();   // the last changes reach the cloud first
     const { c } = await sb(); sbOk(await c.auth.signOut());
   } catch (e) { console.warn('auth', e); }
+  acctName = null; if (nameRequired) { nameRequired = false; closeSheets(true); }
   acct = null; sbP = null; acctLocal.at = {}; acctLocal.sig = ''; acctLocal.libDel = []; acctSave(); cloudInfo = null; syncState = ''; syncAt = 0;
   acctRender(); toast('ログアウトしました。この端末の作品やマイ素材はそのまま残ります', 3600);
 }
@@ -8568,7 +8661,7 @@ function syncAll() {
   if (!acct || !navigator.onLine) return Promise.resolve();
   if (syncP) { syncAgain = true; return syncP; }
   syncState = 'busy'; acctRender();
-  syncP = (async () => { const { c } = await sb(); if (!acct) return; await syncSettings(c); await syncLib(c); await cloudCheck(c); await syncFonts(c).catch(e => console.warn('font sync', e)); })()
+  syncP = (async () => { const { c } = await sb(); if (!acct) return; await loadProfile(c).catch(e => console.warn('profile', e)); await syncSettings(c); await syncLib(c); await cloudCheck(c); await syncFonts(c).catch(e => console.warn('font sync', e)); })()
     .then(() => { syncState = 'ok'; syncAt = Date.now(); }, e => { console.warn('sync', e); syncState = 'err'; syncAt = Date.now(); })
     .finally(() => { syncP = null; acctRender(); if (syncAgain) { syncAgain = false; syncAll(); } });
   return syncP;
@@ -8751,6 +8844,7 @@ function acctRender() {
   const cl = !cloudInfo ? 'クラウドにはまだありません' : cloudInfo.mine ? `この端末の作品を保存済み（${ago(cloudInfo.at)}）` : `別の端末の作品があります（${ago(cloudInfo.at)}）`;
   const nm = acct.name || acct.email || 'ログイン中', sub = [acct.name ? acct.email : '', (acct.provs.map(p => PROV_NAMES[p]).join('・') || 'アカウント') + ' でログイン中'].filter(Boolean).join(' ・ ');
   b.innerHTML = `<div class="acctcard"><span class="acav" aria-hidden="true">${esc([...nm][0].toUpperCase())}</span><span><b>${esc(nm)}</b><small>${esc(sub)}</small></span></div>
+    ${profOff ? '' : `<div class="acctsync"><span>ユーザーネーム：<b>${acctName ? '@' + esc(acctName) : '未設定'}</b></span><button class="chip" data-acct="name">${acctName ? '変更' : '決める'}</button></div>`}
     <div class="acctsync"><span>${st}</span><button class="chip" data-acct="sync"${syncState === 'busy' ? ' disabled' : ''}>今すぐ同期</button></div>
     <h3>作業中の作品</h3><p class="note">${cl}</p>
     <div class="acctbtns">${cloudInfo && !cloudInfo.mine ? '<button class="btn primary" data-acct="cloudOpen">別の端末の作品を開く</button>' : ''}<button class="btn" data-acct="cloudPush">今の作品をクラウドに保存</button></div>
@@ -8766,7 +8860,8 @@ document.addEventListener('click', e => {
   else if (k === 'sync') syncAll();
   else if (k === 'cloudOpen') cloudOpen();
   else if (k === 'cloudPush') saveDraft().then(cloudPush).then(ok => toast(ok ? 'クラウドに保存しました' : 'クラウドに保存できませんでした'));
-  else if (k === 'out') acctOut();
+  else if (k === 'out') { e.preventDefault(); acctOut(); }
+  else if (k === 'name') openNameSheet(false);
 });
 document.addEventListener('submit', e => { if (e.target.id !== 'acctMail') return; e.preventDefault(); acctEmail(e.target.elements.em.value); });
 // coming back to the app / back online: catch up (at most once a minute); leaving: push the pending cloud copy now
@@ -8778,8 +8873,13 @@ const rowItem = (r, uid) => ({
   id: r.id, title: r.title || '', tags: Array.isArray(r.tags) ? r.tags : [], visibility: r.visibility,
   createdAt: Date.parse(r.created_at) || 0, updatedAt: Date.parse(r.updated_at) || 0, w: r.w, h: r.h,
   thumb: r.thumb_url, full: r.full_url || null, recipe: r.recipe || {}, author: { name: r.author_name || 'ゲスト' },
-  mine: !!uid && r.owner === uid   // never trust a stored flag: ownership = the row's owner is the signed-in user
+  mine: !!uid && r.owner === uid,   // never trust a stored flag: ownership = the row's owner is the signed-in user
+  hidden: !!r.hidden, owner: r.owner || null   // hidden = auto-hidden by reports / by an admin (only the owner and admins get such rows)
 });
+/* moderation (supabase/schema_moderation.sql): admin = a row in public.admins, checked once per user with rpc is_admin */
+const modAdm = { uid: null, v: false }, modIsAdmin = () => !!(acct && modAdm.uid === acct.id && modAdm.v);
+const REP_REASONS = [['nsfw', '性的・暴力的な内容'], ['rights', '権利の侵害（無断転載など）'], ['spam', 'スパム・宣伝'], ['abuse', 'いやがらせ・差別'], ['other', 'その他']];
+const REP_NAME = { ...Object.fromEntries(REP_REASONS), inappropriate: '不適切（理由なし）', '': '理由なし' };
 const RemoteGallery = {
   local: false,
   async get(id) {
@@ -8790,7 +8890,7 @@ const RemoteGallery = {
     const { c, uid } = await sb();
     let q = c.from('posts').select('*').order('created_at', { ascending: false });
     q = scope === 'mine' ? q.eq('owner', uid) : q.eq('visibility', 'public').limit(60);
-    return (sbOk(await q) || []).map(r => rowItem(r, uid));
+    return (sbOk(await q) || []).map(r => rowItem(r, uid)).filter(it => scope === 'mine' || !it.hidden);   // admins can read hidden rows; never list them
   },
   async publish(item) {
     const { c, uid } = await sb(), st = c.storage.from('posts'), url = {};
@@ -8818,9 +8918,44 @@ const RemoteGallery = {
     sbOk(await c.from('posts').delete().eq('id', id).eq('owner', uid));
     try { await c.storage.from('posts').remove([`${uid}/${id}-thumb.jpg`, `${uid}/${id}-full.jpg`]); } catch (e) { }
   },
-  async report(id, reason) {
+  async report(id, reason, note) {
+    const { c } = await sb(), row = { post_id: id, reason: String(reason || '').slice(0, 20), note: String(note || '').slice(0, 200) };
+    let r = await c.from('reports').insert(row);
+    if (r.error && r.error.code === 'PGRST204') { delete row.note; r = await c.from('reports').insert(row); }   // no note column yet (moderation SQL not run)
+    sbOk(r);   // duplicate (post, reporter) → error code 23505
+  },
+  async isAdmin() {
+    const { c, uid } = await sb();
+    if (!acct) return false;   // admins are real accounts, never anonymous devices
+    if (modAdm.uid !== uid) { const r = await c.rpc('is_admin'); if (r.error && !r.error.code) return false; modAdm.uid = uid; modAdm.v = !r.error && r.data === true; }
+    return modAdm.v;
+  },
+  /* reported or hidden posts, newest report / hide first, with report counts per reason */
+  async modList() {
+    const { c, uid } = await sb();
+    const reps = sbOk(await c.from('reports').select('post_id,reason,note,created_at').order('created_at', { ascending: false }).limit(1000)) || [];
+    const rows = sbOk(await c.from('posts').select('*').eq('hidden', true).order('hidden_at', { ascending: false }).limit(200)) || [];
+    const have = new Set(rows.map(r => r.id)), miss = [...new Set(reps.map(r => r.post_id))].filter(id => !have.has(id)).slice(0, 200);
+    if (miss.length) rows.push(...(sbOk(await c.from('posts').select('*').in('id', miss)) || []));
+    return rows.map(r => {
+      const it = rowItem(r, uid), rs = reps.filter(x => x.post_id === r.id);
+      it.reps = {}; rs.forEach(x => { it.reps[x.reason || ''] = (it.reps[x.reason || ''] || 0) + 1; });
+      it.notes = rs.map(x => x.note).filter(Boolean).slice(0, 5); it.hiddenBy = r.hidden_reason || '';
+      it.last = Math.max(rs.length ? Date.parse(rs[0].created_at) || 0 : 0, Date.parse(r.hidden_at) || 0);
+      return it;
+    }).sort((a, b) => b.last - a.last);
+  },
+  async modHide(id, on) {
     const { c } = await sb();
-    sbOk(await c.from('reports').insert({ post_id: id, reason: String(reason || '').slice(0, 200) }));
+    const d = sbOk(await c.from('posts').update(on ? { hidden: true, hidden_reason: 'admin', hidden_at: new Date().toISOString() } : { hidden: false, hidden_reason: null, hidden_at: null }).eq('id', id).select('id'));
+    if (!d || !d[0]) throw new Error('not found');
+    if (!on) sbOk(await c.from('reports').delete().eq('post_id', id));   // 表示に戻す also clears its reports, or the next report would hide it again
+  },
+  async modDelete(it) {
+    const { c } = await sb();
+    const d = sbOk(await c.from('posts').delete().eq('id', it.id).select('id'));   // its reports go with it (on delete cascade)
+    if (!d || !d[0]) throw new Error('not found');
+    if (it.owner) try { await c.storage.from('posts').remove([`${it.owner}/${it.id}-thumb.jpg`, `${it.owner}/${it.id}-full.jpg`]); } catch (e) { }
   }
 };
 const Gallery = {
@@ -8835,7 +8970,11 @@ const Gallery = {
   publish(item) { return this.adapter.publish(item); },
   update(id, patch) { return this.adapter.update(id, patch); },
   unpublish(id) { return this.adapter.unpublish(id); },
-  report(id, reason) { return this.adapter.report ? this.adapter.report(id, reason) : Promise.resolve(); }
+  report(id, reason, note) { return this.adapter.report ? this.adapter.report(id, reason, note) : Promise.resolve(); },
+  isAdmin() { return this.adapter.isAdmin ? this.adapter.isAdmin().catch(() => false) : Promise.resolve(false); },
+  modList() { return this.adapter.modList(); },
+  modHide(id, on) { return this.adapter.modHide(id, on); },
+  modDelete(it) { return this.adapter.modDelete(it); }
 };
 if (SUPA.url && SUPA.key) Gallery.adapter = RemoteGallery;
 const netErr = m => m + (navigator.onLine ? '。時間をおいてもう一度試してください' : '（オフラインです）');
@@ -8973,17 +9112,18 @@ function galSamples() {
   return galSampleCache;
 }
 /* gallery sheet: list (tabs + tag filter + 2-col masonry) and detail */
-const GV = { tab: 'public', tag: null, items: [], cur: null, delArm: false };
+const GV = { tab: 'public', tag: null, items: [], cur: null, delArm: false, view: 'list', from: 'list', repCode: '', reported: new Set(), mod: [], modArm: null };
 const safeImg = u => typeof u === 'string' && /^(data:image\/(jpeg|png|webp);base64,|https:\/\/)/.test(u) ? u : '';
 const fmtDate = t => { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
-const galBadges = it => (it.ai ? '<span class="gbadge ai">AI</span>' : it.sample ? '<span class="gbadge sample">サンプル</span>' : '') + (it.mine ? `<span class="gbadge${it.visibility === 'public' ? ' pub' : ''}">${esc(VIS_NAME[it.visibility] || '非公開')}</span>` : '');
+const galBadges = it => (it.ai ? '<span class="gbadge ai">AI</span>' : it.sample ? '<span class="gbadge sample">サンプル</span>' : '') + (it.hidden ? `<span class="gbadge hid">${it.mine ? '確認中のため非公開' : '非表示中'}</span>` : '') + (it.mine && !it.hidden ? `<span class="gbadge${it.visibility === 'public' ? ' pub' : ''}">${esc(VIS_NAME[it.visibility] || '非公開')}</span>` : '');
 function openGallery(tab) {
-  GV.tab = tab === 'mine' ? 'mine' : 'public'; GV.tag = null; GV.cur = null;
+  GV.tab = tab === 'mine' ? 'mine' : 'public'; GV.tag = null; GV.cur = null; GV.from = 'list';
   if (deskOn) { closeSheets(true); openInDrawer('gallery'); } else { openSheet('#sheetGallery'); $('#sheetGallery').scrollTop = 0; }
   renderGal();
 }
 async function renderGal() {
-  $('#galList').hidden = false; $('#galDetail').hidden = true; $('#galTitle').textContent = GV.tab === 'mine' ? '自分の投稿' : 'みんなの作品';
+  $('#galList').hidden = false; $('#galDetail').hidden = true; $('#galAdmin').hidden = true; GV.view = 'list'; $('#galTitle').textContent = GV.tab === 'mine' ? '自分の投稿' : 'みんなの作品';
+  if (Gallery.online) Gallery.isAdmin().then(v => { $('#galAdm').innerHTML = v ? '<button class="chip" data-g="admin">通報の管理</button>' : ''; });
   document.querySelectorAll('[data-gtab]').forEach(b => { const on = b.dataset.gtab === GV.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   $('#galGrid').innerHTML = '<p class="gempty">読み込み中…</p>';
   const tab = GV.tab;
@@ -9006,23 +9146,71 @@ async function renderGal() {
       : `<div class="gempty"><b>🌱</b>まだ作品がありません。<br>あなたの作品を最初に公開してみませんか？</div>`);
 }
 function renderGalDetail(it) {
-  GV.cur = it; GV.delArm = false; GV.repArm = false;
-  $('#galList').hidden = true; const d = $('#galDetail'); d.hidden = false; $('#sheetGallery').scrollTop = 0; sidePanel.scrollTop = 0;
+  GV.cur = it; GV.delArm = false; GV.repCode = ''; GV.view = 'detail';
+  $('#galList').hidden = true; $('#galAdmin').hidden = true; const d = $('#galDetail'); d.hidden = false; $('#sheetGallery').scrollTop = 0; sidePanel.scrollTop = 0;
   $('#galTitle').textContent = it.title || '無題';
-  const visNote = it.visibility === 'unlisted' ? (Gallery.online ? 'リンクを知っている人だけが見られます。「リンクをコピー」で共有できます。' : 'リンクを知っている人だけが見られます（リンク共有はサーバー接続後に使えます）。')
+  const visNote = it.hidden ? '確認が終わるまで、公開設定にかかわらず他の人には表示されません。' : it.visibility === 'unlisted' ? (Gallery.online ? 'リンクを知っている人だけが見られます。「リンクをコピー」で共有できます。' : 'リンクを知っている人だけが見られます（リンク共有はサーバー接続後に使えます）。')
     : it.visibility === 'public' ? (Gallery.online ? 'みんなの作品に表示されています。' : 'サーバー接続後に他の人にも表示されます。今はこの端末のギャラリーに保存されています。') : 'あなただけが見られます。';
-  const canLink = Gallery.online && !it.sample && it.visibility !== 'private';
+  const canLink = Gallery.online && !it.sample && !it.hidden && it.visibility !== 'private';
   const linkBtn = canLink ? '<button class="btn" data-g="link">🔗 リンクをコピー</button>' : '';
   d.innerHTML = `<img class="gdimg" src="${esc(safeImg(it.full || it.thumb))}" alt="${esc(it.title || '')}">
     <div class="gtags">${galBadges(it)}${(it.tags || []).map(t => `<span>#${esc(t)}</span>`).join('')}<span style="margin-left:auto">${esc(it.ai ? 'Lufora AI' : it.sample ? 'Lufora公式' : (it.author && it.author.name) || 'あなた')}${it.createdAt ? '・' + fmtDate(it.createdAt) : ''}</span></div>
     ${it.ai ? '<p class="note aiwork"><b>AI</b>が編集した作例です。元の写真はプログラムで描いた風景なので、著作権の心配はありません。</p>' : ''}
+    ${it.hidden ? `<p class="note gwarn">${it.mine ? '複数の通報があったため、運営が確認するまで他の人には表示されません。確認のあと、元に戻るか削除されます。' : 'この投稿は非表示中です（持ち主と管理者だけが見られます）。'}</p>` : ''}
     <h3>この作品のレシピ</h3><div class="grecipe">${recipeText(it.recipe)}</div>
     <div class="actions" style="padding:12px 0 0"><button class="btn primary" data-g="apply">この色味を使う</button></div>
     <p class="note">今編集中の写真に、この作品のフィルター・調整をそのまま適用します。「元に戻す」で取り消せます。</p>
     ${it.mine ? `<h3>公開設定</h3><div class="wrap">${VIS.map(([v, l]) => `<button class="chip${it.visibility === v ? ' on' : ''}" data-gv="${v}">${l}</button>`).join('')}</div><p class="note">${esc(visNote)}</p>
     <div class="actions" style="padding:12px 0 0"><button class="btn" data-g="back">一覧へ戻る</button>${linkBtn}<button class="btn" data-g="del" style="color:var(--danger)">投稿を削除</button></div>`
-      : `<div class="actions" style="padding:12px 0 0"><button class="btn" data-g="back">一覧へ戻る</button>${linkBtn}${Gallery.online && !it.sample ? '<button class="btn" data-g="report">通報</button>' : ''}</div>`}`;
+      : `<div class="actions" style="padding:12px 0 0"><button class="btn" data-g="back">一覧へ戻る</button>${linkBtn}${Gallery.online && !it.sample ? (GV.reported.has(it.id) ? '<button class="btn" data-g="report" disabled>通報済み</button>' : '<button class="btn" data-g="report" aria-expanded="false" aria-controls="galRep">通報</button>') : ''}</div>
+    <div class="grep" id="galRep" hidden></div>`}`;
 }
+/* 通報: pick a reason (その他 = optional note up to 200 chars), then send */
+function renderRep() {
+  const p = $('#galRep'); if (!p) return;
+  p.innerHTML = `<h3 id="galRepH">通報の理由</h3><div class="wrap" role="radiogroup" aria-labelledby="galRepH">${REP_REASONS.map(([k, l]) => `<button class="chip${GV.repCode === k ? ' on' : ''}" role="radio" aria-checked="${GV.repCode === k}" data-grr="${k}">${l}</button>`).join('')}</div>
+    <input id="galRepNote" class="pubin" maxlength="200" placeholder="くわしい内容（200文字まで・なくても大丈夫）" autocomplete="off" aria-label="その他の内容"${GV.repCode === 'other' ? '' : ' hidden'}>
+    <p class="note">運営が内容を確認します。通報したことは相手に伝わりません。</p>
+    <div class="actions" style="padding:10px 0 0"><button class="btn primary" data-g="repSend"${GV.repCode ? '' : ' disabled'}>通報する</button></div>`;
+}
+function repPick(k) {
+  GV.repCode = k;
+  document.querySelectorAll('#galRep [data-grr]').forEach(b => { const on = b.dataset.grr === k; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+  const n = $('#galRepNote'); n.hidden = k !== 'other'; if (k === 'other') n.focus({ preventScroll: true });
+  $('#galRep [data-g="repSend"]').disabled = false;
+}
+function repDone(id) {
+  GV.reported.add(id); const p = $('#galRep'); if (p) p.hidden = true;
+  const b = $('#galDetail [data-g="report"]'); if (b) { b.textContent = '通報済み'; b.disabled = true; b.removeAttribute('aria-expanded'); }
+}
+/* 通報の管理 (admins only): reported / hidden posts with counts per reason */
+const MOD_BTN = { hide: '非表示にする', show: '表示に戻す（通報を消す）', del: '投稿を削除' };
+function modRow(it) {
+  const reps = Object.entries(it.reps || {}).map(([k, n]) => `<span class="modrep">${esc(REP_NAME[k] || k)} ×${+n | 0}</span>`).join('') || '<span class="modrep">通報なし</span>';
+  const st = it.hidden ? `<span class="gbadge hid">非表示中（${it.hiddenBy === 'admin' ? '管理者' : '通報で自動'}）</span>` : `<span class="gbadge">${esc(VIS_NAME[it.visibility] || '')}</span>`;
+  return `<div class="modrow"><button class="modth" data-gid="${esc(it.id)}" aria-label="${esc(it.title || '無題')}を見る"><img src="${esc(safeImg(it.thumb))}" alt="" loading="lazy"></button>
+    <div class="modinfo"><b>${esc(it.title || '無題')}</b><small>${esc((it.author && it.author.name) || 'ゲスト')}・${fmtDate(it.createdAt)}${it.last ? '・最新の通報 ' + fmtDate(it.last) : ''}</small>
+      <div class="modreps">${st}${reps}</div>${it.notes && it.notes.length ? `<ul class="modnotes">${it.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}</div>
+    <div class="modbtns">${it.hidden ? '' : `<button class="chip" data-gm="hide" data-mid="${esc(it.id)}">${MOD_BTN.hide}</button>`}<button class="chip" data-gm="show" data-mid="${esc(it.id)}">${MOD_BTN.show}</button><button class="chip danger" data-gm="del" data-mid="${esc(it.id)}">${MOD_BTN.del}</button></div></div>`;
+}
+async function renderAdmin() {
+  GV.view = 'admin'; GV.modArm = null;
+  $('#galList').hidden = true; $('#galDetail').hidden = true; const a = $('#galAdmin'); a.hidden = false; $('#galTitle').textContent = '通報の管理';
+  $('#sheetGallery').scrollTop = 0; sidePanel.scrollTop = 0;
+  a.innerHTML = '<p class="gempty">読み込み中…</p>';
+  let items;
+  try { items = await Gallery.modList(); }
+  catch (e) {
+    console.warn('mod list', e); if (GV.view !== 'admin') return;
+    a.innerHTML = `<div class="gempty"><b>📡</b>${navigator.onLine ? '読み込めませんでした。' : 'オフラインのため読み込めません。'}<br><button class="chip" data-g="admin" style="margin-top:12px">もう一度読み込む</button></div>`; return;
+  }
+  if (GV.view !== 'admin') return;
+  GV.mod = items;
+  a.innerHTML = `<p class="note" style="margin:0 0 4px">通報された投稿と非表示中の投稿です（新しい順）。別々の人から何件か通報されると、自動で非表示になります。</p>`
+    + (items.length ? items.map(modRow).join('') : '<div class="gempty"><b>🌱</b>確認が必要な投稿はありません。</div>')
+    + '<div class="actions" style="padding:12px 0 0"><button class="btn" data-g="back">一覧へ戻る</button></div>';
+}
+function openModAdmin() { openGallery('public'); renderAdmin(); }
 async function copyLink(id) {
   const u = shareLink(id);
   try { await navigator.clipboard.writeText(u); toast('リンクをコピーしました'); return; } catch (e) { }
@@ -9044,16 +9232,23 @@ function applyRecipe(it) {
   toast(`「${it.title || '無題'}」の色味を適用しました。「元に戻す」で取り消せます`, 3400);
 }
 $('#sheetGallery').addEventListener('click', async e => {
-  const t = e.target.closest('[data-gtab],[data-gtag],[data-gid],[data-g],[data-gv]'); if (!t) return;
+  const t = e.target.closest('[data-gtab],[data-gtag],[data-gid],[data-g],[data-gv],[data-grr],[data-gm]'); if (!t) return;
   const ds = t.dataset;
   if (ds.gtab) { GV.tab = ds.gtab; GV.tag = null; renderGal(); }
   else if (ds.gtag !== undefined) { GV.tag = ds.gtag || null; renderGal(); }
   else if (ds.g === 'retry') renderGal();
   else if (ds.gid) {
-    try { const it = GV.items.find(x => x.id === ds.gid) || await Gallery.get(ds.gid); if (it) renderGalDetail(it); }
+    GV.from = GV.view === 'admin' ? 'admin' : 'list';
+    try { const it = (GV.from === 'admin' ? GV.mod : GV.items).find(x => x.id === ds.gid) || await Gallery.get(ds.gid); if (it) renderGalDetail(it); }
     catch (err) { toast(netErr('作品を開けませんでした')); }
   }
-  else if (ds.g === 'back') renderGal();
+  else if (ds.g === 'back') { if (GV.view === 'detail' && GV.from === 'admin') renderAdmin(); else renderGal(); }
+  else if (ds.g === 'admin') renderAdmin();
+  else if (ds.g === 'report' && GV.cur && !GV.cur.mine) {
+    const p = $('#galRep'), open = p.hidden; if (open) renderRep(); p.hidden = !open; t.setAttribute('aria-expanded', open);
+    if (open) { p.scrollIntoView({ block: 'nearest' }); const f = p.querySelector('[data-grr]'); if (f) f.focus({ preventScroll: true }); }
+  }
+  else if (ds.grr) repPick(ds.grr);
   else if (ds.g === 'apply') applyRecipe(GV.cur);
   else if (ds.g === 'link' && GV.cur) copyLink(GV.cur.id);
   else if (GV.busy) return;   // one network change at a time; no double taps
@@ -9073,11 +9268,26 @@ $('#sheetGallery').addEventListener('click', async e => {
     catch (err) { console.warn(err); t.disabled = false; t.textContent = '投稿を削除'; GV.delArm = false; toast(netErr('投稿を削除できませんでした')); }
     finally { GV.busy = false; }
   }
-  else if (ds.g === 'report' && GV.cur && !GV.cur.mine) {
-    if (!GV.repArm) { GV.repArm = true; t.textContent = 'もう一度タップで通報（不適切な作品）'; return; }
+  else if (ds.g === 'repSend' && GV.cur && !GV.cur.mine && GV.repCode) {
+    const id = GV.cur.id, note = GV.repCode === 'other' ? $('#galRepNote').value.trim().slice(0, 200) : '';
+    GV.busy = true; t.disabled = true; t.textContent = '送信中…';
+    try { await Gallery.report(id, GV.repCode, note); repDone(id); toast('通報しました。運営が確認します。ご協力ありがとうございます', 3200); }
+    catch (err) {
+      const code = err && err.code;
+      if (code === '23505') { repDone(id); toast('この作品は通報済みです'); }   // one report per person and post
+      else { console.warn(err); t.disabled = false; t.textContent = '通報する'; toast(code === '42501' ? '自分の作品は通報できません' : netErr('通報を送れませんでした')); }
+    }
+    finally { GV.busy = false; }
+  }
+  else if (ds.gm && ds.mid && GV.view === 'admin') {
+    const it = GV.mod.find(x => x.id === ds.mid); if (!it) return;
+    if (ds.gm === 'del' && GV.modArm !== it.id) { GV.modArm = it.id; t.textContent = 'もう一度タップで完全に削除'; return; }
     GV.busy = true; t.disabled = true;
-    try { await Gallery.report(GV.cur.id, 'inappropriate'); t.textContent = '通報しました'; toast('通報しました。ご協力ありがとうございます'); }
-    catch (err) { console.warn(err); t.disabled = false; GV.repArm = false; t.textContent = '通報'; toast(netErr('通報を送れませんでした')); }
+    try {
+      if (ds.gm === 'del') { await Gallery.modDelete(it); toast('投稿を削除しました'); }
+      else { await Gallery.modHide(it.id, ds.gm === 'hide'); toast(ds.gm === 'hide' ? '投稿を非表示にしました' : '表示に戻し、通報を消しました'); }
+      GV.busy = false; renderAdmin();
+    } catch (err) { console.warn(err); t.disabled = false; t.textContent = MOD_BTN[ds.gm]; GV.modArm = null; toast(netErr(ds.gm === 'del' ? '投稿を削除できませんでした' : '変更できませんでした')); }
     finally { GV.busy = false; }
   }
 });
@@ -9088,6 +9298,7 @@ const PUB = { vis: 'private', lastKey: null, lastId: null };
 const exGoLabel = () => PUB.vis === 'private' ? '保存する' : '保存して公開';
 function renderPub() {
   $('#exPub').hidden = PUB.vis === 'private'; if (!$('#exGo').disabled) $('#exGo').textContent = exGoLabel();
+  const who = $('#pubWho'); if (who) who.innerHTML = acct && acctName ? `<b>@${esc(acctName)}</b> として公開されます。` : acct ? 'ユーザーネームを決めると、その名前で公開されます。' : '<b>ゲスト</b>として公開されます。ログインすると、ユーザーネームで公開できます。';
   $('#pubVis').innerHTML = VIS.map(([v, l]) => `<button class="chip${PUB.vis === v ? ' on' : ''}" data-pv="${v}">${l}</button>`).join('');
   $('#pubForm').hidden = PUB.vis === 'private';
   $('#pubNote').textContent = PUB.vis === 'public'
@@ -9100,8 +9311,7 @@ $('#btnSave').addEventListener('click', () => { if (!doc) return; $('#pubNick').
 async function publishCurrent() {
   if (!doc || PUB.vis === 'private') return null;
   const title = $('#pubTitle').value.trim().slice(0, 40) || '無題', tags = parseTags($('#pubTags').value);
-  const nick = $('#pubNick').value.trim().slice(0, 20);
-  if (nick !== UI.nick) { UI.nick = nick; saveUI(); }
+  const nick = acct && acctName ? acctName : 'ゲスト';   // the server sets the author from the user name as well
   const key = lastSnap + '|' + PUB.vis + '|' + title + '|' + tags.join(',');
   // remote get() throws on network errors (handled by the caller), so a failed check is never mistaken for "not posted yet"
   if (key === PUB.lastKey && PUB.lastId && await Gallery.adapter.get(PUB.lastId)) return { dup: true };
