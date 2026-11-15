@@ -2,13 +2,14 @@
  * - Precaches the app shell (index.html, u2netp.js, manifest, icons) into CACHE.
  * - Same-origin navigations: network-first (revalidated), refreshing the cached index.html; offline falls back to it.
  * - Other same-origin GETs: cache-first, network fallback (and cached on success).
+ * - aiworks/ (pre-rendered AI作例, ~2 MB): stale-while-revalidate in RT_CACHE, so they show at once and refresh after a deploy.
  * - Google Fonts / jsDelivr (onnxruntime-web): stale-while-revalidate in RT_CACHE.
  * - Hugging Face (RMBG model, stored in IndexedDB by the app) and Supabase are never touched.
  * - A new version waits until the page posts {type:'skipWaiting'} (after its "update available" toast).
  */
 'use strict';
-const CACHE = 'petaphoto-v49';
-const RT_CACHE = 'petaphoto-rt-v49';
+const CACHE = 'petaphoto-v50';
+const RT_CACHE = 'petaphoto-rt-v50';
 const PRECACHE = ['./', 'index.html', 'u2netp.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 const RT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
@@ -103,7 +104,7 @@ self.addEventListener('fetch', e => {
 
   let p = null;
   if (url.origin === self.location.origin) {
-    p = req.mode === 'navigate' ? networkFirstNav(req) : cacheFirst(req);
+    p = req.mode === 'navigate' ? networkFirstNav(req) : url.pathname.includes('/aiworks/') ? staleWhileRevalidate(e) : cacheFirst(req);
   } else if (RT_HOSTS.includes(url.hostname)) {
     p = staleWhileRevalidate(e);
   } else {

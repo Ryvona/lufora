@@ -9955,10 +9955,25 @@ const AI_WORKS_DEF = [
     ] }) }
 ];
 let aiWorkCache = null, aiWorkP = null;
-/* fonts first (at most ~6 s), so the titles are drawn in their own typefaces; then one work per task so the UI stays responsive */
+/* pre-rendered files first (aiworks/index.json + <id>.webp / <id>-t.webp, written by tools/render-aiworks.mjs from the code below): no drawing.
+   Only when the list can't be read (file://, offline without cache) are the works drawn here as before. */
 function aiWorks() {
   if (aiWorkCache) return Promise.resolve(aiWorkCache);
-  return aiWorkP || (aiWorkP = (async () => {
+  return aiWorkP || (aiWorkP = aiWorksFiles().catch(() => aiWorksDraw()).then(r => (aiWorkCache = r)));
+}
+async function aiWorksFiles() {
+  if (!/^https?:$/.test(location.protocol)) throw new Error('no http');
+  const r = await fetch('aiworks/index.json', { cache: 'no-cache' }); if (!r.ok) throw new Error('aiworks ' + r.status);
+  const L = (await r.json()).filter(x => x && /^[a-z0-9-]+$/.test(x.id) && x.recipe && typeof x.recipe === 'object');
+  if (!L.length) throw new Error('aiworks empty');
+  const ext = x => x.ext === 'jpg' ? 'jpg' : 'webp';
+  return L.map(x => ({ id: 'ai-' + x.id, title: String(x.title || ''), tags: Array.isArray(x.tags) ? x.tags.map(String) : [], visibility: 'public', createdAt: 0, w: +x.w || 0, h: +x.h || 0,
+    thumb: `aiworks/${x.id}-t.${ext(x)}`, full: `aiworks/${x.id}.${ext(x)}`, recipe: x.recipe, author: { name: 'Lufora AI' }, mine: false, sample: true, ai: true }));
+}
+/* fonts first (at most ~6 s), so the titles are drawn in their own typefaces; then one work per task so the UI stays responsive.
+   enc(canvas, 'thumb'|'full') → image URL (JPEG data URLs by default; the generator passes a WebP encoder) */
+function aiWorksDraw(enc) {
+  return (async () => {
     const fams = [...new Set(AI_WORKS_DEF.flatMap(w => w.fonts))];
     fams.forEach(f => familyCSS(f));
     // the Google Fonts stylesheets arrive first, then the faces: poll until every family can draw (or ~6 s passed)
@@ -9969,9 +9984,9 @@ function aiWorks() {
     }
     layoutMemo.clear();
     const S = aiScenes(), out = [];
-    for (const w of AI_WORKS_DEF) { try { const m = w.make(S); await aiFontsFor(m.specs); out.push(aiWorkOne(w, S, m)); } catch (e) { console.warn('ai work', w.id, e); } await new Promise(r => setTimeout(r, 0)); }
-    return (aiWorkCache = out);
-  })());
+    for (const w of AI_WORKS_DEF) { try { const m = w.make(S); await aiFontsFor(m.specs); out.push(aiWorkOne(w, S, m, enc)); } catch (e) { console.warn('ai work', w.id, e); } await new Promise(r => setTimeout(r, 0)); }
+    return out;
+  })();
 }
 const aiScenes = () => { const m = new Map(); return { scene(n, W, H, o = {}) { const k = n + W + 'x' + H + JSON.stringify(o); if (!m.has(k)) m.set(k, n === 'lake' ? AIS.forest(W, H, o) : n === 'bokeh' ? AIS.flowers(W, H, o) : AIS[n](W, H, o)); return m.get(k); } }; };
 function aiWorksNow() { const S = aiScenes(); return (aiWorkCache = AI_WORKS_DEF.map(w => aiWorkOne(w, S))); }
@@ -9980,7 +9995,7 @@ function aiFontsFor(specs) {
   const L = specs.filter(s => s.font && s.text).map(s => document.fonts.load(`${s.bold === false ? 400 : 700} 40px "${s.font}"`, s.text).catch(() => { }));
   return Promise.race([Promise.all(L), new Promise(r => setTimeout(r, 3000))]).then(() => layoutMemo.clear());
 }
-function aiWorkOne(w, S, m) {
+function aiWorkOne(w, S, m, enc = (c, k) => c.toDataURL('image/jpeg', k === 'thumb' ? 0.85 : 0.88)) {
   const { base, badj, specs } = m || w.make(S), W = w.w, H = w.h, adjust = cleanAdjust(w.adj), d0 = doc, ids = [regBitmap(base, null, false)];
   const c = mk(1, 1);
   try {
@@ -9994,7 +10009,7 @@ function aiWorkOne(w, S, m) {
     renderDoc(c, 1, { cache: false });
   } finally { doc = d0; ids.forEach(id => bitmaps.delete(id)); }
   const th = mk(W * 540 / Math.max(W, H), H * 540 / Math.max(W, H)), tg = th.getContext('2d'); tg.imageSmoothingQuality = 'high'; tg.drawImage(c, 0, 0, th.width, th.height);
-  return { id: 'ai-' + w.id, title: w.title, tags: w.tags, visibility: 'public', createdAt: 0, w: W, h: H, thumb: th.toDataURL('image/jpeg', 0.85), full: c.toDataURL('image/jpeg', 0.88),
+  return { id: 'ai-' + w.id, title: w.title, tags: w.tags, visibility: 'public', createdAt: 0, w: W, h: H, thumb: enc(th, 'thumb'), full: enc(c, 'full'),
     recipe: { v: 1, adjust, fonts: w.fonts.slice(0, 4), counts: specs.reduce((a, s) => { const k = s.t === 'img' ? 'image' : s.t === 'box' || s.t === 'line' ? 'shape' : s.t; if (TYPE_NAMES[k]) a[k] = (a[k] || 0) + 1; return a; }, {}) },
     author: { name: 'Lufora AI' }, mine: false, sample: true, ai: true };
 }
@@ -10033,7 +10048,7 @@ function galSamples() {
 }
 /* gallery sheet: list (tabs + tag filter + 2-col masonry) and detail */
 const GV = { tab: 'public', tag: null, items: [], cur: null, delArm: false, view: 'list', from: 'list', repCode: '', reported: new Set(), mod: [], modArm: null };
-const safeImg = u => typeof u === 'string' && /^(data:image\/(jpeg|png|webp);base64,|https:\/\/)/.test(u) ? u : '';
+const safeImg = u => typeof u === 'string' && /^(data:image\/(jpeg|png|webp);base64,|https:\/\/|aiworks\/[a-z0-9-]+\.(webp|jpg)$)/.test(u) ? u : '';   // aiworks/… = the bundled AI作例 files
 const fmtDate = t => { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
 const galBadges = it => (it.ai ? '<span class="gbadge ai">AI</span>' : it.sample ? '<span class="gbadge sample">サンプル</span>' : '') + (it.hidden ? `<span class="gbadge hid">${it.mine ? '確認中のため非公開' : '非表示中'}</span>` : '') + (it.mine && !it.hidden ? `<span class="gbadge${it.visibility === 'public' ? ' pub' : ''}">${esc(VIS_NAME[it.visibility] || '非公開')}</span>` : '');
 /* ==== likes (ハート) ==== supabase/schema_likes.sql: table likes (post_id, uid; own rows only) + posts.like_count kept by a trigger.

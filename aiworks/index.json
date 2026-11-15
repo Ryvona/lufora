@@ -1,0 +1,474 @@
+[
+ {
+  "id": "cine",
+  "title": "夜の向こう側",
+  "tags": [
+   "シネマ",
+   "夜景"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 12,
+    "leak": 0,
+    "split": 0,
+    "preset": "cinema",
+    "amt": 90
+   },
+   "fonts": [
+    "Oswald",
+    "Shippori Mincho",
+    "Cinzel",
+    "Noto Sans JP"
+   ],
+   "counts": {
+    "text": 6,
+    "image": 1,
+    "shape": 1
+   }
+  }
+ },
+ {
+  "id": "haru",
+  "title": "春を、迎えにいく。",
+  "tags": [
+   "雑誌風",
+   "桜"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 3,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "youth",
+    "amt": 55
+   },
+   "fonts": [
+    "Oswald",
+    "Playfair Display",
+    "Shippori Mincho",
+    "Noto Sans JP"
+   ],
+   "counts": {
+    "image": 2,
+    "text": 10,
+    "shape": 2
+   }
+  }
+ },
+ {
+  "id": "polaroid",
+  "title": "夏のおわり、ふたりで。",
+  "tags": [
+   "ポラロイド",
+   "海"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "instant",
+    "amt": 85
+   },
+   "fonts": [
+    "Klee One",
+    "Caveat"
+   ],
+   "counts": {
+    "image": 1,
+    "text": 3,
+    "deco": 1
+   }
+  }
+ },
+ {
+  "id": "film",
+  "title": "霧の森を歩いた日",
+  "tags": [
+   "フィルム",
+   "森"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "film",
+    "amt": 90
+   },
+   "fonts": [
+    "Oswald",
+    "Shippori Mincho",
+    "Noto Sans JP",
+    "DotGothic16"
+   ],
+   "counts": {
+    "image": 1,
+    "text": 4,
+    "shape": 1
+   }
+  }
+ },
+ {
+  "id": "lake",
+  "title": "霧の朝",
+  "tags": [
+   "ミニマル",
+   "湖"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": -6,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "matte",
+    "amt": 55
+   },
+   "fonts": [
+    "Shippori Mincho",
+    "Cinzel"
+   ],
+   "counts": {
+    "text": 2
+   }
+  }
+ },
+ {
+  "id": "hoshi",
+  "title": "星は遠いほど",
+  "tags": [
+   "詩",
+   "星空"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 20,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 14,
+    "leak": 0,
+    "split": 0,
+    "preset": "cool",
+    "amt": 45
+   },
+   "fonts": [
+    "Shippori Mincho",
+    "Noto Sans JP"
+   ],
+   "counts": {
+    "text": 3,
+    "shape": 1
+   }
+  }
+ },
+ {
+  "id": "ticket",
+  "title": "夜景クルーズ乗船券",
+  "tags": [
+   "チケット",
+   "夜景"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 10,
+    "leak": 0,
+    "split": 0,
+    "preset": "night",
+    "amt": 60
+   },
+   "fonts": [
+    "Bebas Neue",
+    "Zen Kaku Gothic New",
+    "Oswald",
+    "Klee One"
+   ],
+   "counts": {
+    "image": 2,
+    "text": 12,
+    "shape": 1
+   }
+  }
+ },
+ {
+  "id": "postcard",
+  "title": "コスモス畑より",
+  "tags": [
+   "ポストカード",
+   "花"
+  ],
+  "w": 1350,
+  "h": 1080,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 6,
+    "tint": 0,
+    "fade": 8,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "natural",
+    "amt": 80
+   },
+   "fonts": [
+    "Shippori Mincho",
+    "Cinzel"
+   ],
+   "counts": {
+    "image": 3,
+    "text": 3
+   }
+  }
+ },
+ {
+  "id": "cafe",
+  "title": "午後三時の喫茶店",
+  "tags": [
+   "カフェ",
+   "コラージュ"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 10,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "warm",
+    "amt": 70
+   },
+   "fonts": [
+    "Oswald",
+    "Shippori Mincho",
+    "Noto Sans JP"
+   ],
+   "counts": {
+    "text": 5,
+    "image": 3,
+    "shape": 1
+   }
+  }
+ },
+ {
+  "id": "quote",
+  "title": "花は、ちゃんと咲く",
+  "tags": [
+   "ことば",
+   "花"
+  ],
+  "w": 1080,
+  "h": 1080,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "soft",
+    "amt": 70
+   },
+   "fonts": [
+    "Playfair Display",
+    "Shippori Mincho"
+   ],
+   "counts": {
+    "image": 1,
+    "text": 3,
+    "shape": 1
+   }
+  }
+ },
+ {
+  "id": "diary",
+  "title": "今日もえらかった日記",
+  "tags": [
+   "韓国っぽ",
+   "日記"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 0,
+    "leak": 0,
+    "split": 0,
+    "preset": "korea",
+    "amt": 80
+   },
+   "fonts": [
+    "Caveat",
+    "Zen Maru Gothic"
+   ],
+   "counts": {
+    "text": 5,
+    "image": 1,
+    "deco": 5
+   }
+  }
+ },
+ {
+  "id": "yuki",
+  "title": "雪の街の、ちいさな灯り",
+  "tags": [
+   "冬",
+   "雪"
+  ],
+  "w": 1080,
+  "h": 1350,
+  "ext": "webp",
+  "recipe": {
+   "v": 1,
+   "adjust": {
+    "bri": 0,
+    "con": 0,
+    "sat": 0,
+    "warm": 0,
+    "tint": 0,
+    "fade": 0,
+    "vig": 0,
+    "sepia": 0,
+    "grain": 0,
+    "glow": 12,
+    "leak": 0,
+    "split": 0,
+    "preset": "clear",
+    "amt": 55
+   },
+   "fonts": [
+    "Cinzel",
+    "Shippori Mincho"
+   ],
+   "counts": {
+    "text": 3,
+    "shape": 1
+   }
+  }
+ }
+]
