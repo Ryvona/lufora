@@ -516,6 +516,11 @@ html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--l
 .acctcard>span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}.acctcard small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .acav{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:var(--accent-ink);font-weight:800;font-size:18px}
 .acctsync{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);margin:4px 0 6px}
+/* ==== sideways scroll hint ==== a row that scrolls sideways fades out on the side where more is hidden (scrollFades) */
+.hfl,.hfr{-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.hfr:not(.hfl){-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent)}
+.hfl:not(.hfr){-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to left,#000 calc(100% - 34px),transparent)}
+.hfl.hfr{-webkit-mask-image:linear-gradient(to right,transparent,#000 34px,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to right,transparent,#000 34px,#000 calc(100% - 34px),transparent)}
 /* ==== template preview ==== */
 .tpvhead{display:flex;align-items:center;gap:10px;margin:2px 44px 10px 0}
 .tpvt{min-width:0}
@@ -624,6 +629,8 @@ html:not(.desk) .row.slr .rl{flex-basis:calc(66px*var(--u));letter-spacing:0;fon
 .tpl:hover{border-color:var(--accent)}
 .tpl:active{transform:scale(.97)}
 .tim{display:block;width:100%;border-radius:9px;overflow:hidden;background:#E6E0D2}
+.tim:empty{background:linear-gradient(100deg,#E6E0D2 35%,#F3EEE4 50%,#E6E0D2 65%) 0 0/250% 100%;animation:tshim 1.3s linear infinite}
+@keyframes tshim{from{background-position:100% 0}to{background-position:-150% 0}}
 .tim img{display:block;width:100%;height:100%;object-fit:cover}
 .tnm{display:flex;flex-direction:column;font-size:12.5px;font-weight:700;padding:0 2px 2px}
 .tnm small{font-weight:500;font-size:10.5px;color:var(--muted)}
@@ -4883,6 +4890,17 @@ function openLib() {
    Must be started synchronously from a tap/click so phones show the keyboard. */
 const ied = $('#inlineEd');
 let editingId = null, editFresh = false;
+/* phones: when the keyboard opens (the visual viewport shrinks), move the view so the text being edited stays above it */
+function keepEditVisible() {
+  const vv = window.visualViewport; if (!vv || deskOn || !editingId || !doc) return;
+  const o = doc.objects.find(x => x.id === editingId); if (!o) return;
+  const r = cv.getBoundingClientRect(), b = multiBox([o]), top = docToScreen(0, b.y0).y + r.top, bot = docToScreen(0, b.y1).y + r.top;
+  const vTop = vv.offsetTop + 56, vBot = vv.offsetTop + vv.height - 16;
+  if (bot <= vBot && top >= vTop) return;
+  const dy = bot > vBot ? Math.min(bot - vBot, Math.max(0, top - vTop)) : top - vTop;   // never push its top out of sight
+  if (Math.abs(dy) > 1) { view.ty -= dy; requestDraw(); }
+}
+if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (editingId) keepEditVisible(); });
 function startInlineEdit(o, fresh) {
   if (!o || o.locked || (o.type !== 'text' && o.type !== 'note')) return;
   if (editingId) endInlineEdit();
@@ -5169,9 +5187,9 @@ const areaColorRows = (act, pre, B) => `<div class="cgrp">` + row('枠線', none
   + row('塗り', noneSw(pre + 'fc', B.fc, act) + swatches(act, pre + 'fc', B.fc)) + `</div>`
   + (B.fc !== 'none' ? slider(`${act}:${pre}fa`, '塗りの濃さ', 10, 100, B.fa) : '');
 /* 始点 / 終点 cap pictures and the swap button, for the tool settings (s, 'shape.') or the selected line (o, '') */
-const lineCapRows = (act, pre, base) => row('始点', ichips(act, pre + 'cs', CAPS.map(([c, l]) => [c, sIco(base, { kind: 'line', hz: 1, cs: c, ce: 'none', ls: 'solid' }, '始点：' + l)]), base.cs), true)
-  + row('終点', ichips(act, pre + 'ce', CAPS.map(([c, l]) => [c, sIco(base, { kind: 'line', hz: 1, cs: 'none', ce: c, ls: 'solid' }, '終点：' + l)]), base.ce)
-    + cmdBtn('lineFlip', svgI('<path d="M4 8h15l-3.5-3.5M20 16H5l3.5 3.5"/>', '矢印の向きを反対に'), undefined, 'ichip'), true);
+const lineCapRows = (act, pre, base) => row('始点', ichips(act, pre + 'cs', CAPS.map(([c, l]) => [c, sIco(base, { kind: 'line', hz: 1, cs: c, ce: 'none', ls: 'solid' }, '始点：' + l)]), base.cs), deskOn)
+  + row('終点', cmdBtn('lineFlip', svgI('<path d="M4 8h15l-3.5-3.5M20 16H5l3.5 3.5"/>', '矢印の向きを反対に'), undefined, 'ichip')
+    + ichips(act, pre + 'ce', CAPS.map(([c, l]) => [c, sIco(base, { kind: 'line', hz: 1, cs: 'none', ce: c, ls: 'solid' }, '終点：' + l)]), base.ce), deskOn);
 function syncOChips(k, v) {
   const bs = panelEl().querySelectorAll(`button[data-act="o"][data-k="${k}"]`), js = JSON.stringify(v);
   bs.forEach(b => {
@@ -5474,10 +5492,10 @@ function objPanel(o) {
       // switch within the same family: lines keep their two ends, closed shapes their box
       if (isLineK(o.kind)) {
         const B = shapeBase(o);
-        h += row('線の形', ichips('o', 'kind', LINE_GEO.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), lineGeo(o)), true);
-        h += lineCapRows('o', '', B);
         h += row('色', swatches('o', 'color', o.color));
         h += slider('o:width', '線の太さ', 1, 60, o.width / u, u);
+        h += row('線の形', ichips('o', 'kind', LINE_GEO.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), lineGeo(o)), true);
+        h += lineCapRows('o', '', B);
         h += row('線種', lsChips('o', 'ls', lStyle(o), B), true);
         if (shapeCtrl(o)) h += slider('o:bend', '曲がり', -100, 100, (o.bend == null ? 0.3 : o.bend) * 100, 0.01);
         h += hint(deskOn ? '端の●をドラッグで向きと長さ、真ん中の◆で曲げられます。Shift で 15°ごと、Alt で吸着なし。' : '端の●をドラッグで向きと長さ、真ん中の◆で曲げられます。');
@@ -5666,10 +5684,12 @@ function refreshPanel() {
       // 形: one 線 chip (its path / ends are in the next rows) + the closed shapes, all shown as pictures
       const B = shapeBase(S.shape), lk = ln ? k : 'line';
       h = row('形', ichips('s', 'shape.kind', [[lk, sIco(B, { kind: lk }, '線')], ...AREA_KINDS.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])])], k), true);
-      if (ln) h += row('線の形', ichips('s', 'shape.kind', LINE_GEO.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), k), true) + lineCapRows('s', 'shape.', B);
-      if (ln) h += row('色', swatches('s', 'shape.color', S.shape.color));
-      else h += areaColorRows('s', 'shape.', B);
-      if (ln || B.oc !== 'none') h += slider('s:shape.width', '線の太さ', 1, 60, S.shape.width) + row('線種', lsChips('s', 'shape.ls', S.shape.ls, ln ? B : { ...B, color: B.oc }), true);
+      if (ln) h += row('色', swatches('s', 'shape.color', S.shape.color)) + slider('s:shape.width', '線の太さ', 1, 60, S.shape.width)
+        + row('線の形', ichips('s', 'shape.kind', LINE_GEO.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), k), true) + lineCapRows('s', 'shape.', B) + row('線種', lsChips('s', 'shape.ls', S.shape.ls, B), true);
+      else {
+        h += areaColorRows('s', 'shape.', B);
+        if (B.oc !== 'none') h += slider('s:shape.width', '線の太さ', 1, 60, S.shape.width) + row('線種', lsChips('s', 'shape.ls', S.shape.ls, { ...B, color: B.oc }), true);
+      }
       const sel = selObj();
       h += hint(sel && sel.type === 'shape' ? 'いま描いた図形にも反映されます。何もない所をタップすると選択を外します。'
         : ln ? `ドラッグで線を描きます（${deskOn ? 'クリック' : 'タップ'}で標準の長さ）。水平・垂直・45°や、ほかの物の中心・辺に吸着します。${deskOn ? 'Shift で 15°ごと、Alt で吸着なし。' : ''}`
@@ -6904,6 +6924,19 @@ function renderTemplates(host) {
   if (!tplFontPass) { tplFontPass = true; setTimeout(() => { if (tplOpen()) { tplThumbs.clear(); renderTemplates(); } }, 1800); }   // redo once the template fonts have loaded
 }
 function openTplSheet() { renderTemplates($('#tplBody')); openSheet('#sheetTpl'); }
+/* ==== sideways scroll hint ==== rows that scroll sideways (.rc, the tool bar, tabs) get .hfl / .hfr while more is hidden on
+   that side; checked after DOM changes (one frame later), on scroll and on resize */
+const HSCROLL = '.rc, .tools, .matcats, .fcats, .fcards, .tplcats';
+function fadeEdge(el) {
+  const more = el.scrollWidth - el.clientWidth > 2;
+  el.classList.toggle('hfl', more && el.scrollLeft > 2);
+  el.classList.toggle('hfr', more && el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+}
+let fadeQ = false;
+function scrollFades() { if (fadeQ) return; fadeQ = true; requestAnimationFrame(() => { fadeQ = false; document.querySelectorAll(HSCROLL).forEach(el => { if (el.offsetParent) fadeEdge(el); }); }); }
+document.addEventListener('scroll', e => { const el = e.target; if (el.nodeType === 1 && el.matches(HSCROLL)) fadeEdge(el); }, true);
+addEventListener('resize', scrollFades);
+new MutationObserver(scrollFades).observe(document.body, { childList: true, subtree: true });
 /* ==== template preview ==== a tap only shows the template large (with its description); 追加 applies it.
    ‹ › (or ← →) step through the current category; on phones ‹ 一覧 goes back to the grid sheet. */
 let tpvId = null, tpvFromSheet = false;
@@ -6947,19 +6980,34 @@ $('#tpvNext').addEventListener('click', () => tpvStep(1));
 $('#tpvBack').addEventListener('click', openTplSheet);
 $('#tpvAdd').addEventListener('click', () => { const id = tpvId; closeSheets(true); if (id) applyTemplate(id, true); });
 $('#sheetTplPv').addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); tpvStep(e.key === 'ArrowLeft' ? -1 : 1); } });
+/* thumbnails are drawn one per frame, the ones on screen (or about to be) first; ones that do not use the photo (new canvas)
+   stay cached when the photo changes. Until drawn, a .tim shows a soft loading shimmer. */
+let tplIO = null;
+const tplTK = t => (t.canvas ? 'c:' : 'p:') + t.id;
 function fillTplThumbs() {
   const key = doc.baseId + '|' + bmpRev + '|' + doc.w + 'x' + doc.h + '|' + JSON.stringify(doc.adjust) + '|' + doc.objects.length;
-  if (key !== tplKey) { tplThumbs.clear(); tplKey = key; }
-  const todo = [...tplHost.querySelectorAll('[data-tim]')];
+  if (key !== tplKey) { for (const k of [...tplThumbs.keys()]) if (k.startsWith('p:')) tplThumbs.delete(k); tplKey = key; }
+  const todo = [], vis = new Set();
+  for (const el of tplHost.querySelectorAll('[data-tim]')) {
+    const t = TEMPLATES.find(x => x.id === el.dataset.tim); if (!t) continue;
+    const u = tplThumbs.get(tplTK(t)); if (u) el.innerHTML = `<img src="${u}" alt="">`; else todo.push(el);
+  }
+  if (tplIO) tplIO.disconnect();
+  if (!todo.length) return;
+  let queued = false;
+  const kick = () => { if (!queued) { queued = true; requestAnimationFrame(step); } };
   const step = () => {
-    if (!tplOpen()) return;
-    const el = todo.shift(); if (!el) return;
+    queued = false;
+    if (!tplOpen()) { tplIO.disconnect(); return; }
+    const el = todo.find(x => vis.has(x) && x.isConnected); if (!el) return;
+    todo.splice(todo.indexOf(el), 1); tplIO.unobserve(el); vis.delete(el);
     const t = TEMPLATES.find(x => x.id === el.dataset.tim);
-    let u = tplThumbs.get(t.id); if (!u) { u = tplThumb(t); tplThumbs.set(t.id, u); }
-    if (el.isConnected) el.innerHTML = `<img src="${u}" alt="">`;
-    setTimeout(step, 0);
+    let u = tplThumbs.get(tplTK(t)); if (!u) { u = tplThumb(t); tplThumbs.set(tplTK(t), u); }
+    el.innerHTML = `<img src="${u}" alt="">`;
+    if (todo.length) kick(); else tplIO.disconnect();
   };
-  step();
+  tplIO = new IntersectionObserver(es => { es.forEach(e => e.isIntersecting ? vis.add(e.target) : vis.delete(e.target)); kick(); }, { rootMargin: '300px 0px' });
+  todo.forEach(el => tplIO.observe(el));
 }
 /* chart data textarea: live preview while typing, one history step when it loses focus */
 let chartT = 0;
@@ -8488,8 +8536,9 @@ document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closes
   familyCSS('Klee One'); familyCSS('Noto Sans JP');
   await loadCustomFonts();
   const ok = await loadDraft();   // true = restored, null = the user already opened something, false = nothing
+  const welcome = !UI.seen && !navigator.webdriver && !hashPost();   // first visit: the welcome sheet explains the sample
   if (ok) toast('前回の下書きを開きました');
-  else if (ok === false && !doc) { loadSample(); toast('サンプル写真を表示中。左上の「開く」から写真を選べます', 4200); }
+  else if (ok === false && !doc) { loadSample(); if (!welcome) toast('サンプル写真を表示中。左上の「開く」から写真を選べます', 4200); }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layoutMemo.clear(); invalidate(); });
   const pid = hashPost(); if (pid) openSharedPost(pid);
   else if (!UI.seen && !navigator.webdriver) { UI.seen = true; saveUI(); setTimeout(() => openSheet('#sheetWelcome'), 400); }   // first visit: a short welcome (not in automated test browsers)
