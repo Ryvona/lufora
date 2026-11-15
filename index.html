@@ -359,6 +359,10 @@ input[type=range]::-moz-range-thumb{width:calc(24px*var(--u));height:calc(24px*v
 .tglock{flex:0 0 54px;text-align:center;font-size:10.5px;line-height:1.3;color:var(--muted)}
 .setrow{display:flex;align-items:center;gap:12px;min-height:calc(54px*var(--u));border-bottom:1px solid var(--line)}
 .setrow:last-child{border-bottom:0}
+.pubsw{margin-top:14px;border-top:1px solid var(--line)}
+#pubForm{padding-top:6px}#pubForm #pubVis{display:grid;grid-template-columns:1fr 1fr;gap:8px}#pubForm #pubVis .chip{display:flex;flex-direction:column;justify-content:center;height:auto;min-height:calc(48px*var(--u));padding:6px 10px;line-height:1.3}
+#pubForm #pubVis .chip .mnote{display:block;margin:0;font-size:10.5px;opacity:.8;font-weight:400}
+#exPub{width:100%;margin-top:4px}
 .setrow .st{flex:1;min-width:0;font-size:calc(14.5px*var(--u))}
 .setrow small{display:block;font-size:calc(11.5px*var(--u));color:var(--muted);margin-top:2px;line-height:1.5}
 
@@ -972,17 +976,18 @@ html:not(.desk):not(.tab) .dock .tools .tool span.tl{font-size:.8em}
   <h3>画質・サイズ</h3>
   <div class="wrap" id="exQ"></div>
   <div class="wrap" id="exSize" style="margin-top:8px"></div>
-  <h3>公開設定</h3>
-  <div class="wrap" id="pubVis"></div>
+  <div class="setrow pubsw"><span class="st">みんなの作品にも公開する<small id="pubSwSub">オフなら、画像を保存するだけです。どこにも公開されません。</small></span><button class="tg" role="switch" aria-checked="false" aria-label="みんなの作品にも公開する" id="pubSw"></button></div>
   <div id="pubForm" hidden>
+    <div class="wrap" id="pubVis"></div>
     <input id="pubTitle" class="pubin" maxlength="40" placeholder="タイトル（例：夕焼けエモ）" autocomplete="off">
     <input id="pubTags" class="pubin" maxlength="60" placeholder="タグ（スペース区切り　例：エモ 夕焼け）" autocomplete="off">
     <input id="pubNick" class="pubin" maxlength="20" hidden tabindex="-1" aria-hidden="true">
     <p class="note" id="pubWho"></p>
     <p class="note" id="pubNote"></p>
+    <button class="btn" id="exPub" hidden>公開だけする（画像は保存しない）</button>
   </div>
   <div class="pubdone" id="pubDone" hidden><span id="pubDoneMsg"></span><button class="chip" data-gal="mine">見る</button></div>
-  <div class="actions" style="padding:16px 0 0"><button class="btn" id="exCopy" hidden>画像をコピー</button><button class="btn" id="exPub" hidden>公開だけする</button><button class="btn primary" id="exGo">保存する</button></div>
+  <div class="actions" style="padding:16px 0 0"><button class="btn" id="exCopy" hidden>画像をコピー</button><button class="btn primary" id="exGo">保存する</button></div>
 </div>
 
 <div class="sheet" id="sheetHelp" hidden>
@@ -10613,21 +10618,24 @@ $('#sheetGallery').addEventListener('keydown', e => {
   else if (e.target.id === 'gpTags') { e.preventDefault(); galPubGo(); }
 });
 /* 保存 sheet: 公開設定 (default 非公開). Publishing runs alongside the existing export on 保存する. */
-const PUB = { vis: 'private', lastKey: null, lastId: null };
+const PUB = { vis: 'private', pick: 'public', lastKey: null, lastId: null };   // vis = what 保存 does now; pick = 公開 / 限定公開 remembered while the switch is off
 /* 公開設定 ≠ 非公開: 「公開だけする」 posts without saving the picture file; the main button then says 保存して公開 */
 const exGoLabel = () => PUB.vis === 'private' ? '保存する' : '保存して公開';
 function renderPub() {
   $('#exPub').hidden = PUB.vis === 'private'; if (!$('#exGo').disabled) $('#exGo').textContent = exGoLabel();
   const who = $('#pubWho'); if (who) who.innerHTML = pubWhoHtml();
   const gw = $('#gpWho'); if (gw) gw.innerHTML = pubWhoHtml();
-  $('#pubVis').innerHTML = VIS.map(([v, l]) => `<button class="chip${PUB.vis === v ? ' on' : ''}" data-pv="${v}">${l}</button>`).join('');
-  $('#pubForm').hidden = PUB.vis === 'private';
+  const on = PUB.vis !== 'private', sw = $('#pubSw'); sw.setAttribute('aria-checked', on);
+  $('#pubSwSub').textContent = on ? '保存すると、みんなの作品にも投稿されます。' : 'オフなら、画像を保存するだけです。どこにも公開されません。';
+  $('#pubVis').innerHTML = VIS.filter(([v]) => v !== 'private').reverse().map(([v, l]) => `<button class="chip${PUB.vis === v ? ' on' : ''}" aria-pressed="${PUB.vis === v}" data-pv="${v}">${l}${v === 'unlisted' ? '<small class="mnote">リンクを知っている人だけ</small>' : '<small class="mnote">だれでも見られる</small>'}</button>`).join('');
+  $('#pubForm').hidden = !on;
   $('#pubNote').textContent = PUB.vis === 'public'
     ? (Gallery.online ? '保存すると「みんなの作品」に表示され、色味のレシピも一緒に公開されます。' : 'サーバー接続後に他の人にも表示されます。今はこの端末のギャラリーに保存されます。色味のレシピも一緒に保存されます。')
     : Gallery.online ? 'リンクを知っている人だけが見られます。保存後に「見る」→ 作品 →「リンクをコピー」で共有できます。'
       : 'リンクを知っている人だけが見られる設定です（リンク共有はサーバー接続後に使えます）。今はこの端末の「自分の投稿」に保存されます。';
 }
-$('#sheetSave').addEventListener('click', e => { const p = e.target.closest('[data-pv]'); if (p) { PUB.vis = p.dataset.pv; renderPub(); } });
+$('#sheetSave').addEventListener('click', e => { const p = e.target.closest('[data-pv]'); if (p) { PUB.vis = PUB.pick = p.dataset.pv; renderPub(); } });
+$('#pubSw').addEventListener('click', () => { PUB.vis = PUB.vis === 'private' ? PUB.pick : 'private'; renderPub(); if (PUB.vis !== 'private') setTimeout(() => { const t = $('#pubTitle'); if (t && t.offsetParent && deskOn) t.focus(); }, 60); });
 $('#btnSave').addEventListener('click', () => { if (!doc) return; $('#pubNick').value = UI.nick || ''; renderPub(); $('#pubDone').hidden = true; });
 const pubWhoHtml = () => acct && acctName ? `<b>@${esc(acctName)}</b> として公開されます。` : acct ? 'ユーザーネームを決めると、その名前で公開されます。' : '<b>ゲスト</b>として公開されます。ログインすると、ユーザーネームで公開できます。';
 /* the 保存 sheet (PUB + #pubTitle/#pubTags) and the gallery form (GP) both publish through publishDoc */
@@ -10651,12 +10659,12 @@ async function publishDoc(vis, title0, tags0) {
 $('#exPub').addEventListener('click', async () => {
   const b = $('#exPub'); if (b.disabled || PUB.vis === 'private') return;
   b.disabled = true; $('#exGo').disabled = true; b.textContent = '公開中…';
-  try { await runPublish(); } finally { b.disabled = false; $('#exGo').disabled = false; b.textContent = '公開だけする'; }
+  try { await runPublish(); } finally { b.disabled = false; $('#exGo').disabled = false; b.textContent = '公開だけする（画像は保存しない）'; }
 });
 /* open the 保存 sheet ready to publish (公開, title field focused) */
 function openPublish() {
   if (!doc) return;
-  if (PUB.vis === 'private') PUB.vis = 'public';
+  if (PUB.vis === 'private') PUB.vis = PUB.pick;
   openSave(); $('#pubNick').value = UI.nick || ''; renderPub(); $('#pubDone').hidden = true;
   setTimeout(() => { const t = $('#pubTitle'); if (t && t.offsetParent) t.focus({ preventScroll: false }); }, 250);
 }
