@@ -6294,7 +6294,7 @@ function objPanel(o) {
     case 'note':
       // shapes as small pictures in the note's own colour; the three colours (塗り・枠線・文字) sit together
       h += row('形', ichips('o', 'shape', NOTE_SHAPES.map(([v, l]) => [v, `<img class="nico" src="${noteIco(v, o.color)}" alt=""><span class="vh">${l.replace(/^\S+\s/, '')}</span>`]), o.shape || 'square'), true);
-      if (o.shape === 'speech' || o.shape === 'think') h += row('しっぽ', ichips('o', 'tail', NOTE_TAILS.map(([v, l, a]) => [v, svgI(`<g transform="rotate(${a} 12 12)"><path d="M12 4v15M6.5 13.5L12 19l5.5-5.5"/></g>`, 'しっぽの向き：' + l)]), o.tail || 'bl'), true) + hint('しっぽの先の ● をドラッグすると、向きと長さを自由に変えられます');
+      if (o.shape === 'speech' || o.shape === 'think') h += hint('しっぽの先の ● をドラッグすると、向きと長さを自由に変えられます');
       h += `<div class="cgrp">` + row('塗り', swatches('o', 'color', o.color, NOTE_COLORS))
         + row('枠線', noneSw('stroke', o.stroke) + swatches('o', 'stroke', o.stroke || 'none', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#5E8C5F', '#FF8FB1']))
         + row('文字', swatches('o', 'tcolor', o.tcolor || '#2A2724', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#1F8A4C', '#8B5CF6'])) + `</div>`;
