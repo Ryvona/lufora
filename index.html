@@ -832,7 +832,7 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
     <p class="note" id="pubNote"></p>
   </div>
   <div class="pubdone" id="pubDone" hidden><span id="pubDoneMsg"></span><button class="chip" data-gal="mine">見る</button></div>
-  <div class="actions" style="padding:16px 0 0"><button class="btn primary" id="exGo">保存する</button></div>
+  <div class="actions" style="padding:16px 0 0"><button class="btn" id="exCopy" hidden>画像をコピー</button><button class="btn primary" id="exGo">保存する</button></div>
 </div>
 
 <div class="sheet" id="sheetHelp" hidden>
@@ -865,7 +865,7 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
       <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></dt><dd>元に戻す / やり直し</dd><dt><kbd>Ctrl</kbd>+<kbd>D</kbd></dt><dd>複製</dd>
       <dt><kbd>Delete</kbd></dt><dd>削除</dd><dt><kbd>Ctrl</kbd>+<kbd>A</kbd></dt><dd>すべて選択</dd>
       <dt><kbd>Ctrl</kbd>+<kbd>]</kbd> / <kbd>[</kbd></dt><dd>前面へ / 背面へ</dd><dt><kbd>←↑↓→</kbd></dt><dd>少し動かす（<kbd>Shift</kbd>で大きく）</dd>
-      <dt><kbd>Shift</kbd>+ドラッグ</dt><dd>囲んで選ぶ</dd><dt>図形で<kbd>Shift</kbd>+ドラッグ</dt><dd>線は15°ごと・四角や丸は正方形／正円</dd><dt><kbd>Alt</kbd>+ドラッグ</dt><dd>吸着しないで動かす・描く</dd><dt><kbd>Ctrl</kbd>+<kbd>V</kbd></dt><dd>画像を貼り付け</dd><dt>右クリック</dt><dd>操作メニュー</dd>
+      <dt><kbd>Shift</kbd>+ドラッグ</dt><dd>囲んで選ぶ</dd><dt><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>X</kbd> / <kbd>V</kbd></dt><dd>選んだ物をコピー / 切り取り / 貼り付け</dd><dt><kbd>Shift</kbd>+<kbd>H</kbd> / <kbd>V</kbd></dt><dd>左右反転 / 上下反転</dd><dt><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></dt><dd>できあがった画像をコピー</dd><dt>図形で<kbd>Shift</kbd>+ドラッグ</dt><dd>線は15°ごと・四角や丸は正方形／正円</dd><dt><kbd>Alt</kbd>+ドラッグ</dt><dd>吸着しないで動かす・描く</dd><dt><kbd>Ctrl</kbd>+<kbd>V</kbd></dt><dd>画像を貼り付け</dd><dt>右クリック</dt><dd>操作メニュー</dd>
     </dl></div>
     <div><h4>表示</h4><dl>
       <dt><kbd>Space</kbd>+ドラッグ</dt><dd>画面を動かす</dd><dt><kbd>Ctrl</kbd>+<kbd>0</kbd></dt><dd>全体を表示</dd><dt><kbd>Ctrl</kbd>+<kbd>1</kbd></dt><dd>等倍</dd>
@@ -2569,6 +2569,12 @@ const ICON = {
   none: I('<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>')
 };
 /* more line icons: pen kinds, mosaic, cut-out modes, crop, the select legend, adjust sliders */
+Object.assign(ICON, {
+  copy: I('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
+  paste: I('<rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M9 11h6M9 15h4"/>'),
+  distH: I('<path d="M4 4v16M20 4v16"/><rect x="9.5" y="8" width="5" height="8" rx="1"/>'),
+  distV: I('<path d="M4 4h16M4 20h16"/><rect x="8" y="9.5" width="8" height="5" rx="1"/>'),
+  clip: I('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 15.5l2.5-3 2 2 3-4"/><circle cx="9" cy="9" r="1.4"/>') });
 Object.assign(ICON, { user: I('<circle cx="12" cy="8.2" r="3.6"/><path d="M4.6 20c.9-3.7 3.9-5.9 7.4-5.9s6.5 2.2 7.4 5.9"/>') });
 Object.assign(ICON, {
   hl: I('<path d="M8.5 13.5l7-8.5 4 4-8.5 7z"/><path d="M8.5 13.5 6 16v2.5h3.5l2-2.5"/><path d="M14 20h6"/>'),
@@ -3131,6 +3137,7 @@ function drawObject(ctx, o, scale) {
   ctx.save();
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   ctx.translate(o.x, o.y); ctx.rotate(o.rot); ctx.scale(o.sc, o.sc);
+  if (o.fh || o.fv) ctx.scale(o.fh ? -1 : 1, o.fv ? -1 : 1);   // 左右・上下反転 (pictures, stickers, stamps)
   ctx.globalAlpha = o.op;
   const k = scale * o.sc;
   switch (o.type) {
@@ -3627,6 +3634,63 @@ function mirrorLocal(o, axis) {
   if (o.p1) { o.p1[i] = -o.p1[i]; o.p2[i] = -o.p2[i]; }
   if (o.type === 'shape' && isLineK(o.kind)) { o.bend = -(o.bend == null ? 0.3 : o.bend); if (o.wa != null) o.wa = -o.wa; }
   if (axis === 'y' && o.type === 'shape' && (o.kind === 'tri' || o.kind === 'heart')) o.rot += Math.PI;
+}
+/* ==== object flip / copy & paste / distribute ==== */
+const canFlip = o => o && !o.locked && /^(image|deco|stamp|shape|stroke)$/.test(o.type) && !(o.type === 'stamp' && o.kind === 'num');   // a number would read mirrored
+function flipObjs(ms, axis) {
+  ms = ms.filter(canFlip); if (!ms.length) return;
+  for (const o of ms) {
+    if (o.type === 'shape' || o.type === 'stroke') mirrorLocal(o, axis);   // geometry knows its own two ends / points
+    else if (axis === 'x') o.fh = !o.fh; else o.fv = !o.fv;
+  }
+  invalidate(); commit(); refreshPanel();
+}
+/* copy / cut / paste of objects (this device, this tab). Bitmaps are kept by reference so a paste works after opening
+   another photo too. Ctrl+C also puts a marker text on the system clipboard, so Ctrl+V knows whether the newest copy
+   was ours (objects) or a picture copied from elsewhere. */
+let clip = null;
+const CLIP_MARK = 'lufora-objects:';
+function selList() { const ms = multiObjs(); return ms.length ? ms : selObj() ? [selObj()] : []; }
+function copyObjs(cut) {
+  const ms = selList().filter(o => !o.hidden); if (!ms.length) return false;
+  clip = { objs: JSON.parse(JSON.stringify(ms)), bmps: new Map(), n: 0, mark: CLIP_MARK + Date.now() };
+  for (const o of clip.objs) for (const id of [o.bmp, o.orig]) if (id && bitmaps.has(id)) clip.bmps.set(id, bitmaps.get(id));
+  if (cut) {
+    const ids = new Set(ms.filter(o => !o.locked).map(o => o.id));
+    if (!ids.size) { toast('ロック中のものは切り取れません'); return true; }
+    doc.objects = doc.objects.filter(o => !ids.has(o.id)); selId = null; multi = [];
+    invalidate(); commit(); refreshPanel();
+  }
+  toast(cut ? '切り取りました（Ctrl+V で貼り付け）' : deskOn ? 'コピーしました（Ctrl+V で貼り付け）' : 'コピーしました（長押しメニューの「貼り付け」で貼れます）');
+  return true;
+}
+function pasteObjs() {
+  if (!clip || !doc) return false;
+  clip.n++;
+  const d = MIN() * 0.03 * clip.n, ids = [];
+  for (const src of clip.objs) {
+    const c = JSON.parse(JSON.stringify(src)); c.id = newId(); c.locked = false; delete c.hidden; c.x += d; c.y += d;
+    for (const k of ['bmp', 'orig']) if (c[k] && !bitmaps.has(c[k])) { const e = clip.bmps.get(c[k]); c[k] = e ? regBitmap(e.canvas, e.blob, e.alpha) : null; }
+    if (c.type === 'image' && !c.bmp && !c.slot) continue;
+    if (c.kind === 'num') c.n = nextNum();
+    doc.objects.push(c); ids.push(c.id);
+  }
+  if (!ids.length) return false;
+  if (tool !== 'select') setTool('select');
+  if (ids.length === 1) { selId = ids[0]; multi = []; } else { selId = null; multi = ids; }
+  invalidate(); commit(); refreshPanel(); toast(ids.length > 1 ? `${ids.length}個を貼り付けました` : '貼り付けました');
+  return true;
+}
+/* 等間隔: 3 or more objects get equal gaps between them, left→right (h) or top→bottom (v); the outer two stay put */
+function distributeObjs(ms, how) {
+  ms = ms.filter(o => !o.locked);
+  if (ms.length < 3) { toast('3つ以上選ぶと、等間隔に並べられます'); return; }
+  const h = how === 'h', B = ms.map(o => ({ o, b: multiBox([o]) })).sort((a, b) => h ? (a.b.x0 + a.b.x1) - (b.b.x0 + b.b.x1) : (a.b.y0 + a.b.y1) - (b.b.y0 + b.b.y1));
+  const first = B[0].b, last = B[B.length - 1].b, size = B.reduce((t, x) => t + (h ? x.b.x1 - x.b.x0 : x.b.y1 - x.b.y0), 0);
+  const gap = ((h ? last.x1 - first.x0 : last.y1 - first.y0) - size) / (B.length - 1);
+  let at = h ? first.x0 : first.y0;
+  for (const x of B) { if (h) x.o.x += at - x.b.x0; else x.o.y += at - x.b.y0; at += (h ? x.b.x1 - x.b.x0 : x.b.y1 - x.b.y0) + gap; }
+  invalidate(); commit(); toast(h ? '横に等間隔に並べました' : '縦に等間隔に並べました');
 }
 function geomOp(op) {
   const W = doc.w, H = doc.h;
@@ -4158,7 +4222,8 @@ const tgtOrig = t => t.o ? (t.o.orig || t.o.bmp) : (doc.baseOrig || doc.baseId);
 function docToBmp(t, d) {
   const bm = bitmaps.get(tgtId(t)).canvas;
   if (!t.o) return { x: d.x * bm.width / doc.w, y: d.y * bm.height / doc.h, k: bm.width / doc.w };
-  const [lx, ly] = toLocal(t.o, d.x, d.y);
+  let [lx, ly] = toLocal(t.o, d.x, d.y);
+  if (t.o.fh) lx = -lx; if (t.o.fv) ly = -ly;   // a flipped picture: the brush lands where the finger is
   return { x: (lx + t.o.w / 2) / t.o.w * bm.width, y: (ly + t.o.h / 2) / t.o.h * bm.height, k: bm.width / (t.o.w * t.o.sc) };
 }
 const cutRadius = b => Math.max(1, S.cut.size * U() * b.k / 2);
@@ -5063,6 +5128,8 @@ function openObjMenu() {
   else if (!o.locked && o.type === 'image') h += it('cutThis', ICON.cutout, '背景を削除');
   if (o.type === 'image' && o.bmp) h += it('libSave', ICON.keep, 'マイ素材に保存');
   if (h) h += '<hr>';
+  if (canFlip(o)) h += it('flipH', ICON.flipH, '左右反転') + it('flipV', ICON.flipV, '上下反転') + '<hr>';
+  h += it('copy', ICON.copy, 'コピー') + (clip ? it('paste', ICON.paste, '貼り付け') : '') + '<hr>';
   h += it('front', ICON.front, '前面へ') + it('back', ICON.back, '背面へ') + it('dup', ICON.dup, '複製') + it('lock', o.locked ? ICON.unlock : ICON.lock, o.locked ? 'ロック解除' : 'ロック') + '<hr>' + it('del', ICON.trash, '削除', 'danger');
   objMenu.innerHTML = h; objMenu.hidden = false; objMore.setAttribute('aria-expanded', 'true'); placeObjMenu();
   objMenu.querySelector('button').focus({ preventScroll: true });
@@ -5111,6 +5178,12 @@ function runCmd(k, v, final) {
       if (tool === 'shape') { [S.shape.cs, S.shape.ce] = [S.shape.ce, S.shape.cs]; saveToolsSoon(); }
       if (isLineO(o) && !o.locked) { lineNorm(o); [o.cs, o.ce] = [o.ce, o.cs]; if (tool !== 'shape') { S.shape.cs = o.cs; S.shape.ce = o.ce; saveToolsSoon(); } invalidate(); commit(); }
       refreshPanel(); break;
+    case 'flipH': flipObjs(selList(), 'x'); break;
+    case 'flipV': flipObjs(selList(), 'y'); break;
+    case 'copy': copyObjs(false); break;
+    case 'cut': copyObjs(true); break;
+    case 'paste': pasteObjs(); break;
+    case 'dist': distributeObjs(multiObjs(), v); break;
     case 'lock': if (o) { o.locked = !o.locked; commit(); refreshPanel(); requestDraw(); toast(o.locked ? 'ロックしました。動かせなくなります' : 'ロックを解除しました'); } break;
     case 'del': if (o) { if (o.locked) { toast('ロック中です。解除してから削除してください'); break; } removeObj(o.id); invalidate(); commit(); delSel = { snap: lastSnap, ids: [o.id] }; refreshPanel(); } break;
     case 'edit': if (o) startInlineEdit(o); break;
@@ -5574,7 +5647,8 @@ function objPanel(o) {
       if (o.mode !== 'black') h += slider('o:str', '強さ', 5, 100, o.str);
       break;
   }
-  h += foldMore('詳細（不透明度・位置・整列）', slider('o:op', '不透明度', 10, 100, o.op * 100, 0.01) + numsRow(o) + alignRow('写真に揃える'));
+  const flipRow = canFlip(o) ? row('反転', ['flipH', 'flipV'].map(k => `<button class="chip ichip" data-act="cmd" data-k="${k}" title="${k === 'flipH' ? '左右反転' : '上下反転'}" aria-label="${k === 'flipH' ? '左右反転' : '上下反転'}">${ICON[k]}</button>`).join('')) : '';
+  h += foldMore('詳細（不透明度・位置・整列）', slider('o:op', '不透明度', 10, 100, o.op * 100, 0.01) + flipRow + numsRow(o) + alignRow('写真に揃える'));
   return h;
 }
 /* phones fold rarely used rows under a もっと見る / 詳細 toggle (its open state is remembered); PC shows them inline */
@@ -5688,6 +5762,8 @@ function multiPanel(ms) {
   return `<div class="objhead"><span class="badge">${ms.length}個を選択中</span></div>`
     + row('操作', [['mFront', ICON.front, '前面へ'], ['mBack', ICON.back, '背面へ'], ['mDup', ICON.dup, '複製'], ['mDel', ICON.trash, '削除', ' danger']].map(([k, ic, t, c = '']) => `<button class="chip ichip${c}" data-act="cmd" data-k="${k}" title="${t}" aria-label="${t}">${ic}</button>`).join('') + cmdBtn('mClear', '選択を解除'), true)
     + alignRow('揃える')
+    + row('等間隔', [['h', ICON.distH, '横に等間隔'], ['v', ICON.distV, '縦に等間隔']].map(([v, ic, t]) => `<button class="chip ichip" data-act="cmd" data-k="dist" data-v="${J(v)}" title="${t}" aria-label="${t}"${ms.length < 3 ? ' disabled' : ''}>${ic}</button>`).join('')
+      + ['flipH', 'flipV'].map(k => `<button class="chip ichip" data-act="cmd" data-k="${k}" title="${k === 'flipH' ? '左右反転' : '上下反転'}" aria-label="${k === 'flipH' ? 'まとめて左右反転' : 'まとめて上下反転'}">${ICON[k]}</button>`).join(''))
     + hint('✋ 枠の中をドラッグでまとめて移動');
 }
 let panelKey = '', panelTool = 'select';
@@ -7243,6 +7319,9 @@ function cmdItems() {
   add('すべて選択', 'Ctrl+A', ['select all', '全選択', 'すべて ぜんせんたく'], () => { setTool('select'); const ids = doc.objects.filter(x => !x.locked && !x.hidden).map(x => x.id); if (ids.length > 1) { selId = null; multi = ids; } else { multi = []; selId = ids[0] || null; } refreshPanel(); requestDraw(); });
   add('みんなの作品', 'ギャラリー', ['gallery', '投稿', '公開', 'みんなのさくひん とうこう'], () => openGallery());
   add('設定', '表示サイズ・演出', ['settings', 'size', '表示', 'せってい'], openUISheet);
+  add('画像をコピー', 'できあがりをクリップボードへ', ['copy image', 'clipboard', 'こぴー', 'がぞうをこぴー', 'くりっぷぼーど'], copyImage);
+  add('左右反転', '選んだ物を反転', ['flip', 'mirror', 'さゆうはんてん', 'はんてん', 'みらー'], () => flipObjs(selList(), 'x'));
+  add('上下反転', '選んだ物を反転', ['flip', 'じょうげはんてん', 'はんてん'], () => flipObjs(selList(), 'y'));
   if (SUPA.url && ACCT_ON) add('アカウント', 'ログイン・同期', ['account', 'login', 'ろぐいん', 'あかうんと', 'どうき', 'sync', 'google', 'apple', 'めーる'], openAccount);
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
@@ -7283,10 +7362,19 @@ $('#cmdList').addEventListener('click', e => { const b = e.target.closest('[data
 /* Ctrl/Cmd+V: paste an image from the clipboard as a new photo object (text fields keep their own paste) */
 document.addEventListener('paste', e => {
   if (!doc || /INPUT|TEXTAREA/.test(e.target.tagName) || !backdrop.hidden) return;
-  const f = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => i.kind === 'file' && /^image\//.test(i.type));
+  const cd = e.clipboardData, txt = cd ? cd.getData('text/plain') : '';
+  if (clip && (txt === clip.mark || (!txt && !cd.files.length))) { e.preventDefault(); pasteObjs(); return; }   // our own copy is the newest
+  const f = [...(cd ? cd.items : [])].find(i => i.kind === 'file' && /^image\//.test(i.type));
   if (!f) return;
   e.preventDefault(); addPhoto(f.getAsFile());
 });
+/* Ctrl+C / Ctrl+X on the canvas (no text field focused, no text selected): copy / cut the selected objects */
+['copy', 'cut'].forEach(type => document.addEventListener(type, e => {
+  if (!doc || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable || !backdrop.hidden || tool !== 'select') return;
+  if (String(getSelection && getSelection()).trim()) return;   // the user is copying page text
+  if (!selList().length) return;
+  if (copyObjs(type === 'cut')) { e.preventDefault(); try { e.clipboardData.setData('text/plain', clip.mark); } catch (err) { } }
+}));
 /* drop photo files onto the canvas to paste them */
 // a file dropped anywhere outside the stage (or a non-image on it) must not make the browser open it in place of the app
 ['dragover', 'drop'].forEach(t => document.addEventListener(t, e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); }));
@@ -7794,6 +7882,27 @@ let exUrl = null;
 
 const EX_MAX_PX = 16e6;   // iOS Safari refuses canvases above ~16.7 MP
 /* 保存する: export first, then (if 公開設定 isn't 非公開) publish — one flow, the button stays busy until both finish */
+/* the finished picture → system clipboard as PNG (paste into chats, documents…); only where the browser can write images */
+const canCopyImg = () => !!(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem && window.isSecureContext);
+async function copyImage() {
+  if (!doc) return;
+  if (!canCopyImg()) { toast('このブラウザでは画像のコピーができません。「保存する」をお使いください'); return; }
+  const b = $('#exCopy'); if (b) b.disabled = true;
+  try {
+    // ClipboardItem with a promise keeps the user gesture alive while the PNG is encoded (Safari needs this)
+    const blobP = (async () => {
+      try { await document.fonts.ready; } catch (e) { }
+      const c = document.createElement('canvas'), sc = Math.min(1, Math.sqrt(EX_MAX_PX / (doc.w * doc.h)));
+      renderDoc(c, sc, { cache: false }); const bl = await toBlob(c, 'image/png'); c.width = c.height = 1;
+      if (!bl) throw new Error('blob'); return bl;
+    })();
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
+    toast('画像をコピーしました。チャットや文書に貼り付けられます');
+  } catch (e) { console.warn('copy image', e); toast('画像をコピーできませんでした'); }
+  finally { if (b) b.disabled = false; }
+}
+$('#exCopy').hidden = !canCopyImg();
+$('#exCopy').addEventListener('click', copyImage);
 $('#exGo').addEventListener('click', async () => {
   const btn = $('#exGo'); if (btn.disabled) return;
   btn.disabled = true; btn.textContent = '作成中…';
@@ -8544,6 +8653,8 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); if (e.key === '0') fitView(); else if (e.key === '1') zoomTo(1); else zoomBy(e.key === '-' ? 0.8 : 1.25); return;
   }
   if (!m && e.shiftKey && e.code === 'Digit2' && doc) { e.preventDefault(); zoomToSel(); return; }   // Shift+2: zoom to selection
+  if (m && e.shiftKey && e.code === 'KeyC' && doc) { e.preventDefault(); copyImage(); return; }   // Ctrl+Shift+C: copy the finished image
+  if (!m && e.shiftKey && !e.altKey && (e.code === 'KeyH' || e.code === 'KeyV') && tool === 'select' && (o || ms.length)) { e.preventDefault(); flipObjs(selList(), e.code === 'KeyH' ? 'x' : 'y'); return; }   // Shift+H / Shift+V: flip
   if (m && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
   else if (m && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
   else if (m && e.key.toLowerCase() === 'd' && o) { e.preventDefault(); runCmd('dup'); }
