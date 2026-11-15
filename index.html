@@ -8372,7 +8372,8 @@ const authParams = () => { const q = new URLSearchParams(location.search), h = n
 const authInUrl = () => { const g = authParams(); return !!(g('access_token') || g('error_code') || g('error_description')); };
 const cleanAuthUrl = () => { const q = new URLSearchParams(location.search); ['error', 'error_code', 'error_description'].forEach(k => q.delete(k)); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '')); };
 async function authReturn() {
-  const g = authParams(), err = g('error_code') || g('error'), desc = (g('error_description') || '').replace(/\+/g, ' ');
+  const g = authParams(), err = g('error_code') || g('error');
+  let desc = (g('error_description') || '').replace(/\+/g, ' '); try { desc = decodeURIComponent(desc); } catch (e) { }   // Supabase may encode it twice
   let prov = null; try { prov = sessionStorage.getItem('lf.auth'); sessionStorage.removeItem('lf.auth'); } catch (e) { }
   if (err) {
     cleanAuthUrl();
