@@ -3323,17 +3323,45 @@ const NOTE_BOX = {
   cloud: [0.22, 0.26, 0.78, 0.74, 1], tag: [0.27, 0.16, 0.92, 0.84, 0],
   ribbon: [0.16, 0.2, 0.84, 0.8, 1], label: [0.12, 0.2, 0.88, 0.8, 1], sticker: [0.2, 0.22, 0.8, 0.78, 1], think: [0.18, 0.18, 0.82, 0.66, 1]
 };
+/* free tail (o.tx / o.ty = the tip in note-local space, set by dragging the ● at the tip): the body then fills o.w × o.h.
+   Without them the preset o.tail look is used. tailPre = a preset's body box (centre c, size bw × bh) and tip, as fractions of the note box */
+const hasTail = o => o && o.type === 'note' && (o.shape === 'speech' || o.shape === 'think');
+const freeTail = o => hasTail(o) && o.tx != null;
+function tailPre(shape, t) {
+  t = t || 'bl';
+  const side = t === 'l' || t === 'r', sx = t === 'l' || t[1] === 'l' ? -1 : t === 'r' || t[1] === 'r' ? 1 : 0, sy = t[0] === 't' ? -1 : 1;
+  if (shape === 'think') return side ? { c: [-sx * 0.08, 0], bw: 0.76, bh: 1, tip: [sx * 0.47, 0.33] } : { c: [0, -sy * 0.08], bw: 1, bh: 0.76, tip: [sx ? sx * 0.32 : -0.1, sy * 0.47] };
+  return side ? { c: [-sx * 0.1, 0], bw: 0.8, bh: 1, tip: [sx * 0.5, 0.3] } : { c: [0, -sy * 0.1], bw: 1, bh: 0.8, tip: [sx * 0.38, sy * 0.5] };
+}
+/* the tip in note-local space (free or preset) */
+function tailTip(o) {
+  if (freeTail(o)) return [o.tx, o.ty];
+  const g = tailPre(o.shape, o.tail); return [g.tip[0] * o.w, g.tip[1] * o.h];
+}
+/* preset → free: the note box shrinks to the preset's body (same place on screen) and the tip keeps its spot */
+function tailFree(o) {
+  if (freeTail(o)) return;
+  const g = tailPre(o.shape, o.tail), d = l2d(o, [g.c[0] * o.w, g.c[1] * o.h]);
+  o.tx = (g.tip[0] - g.c[0]) * o.w; o.ty = (g.tip[1] - g.c[1]) * o.h;
+  o.x = d.x; o.y = d.y; o.w *= g.bw; o.h *= g.bh;
+}
+/* a preset chip on a free tail: put the tip where that preset has it, for the current body */
+function tailSetPre(o, t) {
+  const g = tailPre(o.shape, t), W = o.w / g.bw, H = o.h / g.bh;
+  o.tx = Math.round((g.tip[0] - g.c[0]) * W * 10) / 10; o.ty = Math.round((g.tip[1] - g.c[1]) * H * 10) / 10;
+}
 function layoutNote(o) {
   const shape = o.shape || 'square', fam = o.font || 'Klee One';
-  const tl = (shape === 'speech' || shape === 'think') ? o.tail || 'bl' : '';
-  const key = 'n|' + o.text + '|' + o.w + '|' + o.h + '|' + shape + tl + '|' + fam;
+  const tl = (shape === 'speech' || shape === 'think') ? o.tail || 'bl' : '', fr = !!tl && o.tx != null;
+  const key = 'n|' + o.text + '|' + o.w + '|' + o.h + '|' + shape + tl + (fr ? 'f' : '') + '|' + fam;
   let L = layoutMemo.get(key);
   if (L) return L;
-  let b = NOTE_BOX[shape] || NOTE_BOX.square;
-  if (tl && tl[0] === 't') b = [b[0], 1 - b[3], b[2], 1 - b[1], b[4]];   // tail on top: the body (and text) sit lower
+  let b = NOTE_BOX[shape] || NOTE_BOX.square, fb = Math.min(o.w, o.h);
+  if (fr) { fb = Math.min(Math.max(o.w, o.h), fb * (shape === 'speech' ? 1.25 : 1.32)); b = shape === 'speech' ? [0.1, 0.125, 0.9, 0.9, 0] : [0.18, 0.18, 0.82, 0.82, 1]; }   // free tail: the whole box is the body (the font size stays about as before the switch)
+  else if (tl && tl[0] === 't') b = [b[0], 1 - b[3], b[2], 1 - b[1], b[4]];   // tail on top: the body (and text) sit lower
   else if (tl === 'l' || tl === 'r') b = shape === 'speech' ? (tl === 'l' ? [0.28, 0.12, 0.9, 0.88, 0] : [0.1, 0.12, 0.72, 0.88, 0]) : (tl === 'l' ? [0.24, 0.2, 0.86, 0.8, 1] : [0.14, 0.2, 0.76, 0.8, 1]);
   const maxW = o.w * (b[2] - b[0]), maxH = o.h * (b[3] - b[1]);
-  let fs = Math.min(o.w, o.h) * 0.11, lines = [], font = '';
+  let fs = fb * 0.11, lines = [], font = '';
   for (let i = 0; i < 14; i++) {
     font = `600 ${fs}px ${famStack(fam)}`;
     mctx.font = font;
@@ -3391,7 +3419,8 @@ function ptsBox(pts, pad) {
 }
 function localBox(o) {
   switch (o.type) {
-    case 'image': case 'note': case 'deco': case 'chart': return { x: -o.w / 2, y: -o.h / 2, w: o.w, h: o.h };
+    case 'note': if (freeTail(o)) { const p = Math.min(o.w, o.h) * 0.06; return ptsBox([[-o.w / 2, -o.h / 2], [o.w / 2, o.h / 2], [o.tx - p, o.ty - p], [o.tx + p, o.ty + p]], 0); }   // free tail: the box reaches the tip
+    case 'image': case 'deco': case 'chart': return { x: -o.w / 2, y: -o.h / 2, w: o.w, h: o.h };
     case 'text': { const L = layoutText(o), p = o.size * 0.35; return { x: -L.w / 2 - p, y: -L.h / 2 - p * 0.5, w: L.w + p * 2, h: L.h + p }; }
     case 'stamp': { const s = o.size * 0.6; return { x: -s, y: -s, w: s * 2, h: s * 2 }; }
     case 'stroke': return ptsBox(o.pts, o.width / 2);
@@ -3411,6 +3440,7 @@ function hitObj(o, px, py, tol) {
   if (o.type === 'stroke') return polyDist(lx, ly, o.pts) <= o.width / 2 + t;
   if (o.type === 'mosaic' && o.shape !== 'rect') return polyDist(lx, ly, o.pts) <= o.bw / 2 + t;
   if (o.type === 'shape' && isLineK(o.kind)) return polyDist(lx, ly, linePts(o)) <= o.width * 1.5 + t;
+  if (freeTail(o)) return (Math.abs(lx) <= o.w / 2 + t && Math.abs(ly) <= o.h / 2 + t) || polyDist(lx, ly, [[0, 0], [o.tx, o.ty]]) <= Math.min(o.w, o.h) * 0.08 + t;   // body or along the tail
   const b = localBox(o);
   return lx >= b.x - t && lx <= b.x + b.w + t && ly >= b.y - t && ly <= b.y + b.h + t;
 }
@@ -3450,6 +3480,7 @@ function hitHandle(o, p) {
     if (Math.min(da, db) < R) return da <= db ? 'e1' : 'e2';
     return H.mid && dist(p, H.m) < R ? 'mid' : null;
   }
+  if (hasTail(o)) { const q = l2d(o, tailTip(o)); if (dist(p, docToScreen(q.x, q.y)) < (touchG ? 22 : 13)) return 'tip'; }   // 吹き出し / 考え中: the ● at the tail tip
   const g = selGeom(o), [a, b, c2] = g.corners;
   // small objects: shrink the corner targets so a drag inside the object still moves it instead of resizing
   const R = clamp(Math.min(dist(a, b), dist(b, c2)) / 3, 10, 24);
@@ -3709,6 +3740,19 @@ function notePath(ctx, o) {
       ctx.closePath(); return 'nonzero';
     }
     case 'speech': {   // the tail points to o.tail (bl b br / tl t tr / l r); the body leaves room on that side
+      if (o.tx != null) {   // free tail: one outline = rounded body + a wedge from the side facing the tip (no seam when stroked)
+        const tx = o.tx, ty = o.ty, r = m * 0.1;
+        if (Math.abs(tx) <= w / 2 && Math.abs(ty) <= h / 2) { rrectPath(ctx, x, y, w, h, r); return 'nonzero'; }
+        const vert = Math.abs(ty) / h >= Math.abs(tx) / w, sg = vert ? Math.sign(ty) : Math.sign(tx);
+        // frame: u along the tail side, v out of it; M maps back (a 90° turn / mirror keeps arcTo right)
+        const M = vert ? (u, v) => [u, sg * v] : (u, v) => [sg * v, u], A = vert ? w / 2 : h / 2, B = vert ? h / 2 : w / 2, tu = vert ? tx : ty, tv = vert ? sg * ty : sg * tx;
+        const lim = Math.max(A - r, 1), hb = Math.min(m * 0.11 * clamp(Math.hypot(tx, ty) / (m * 0.9), 1, 1.6), lim * 0.9), bc = clamp(tu * 0.5, -lim + hb, lim - hb);
+        const mv = (u, v) => ctx.moveTo(...M(u, v)), ln = (u, v) => ctx.lineTo(...M(u, v)), ar = (u1, v1, u2, v2) => ctx.arcTo(...M(u1, v1), ...M(u2, v2), r);
+        mv(-A + r, -B); ar(A, -B, A, B); ar(A, B, -A, B);
+        ln(bc + hb, B); ln(tu, tv); ln(bc - hb, B);
+        ar(-A, B, -A, -B); ar(-A, -B, A, -B); ctx.closePath();
+        return 'nonzero';
+      }
       const t = o.tail || 'bl', r = m * 0.1;
       if (t === 'l' || t === 'r') {
         const L = t === 'l', bx = L ? x + w * 0.22 : x + w * 0.78;
@@ -3750,6 +3794,15 @@ function notePath(ctx, o) {
     case 'sticker': ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2); return 'nonzero';
     case 'think': {   // thought bubble: cloud-ish oval + two trailing dots toward o.tail
       const t = o.tail || 'bl', dot = (cx, cy, r) => { ctx.moveTo(cx + r, cy); ctx.arc(cx, cy, r, 0, Math.PI * 2); };
+      if (o.tx != null) {   // free tail: the oval fills the box; 2–5 shrinking dots run from its edge to the tip (the last one sits on the tip)
+        ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
+        const tx = o.tx, ty = o.ty, k = Math.hypot(tx / (w / 2), ty / (h / 2));
+        if (k <= 1) return 'nonzero';
+        const L = Math.hypot(tx, ty), ux = tx / L, uy = ty / L, ex = tx / k, ey = ty / k, r0 = m * 0.09, r1 = m * 0.05;
+        const sx = ex + ux * r0 * 1.15, sy = ey + uy * r0 * 1.15, rest = Math.max(0, Math.hypot(tx - sx, ty - sy)), n = clamp(1 + Math.round(rest / (m * 0.22)), 2, 5);
+        for (let i = 0; i < n; i++) { const f = i / (n - 1); dot(sx + (tx - sx) * f, sy + (ty - sy) * f, r0 + (r1 - r0) * f); }
+        return 'nonzero';
+      }
       if (t === 'l' || t === 'r') {
         const sx = t === 'l' ? -1 : 1;
         ctx.ellipse(-sx * w * 0.08, 0, w * 0.38, h / 2, 0, 0, Math.PI * 2);
@@ -4022,6 +4075,12 @@ function drawSelection(o) {
     cx.shadowBlur = 0;
     cx.strokeStyle = '#FFFFFF'; cx.lineWidth = 1.6;
     cx.beginPath(); cx.arc(g.rotH.x, g.rotH.y, 5, -Math.PI * 0.9, Math.PI * 0.6); cx.stroke();
+    if (hasTail(o)) {   // the ● at the tail tip (drag = free angle and length)
+      const q = l2d(o, tailTip(o)), s = docToScreen(q.x, q.y);
+      cx.shadowColor = 'rgba(0,0,0,.45)'; cx.shadowBlur = 4;
+      cx.beginPath(); cx.arc(s.x, s.y, 8, 0, Math.PI * 2); cx.fillStyle = ACCENT; cx.fill();
+      cx.shadowBlur = 0; cx.strokeStyle = '#FFFFFF'; cx.lineWidth = 2.4; cx.stroke();
+    }
   }
   cx.restore();
 }
@@ -4382,7 +4441,7 @@ function startPinch() {
   if (G) {
     if ((G.type === 'draw' || G.type === 'shape') && G.obj) { removeObj(G.obj.id); invalidate(); }
     if (G.type === 'cutbrush') invalidate();   // drop the live-brush preview so the filter re-applies
-    if ((G.type === 'erase' && G.changed) || G.type === 'cutbrush' || ((G.type === 'gmove' || G.type === 'lend') && G.moved)) commit();
+    if ((G.type === 'erase' && G.changed) || G.type === 'cutbrush' || ((G.type === 'gmove' || G.type === 'lend' || G.type === 'tip') && G.moved)) commit();
     if (G.type === 'marq') requestDraw();
     if (G.type === 'move' && tool === 'select') { const o = selObj(); if (o && !o.locked && o.id === G.id) objMode = true; }
     if ((G.type === 'scale' || G.type === 'rotate') && tool === 'select') objMode = true;
@@ -4525,6 +4584,7 @@ function marqPick(a, b) {
 }
 function startHandle(o, h, p) {
   if (h === 'e1' || h === 'e2' || h === 'mid') return startLineEdit(o, h, p);
+  if (h === 'tip') { G = { type: 'tip', id: o.id, p0: p, moved: false }; return; }
   const c = docToScreen(o.x, o.y);
   G = h === 'rot'
     ? { type: 'rotate', id: o.id, c, a0: Math.atan2(p.y - c.y, p.x - c.x), rot0: o.rot }
@@ -4698,6 +4758,15 @@ function moveSingle(p) {
       }
       invalidate(); break;
     }
+    case 'tip': {   // 吹き出し / 考え中: the tail tip follows the pointer (a preset tail turns free on the first move)
+      const o = selObj(); if (!o || o.id !== G.id) return;
+      if (!G.moved && dist(p, G.p0) < slop()) return;
+      if (!G.moved) tailFree(o);
+      G.moved = true;
+      const d2 = screenToDoc(p.x, p.y), [lx, ly] = toLocal(o, d2.x, d2.y);
+      o.tx = Math.round(lx * 10) / 10; o.ty = Math.round(ly * 10) / 10;
+      invalidate(); break;
+    }
     case 'crop': dragCrop(G.h, G.r0, (p.x - G.p0.x) / view.s, (p.y - G.p0.y) / view.s); requestDraw(); break;
   }
 }
@@ -4752,6 +4821,7 @@ function endSingle(p, cancelled) {
       }
       break;
     case 'lend': if (G.moved) { invalidate(); commit(); refreshPanel(); } break;
+    case 'tip': if (G.moved) { invalidate(); commit(); } break;
   }
 }
 /* a new 図形 from the tool settings */
@@ -5896,6 +5966,7 @@ function doAct(a, k, v, final) {
     if (isLineO(o) && /^(kind|cs|ce)$/.test(k)) lineNorm(o);   // an old 矢印 kind becomes a path + caps before one part changes
     if (o.type === 'shape' && !isLineK(o.kind) && /^(oc|fc|fa)$/.test(k)) areaNorm(o);
     const was = o[k];
+    if (k === 'tail' && freeTail(o)) tailSetPre(o, v);   // a free tail: the chip moves the tip to that preset's spot
     o[k] = v;
     if (o.type === 'text' && k in S.text) S.text[k] = v;
     if (o.type === 'note' && k in S.note) S.note[k] = v;
@@ -6223,7 +6294,7 @@ function objPanel(o) {
     case 'note':
       // shapes as small pictures in the note's own colour; the three colours (塗り・枠線・文字) sit together
       h += row('形', ichips('o', 'shape', NOTE_SHAPES.map(([v, l]) => [v, `<img class="nico" src="${noteIco(v, o.color)}" alt=""><span class="vh">${l.replace(/^\S+\s/, '')}</span>`]), o.shape || 'square'), true);
-      if (o.shape === 'speech' || o.shape === 'think') h += row('しっぽ', ichips('o', 'tail', NOTE_TAILS.map(([v, l, a]) => [v, svgI(`<g transform="rotate(${a} 12 12)"><path d="M12 4v15M6.5 13.5L12 19l5.5-5.5"/></g>`, 'しっぽの向き：' + l)]), o.tail || 'bl'), true);
+      if (o.shape === 'speech' || o.shape === 'think') h += row('しっぽ', ichips('o', 'tail', NOTE_TAILS.map(([v, l, a]) => [v, svgI(`<g transform="rotate(${a} 12 12)"><path d="M12 4v15M6.5 13.5L12 19l5.5-5.5"/></g>`, 'しっぽの向き：' + l)]), o.tail || 'bl'), true) + hint('しっぽの先の ● をドラッグすると、向きと長さを自由に変えられます');
       h += `<div class="cgrp">` + row('塗り', swatches('o', 'color', o.color, NOTE_COLORS))
         + row('枠線', noneSw('stroke', o.stroke) + swatches('o', 'stroke', o.stroke || 'none', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#5E8C5F', '#FF8FB1']))
         + row('文字', swatches('o', 'tcolor', o.tcolor || '#2A2724', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#1F8A4C', '#8B5CF6'])) + `</div>`;
