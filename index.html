@@ -497,6 +497,7 @@ html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--l
 .chip.ichip{min-width:calc(44px*var(--u));padding:0 10px;justify-content:center}
 .chip.ichip svg{width:20px;height:20px}
 .chip.ichip .nico{width:26px;height:26px;display:block}
+.chip.ichip .nico.sico{width:30px;height:30px}
 .cgrp>.row{padding:2px 5px}
 html.desk #panel .cgrp>.row{padding:6px 7px}
 .chip.ichip.al{min-width:0;padding:0 calc(8px*var(--u))}
@@ -985,15 +986,17 @@ const lineGeo = o => o.kind === 'carrow' ? 'curve' : o.kind === 'curve' || o.kin
 const capS = o => o.cs || (o.kind === 'arrow2' ? 'arrow' : 'none');
 const capE = o => o.ce || (/^(arrow|arrow2|carrow)$/.test(o.kind) ? 'arrow' : 'none');
 const lStyle = o => o.ls || (o.dash ? 'dash' : 'solid');
+/* closed shapes: oc = outline colour, fc = fill colour (either may be 'none'), fa = fill opacity %.
+   Older ones have only color + fill (none / semi / solid); areaNorm() rewrites them before an edit. */
+const areaStroke = o => o.fc !== undefined ? (o.oc || 'none') : o.fill === 'solid' ? 'none' : o.color;
+const areaFill = o => o.fc !== undefined ? o.fc : !o.fill || o.fill === 'none' ? 'none' : o.color;
+const areaFA = o => o.fc !== undefined ? (o.fa == null ? 100 : o.fa) : o.fill === 'semi' ? 35 : 100;
+function areaNorm(o) { if (o.type === 'shape' && !isLineK(o.kind) && o.fc === undefined) { o.oc = areaStroke(o); o.fa = areaFA(o); o.fc = areaFill(o); delete o.fill; } return o; }
 function lineNorm(o) { if (o.type === 'shape' && isLineK(o.kind)) { o.cs = capS(o); o.ce = capE(o); o.kind = lineGeo(o); } return o; }
 const CAPS = [['none', 'なし'], ['arrow', '矢印'], ['open', '開いた矢印'], ['dot', '丸'], ['square', '四角'], ['bar', '棒'], ['diamond', 'ひし形']];
-const CAP_SVG = { none: '<path d="M3 12h18"/>', arrow: '<path d="M3 12h11"/><path d="M21 12l-7.5-4.5v9z" fill="currentColor"/>', open: '<path d="M3 12h17M15 7l5 5-5 5"/>',
-  dot: '<path d="M3 12h13"/><circle cx="17.5" cy="12" r="3.2" fill="currentColor"/>', square: '<path d="M3 12h12"/><rect x="14.5" y="9" width="6" height="6" rx=".5" fill="currentColor"/>',
-  bar: '<path d="M3 12h17M20 6.5v11"/>', diamond: '<path d="M3 12h10"/><path d="M21 12l-4-4-4 4 4 4z" fill="currentColor"/>' };
 const svgI = (body, name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg><span class="vh">${name}</span>`;
-const capIco = (c, start) => svgI(start ? `<g transform="matrix(-1 0 0 1 24 0)">${CAP_SVG[c]}</g>` : CAP_SVG[c], (start ? '始点：' : '終点：') + CAPS.find(x => x[0] === c)[1]);
 const LSTYLES = [['solid', '実線', '<path d="M3 12h18"/>'], ['dash', '破線', '<path d="M3 12h4.5M9.8 12h4.4M17 12h4"/>'], ['dot', '点線', '<path d="M4 12h.01M8.2 12h.01M12.4 12h.01M16.6 12h.01M20.8 12h.01" stroke-width="3"/>']];
-const lsChips = (act, k, cur) => ichips(act, k, LSTYLES.map(([v, l, d]) => [v, svgI(d, l)]), cur);
+const lsChips = (act, k, cur, base) => ichips(act, k, LSTYLES.map(([v, l]) => [v, sIco(base, { kind: 'line', hz: 1, cs: 'none', ce: 'none', ls: v }, l)]), cur);
 const SHAPE_NAMES = { line: '直線', curve: '曲線', elbow: 'カギ線', arrow: '矢印', arrow2: '両矢印', carrow: '曲がり矢印', rect: '四角', tri: '三角', heart: 'ハート', ellipse: '丸' };
 const SHAPE_SVG = { line: '<path d="M5 19L19 5"/>', curve: '<path d="M4 18Q6 5 20 6"/>', elbow: '<path d="M4 18h8V6h8"/>', arrow: '<path d="M5 19L18 6M10 6h8v8"/>', arrow2: '<path d="M6 18L18 6M12 6h6v6M6 12v6h6"/>',
   carrow: '<path d="M4 19Q5 7 17 7M13 3l4 4-4 4"/>', rect: '<rect x="4" y="6" width="16" height="12" rx="1"/>', tri: '<path d="M12 4L21 19H3z"/>',
@@ -1012,6 +1015,28 @@ function noteIco(shape, color) {
   }
   return u;
 }
+/* small picture of a 図形 choice, drawn by drawShape in the current colour / fill / caps (like the 付箋 shapes).
+   sp = shapeBase(...) merged with what the chip changes; hz = a short horizontal line (caps and line styles) */
+const shapeIcoCache = new Map();
+function shapeThumb(sp) {
+  const key = JSON.stringify(sp); let u = shapeIcoCache.get(key);
+  if (!u) {
+    const c = mk(60, 60), g = c.getContext('2d'); g.translate(30, 30);
+    const o = { type: 'shape', kind: sp.kind, color: sp.color, oc: sp.oc, fc: sp.fc || 'none', fa: sp.fc === 'none' ? 100 : Math.max(sp.fa, 25), ls: sp.ls, cs: sp.cs, ce: sp.ce, bend: 0.3, ex: 0.5, width: 4.5 };
+    if (!isLineK(sp.kind) && o.oc === 'none' && o.fc === 'none') o.oc = '#B8B2A6';   // nothing to see: a grey outline hint
+    if (isLineK(sp.kind)) { o.p1 = sp.hz ? [-23, 0] : lineGeo(o) === 'elbow' ? [-22, 15] : [-20, 18]; o.p2 = sp.hz ? [23, 0] : lineGeo(o) === 'elbow' ? [22, -15] : [20, -18]; }
+    else { o.w = 44; o.h = sp.kind === 'rect' ? 34 : 44; o.width = 4; }
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 1.5;   // keeps white / pale colours visible on the light chip
+    drawShape(g, o);
+    u = c.toDataURL(); if (shapeIcoCache.size > 300) shapeIcoCache.clear(); shapeIcoCache.set(key, u);
+  }
+  return u;
+}
+const shapeBase = x => ({ kind: isLineK(x.kind) ? lineGeo(x) : x.kind, color: x.color, cs: capS(x), ce: capE(x), ls: lStyle(x),
+  ...(x === S.shape ? { oc: x.oc, fc: x.fc, fa: x.fa } : isLineK(x.kind) ? { oc: S.shape.oc, fc: S.shape.fc, fa: S.shape.fa } : { oc: areaStroke(x), fc: areaFill(x), fa: areaFA(x) }) });
+const sIco = (base, part, name) => `<img class="nico sico" data-s="${J(part)}" src="${shapeThumb({ ...base, ...part })}" alt=""><span class="vh">${name}</span>`;
+/* the panel's pictures follow colour / fill / cap changes in place (no rebuild) */
+function syncShapeIcos(base) { panelEl().querySelectorAll('img[data-s]').forEach(im => { try { im.src = shapeThumb({ ...base, ...JSON.parse(im.dataset.s) }); } catch (e) { } }); }
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const STAMPS = ['❤️', '⭐', '✨', '👍', '😀', '😂', '😍', '🥰', '😎', '🤔', '😭', '😱', '🎉', '🔥', '💯', '✅', '❌', '⭕', '⚠️', '❓', '❗', '👉', '👆', '👇', '📌', '📍', '💡', '💬', '🌸', '🍀', '☀️', '🌙', '⚡', '🎂', '🐱', '🐶', '🍰', '☕', '🎁', '🏷️'];
 const TYPE_NAMES = { image: '写真', text: '文字', note: '付箋', stroke: '手描き', shape: '図形', stamp: 'スタンプ', mosaic: 'モザイク', deco: 'デコ', chart: '表・グラフ' };
@@ -2508,7 +2533,7 @@ const IW = (ic, t) => `${ICON[ic]}<span>${t}</span>`;
 /* crop ratio as a small proportional rectangle */
 const aspIco = r => { if (!r) return ICON.free; const w = r >= 1 ? 16 : 16 * r, h = r >= 1 ? 16 / r : 16; return I(`<rect x="${((24 - w) / 2).toFixed(1)}" y="${((24 - h) / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5"/>`); };
 /* a "none" dot that sits before colour swatches (縁取り・背景 なし) */
-const noneSw = (k, cur) => `<button class="swb nonesw${!cur || cur === 'none' ? ' on' : ''}" aria-pressed="${!cur || cur === 'none'}" data-act="o" data-k="${k}" data-v="${J('none')}" aria-label="なし" title="なし">${ICON.none}</button>`;
+const noneSw = (k, cur, act = 'o') => `<button class="swb nonesw${!cur || cur === 'none' ? ' on' : ''}" aria-pressed="${!cur || cur === 'none'}" data-act="${act}" data-k="${k}" data-v="${J('none')}" aria-label="なし" title="なし">${ICON.none}</button>`;
 const TOOLS = [
   ['select', '選択'], ['photo', '写真', 1], ['text', '文字', 1], ['pen', 'ペン'], ['shape', '図形'], ['note', '付箋', 1],
   ['stamp', '素材'], ['filter', 'フィルター'], ['adjust', '調整'], ['cutout', '背景削除'], ['mosaic', 'モザイク'], ['crop', '切り抜き']
@@ -2539,7 +2564,7 @@ const multiObjs = () => doc && multi.length > 1 ? doc.objects.filter(o => multi.
 let tool = 'select';
 const S = {
   pen: { mode: 'pen', color: '#FF3B30', width: 8 },
-  shape: { kind: 'line', color: '#FF3B30', width: 8, fill: 'none', ls: 'solid', bend: 0.3, cs: 'none', ce: 'arrow' },
+  shape: { kind: 'line', color: '#FF3B30', width: 8, ls: 'solid', bend: 0.3, cs: 'none', ce: 'arrow', oc: '#FF3B30', fc: 'none', fa: 100 },
   mosaic: { shape: 'brush', mode: 'pixel', str: 40, size: 45 },
   text: { color: '#FFFFFF', font: 'Noto Sans JP', bold: true, italic: false, underline: false, outline: '#111111', bg: 'none', align: 'center', vert: false, shadow: false, sizeR: 0.075 },
   note: { color: '#FFE66D', shape: 'square', deco: 'tape', pattern: 'plain', tcolor: '#2A2724', stroke: 'none', font: 'Klee One', ratio: 'square' },
@@ -2564,6 +2589,7 @@ const TOOLS_KEY = 'petaphoto.tools', TOOLS_SAVED = ['pen', 'shape', 'mosaic', 't
     if (isLineK(vs.kind)) { S.shape.kind = o.kind; S.shape.cs = o.cs; S.shape.ce = o.ce; }
     if (vs.dash === true) S.shape.ls = 'dash';
   }
+  if (vs && vs.fc === undefined && typeof vs.fill === 'string') { const o = areaNorm({ type: 'shape', kind: 'rect', color: S.shape.color, fill: vs.fill }); S.shape.oc = o.oc === 'none' ? S.shape.color : o.oc; S.shape.fc = o.fc; S.shape.fa = o.fa; }
 })();
 let toolsT = 0;
 function saveTools() { clearTimeout(toolsT); try { localStorage.setItem(TOOLS_KEY, JSON.stringify(Object.fromEntries(TOOLS_SAVED.map(g => [g, S[g]])))); } catch (e) { } }
@@ -3166,8 +3192,7 @@ function notePath(ctx, o) {
       ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath(); return 'nonzero';
     }
     default:
-      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h * 0.93);
-      ctx.quadraticCurveTo(x + w * 0.985, y + h, x + w * 0.88, y + h); ctx.lineTo(x, y + h); ctx.closePath();
+      ctx.rect(x, y, w, h);   // a plain square (no curled corner)
       return 'nonzero';
   }
 }
@@ -3181,7 +3206,6 @@ function drawNote(ctx, o, k) {
   // inside decoration, clipped to the shape
   ctx.save();
   notePath(ctx, o); ctx.clip(rule);
-  if (shape === 'square') { ctx.fillStyle = 'rgba(0,0,0,.05)'; ctx.fillRect(x, y, w, h * 0.12); }
   const pat = o.pattern || (shape === 'torn' ? 'lines' : 'plain');
   if (pat !== 'plain') {
     const step = m * 0.085;
@@ -3298,9 +3322,9 @@ function drawShape(ctx, o) {
     ctx.bezierCurveTo(X(0.5), Y(-0.52), 0, Y(-0.46), 0, Y(-0.22)); ctx.closePath();
   }
   else ctx.ellipse(0, 0, Math.max(w / 2, 0.5), Math.max(h / 2, 0.5), 0, 0, Math.PI * 2);
-  if (o.fill === 'solid') ctx.fill();
-  else if (o.fill === 'semi') { const a = ctx.globalAlpha; ctx.globalAlpha = a * 0.35; ctx.fill(); ctx.globalAlpha = a; }
-  if (o.fill !== 'solid') ctx.stroke();
+  const fc = areaFill(o), sc = areaStroke(o);
+  if (fc !== 'none') { const a = ctx.globalAlpha; ctx.fillStyle = fc; ctx.globalAlpha = a * areaFA(o) / 100; ctx.fill(); ctx.globalAlpha = a; }
+  if (sc !== 'none') { ctx.strokeStyle = sc; ctx.stroke(); }
   ctx.setLineDash([]);
 }
 function drawMosaic(ctx, o, scale) {
@@ -4018,8 +4042,8 @@ function endSingle(p, cancelled) {
 }
 /* a new 図形 from the tool settings */
 function newShape() {
-  const k = S.shape.kind, o = { ...baseObj('shape', 0, 0), kind: k, color: S.shape.color, width: S.shape.width * U(), fill: S.shape.fill, ls: S.shape.ls, w: 1, h: 1 };
-  if (isLineK(k)) { delete o.w; delete o.h; delete o.fill; Object.assign(o, { p1: [0, 0], p2: [1, 0], cs: S.shape.cs, ce: S.shape.ce, bend: S.shape.bend }); if (k === 'elbow') o.ex = 0.5; }
+  const k = S.shape.kind, o = { ...baseObj('shape', 0, 0), kind: k, color: S.shape.color, width: S.shape.width * U(), oc: S.shape.oc, fc: S.shape.fc, fa: S.shape.fa, ls: S.shape.ls, w: 1, h: 1 };
+  if (isLineK(k)) { delete o.w; delete o.h; delete o.oc; delete o.fc; delete o.fa; Object.assign(o, { p1: [0, 0], p2: [1, 0], cs: S.shape.cs, ce: S.shape.ce, bend: S.shape.bend }); if (k === 'elbow') o.ex = 0.5; }
   return o;
 }
 
@@ -5031,11 +5055,11 @@ function runCmd(k, v, final) {
   }
 }
 function doAct(a, k, v, final) {
-  if (final !== false && typeof v === 'string' && (a === 'o' || a === 's' ? final && /color2?$|^bg$|outline|border|stroke/i.test(k) : a === 'cmd' && /^(bg|bgPat[12])$/.test(k))) rememberColor(v);
+  if (final !== false && typeof v === 'string' && (a === 'o' || a === 's' ? final && /color2?$|^bg$|outline|border|stroke|(^|\.)(oc|fc)$/i.test(k) : a === 'cmd' && /^(bg|bgPat[12])$/.test(k))) rememberColor(v);
   if (a === 'cmd') return runCmd(k, v, final);
   if (a === 's') {
     setPath(S, k, v); saveToolsSoon();
-    if (tool === 'shape' && k.startsWith('shape.')) shapeToolApply(k.slice(6), v, final);
+    if (tool === 'shape' && k.startsWith('shape.')) { shapeToolApply(k.slice(6), v, final); if (!final) syncShapeIcos(shapeBase(S.shape)); }
     if (k === 'num.color') { const o = selObj(); if (o && o.kind === 'num') { o.color = v; invalidate(); if (final) commit(); } }
     if (final) { refreshPanel(); if (k === 'num.color' && sideView === 'material') renderMaterial(); requestDraw(); }
     return;
@@ -5043,11 +5067,13 @@ function doAct(a, k, v, final) {
   if (a === 'o') {
     const o = selObj(); if (!o) return;
     if (isLineO(o) && /^(kind|cs|ce)$/.test(k)) lineNorm(o);   // an old 矢印 kind becomes a path + caps before one part changes
+    if (o.type === 'shape' && !isLineK(o.kind) && /^(oc|fc|fa)$/.test(k)) areaNorm(o);
+    const was = o[k];
     o[k] = v;
     if (o.type === 'text' && k in S.text) S.text[k] = v;
     if (o.type === 'note' && k in S.note) S.note[k] = v;
     if (o.type === 'stroke' && k === 'color') S.pen.color = v;
-    if (o.type === 'shape' && /^(color|fill|kind|ls|bend|cs|ce)$/.test(k)) S.shape[k] = v;
+    if (o.type === 'shape' && /^(color|kind|ls|bend|cs|ce|oc|fc|fa)$/.test(k)) S.shape[k] = v;
     if (o.type === 'stamp' && k === 'color') S.num.color = v;
     if (o.type === 'mosaic' && k === 'mode') S.mosaic.mode = v;
     if (o.type === 'image' && k in S.image) S.image[k] = v;
@@ -5055,8 +5081,9 @@ function doAct(a, k, v, final) {
     invalidate();
     // update the pressed state in place: rebuilding the panel would reset row scroll, hover and focus ("the panel reloads")
     // the 付箋 shape pictures follow the fill colour without a rebuild
+    if (o.type === 'shape' && /^(color|cs|ce|ls|oc|fc)$/.test(k)) syncShapeIcos(shapeBase(o));
     if (o.type === 'note' && k === 'color') panelEl().querySelectorAll('button[data-k="shape"] .nico').forEach(im => { try { im.src = noteIco(JSON.parse(im.closest('button').dataset.v), v); } catch (e) { } });
-    if (final) { commit(); if (REBUILD_O.has(k) || !syncOChips(k, v)) refreshPanel(); }
+    if (final) { commit(); if (REBUILD_O.has(k) || ((k === 'oc' || k === 'fc') && (was === 'none') !== (v === 'none')) || !syncOChips(k, v)) refreshPanel(); }
   }
 }
 /* 図形 tool: a panel change also restyles the shape that was just drawn (it stays selected); another family waits for the next drawing */
@@ -5064,16 +5091,22 @@ function shapeToolApply(k, v, final) {
   const o = selObj(); if (!o || o.type !== 'shape' || o.locked) return;
   const ln = isLineK(o.kind);
   if (k === 'kind' && isLineK(v) !== ln) { selId = null; requestDraw(); return; }
-  if ((k === 'fill' && ln) || ((k === 'cs' || k === 'ce' || k === 'bend') && !ln)) return;
+  if ((/^(oc|fc|fa)$/.test(k) && ln) || (/^(cs|ce|bend)$/.test(k) && !ln) || (k === 'color' && !ln)) return;
   if (ln && /^(kind|cs|ce)$/.test(k)) lineNorm(o);
+  if (!ln && /^(oc|fc|fa)$/.test(k)) areaNorm(o);
   o[k] = k === 'width' ? v * U() : v;
   invalidate(); if (final !== false) commit();
 }
 /* properties whose change alters which rows the object panel shows */
 const REBUILD_O = new Set(['vert', 'mode', 'shape', 'kind']);
+/* 枠線 / 塗り colours of a closed shape (each may be なし) in one box like the 付箋 colours, plus the fill strength */
+const areaColorRows = (act, pre, B) => `<div class="cgrp">` + row('枠線', noneSw(pre + 'oc', B.oc, act) + swatches(act, pre + 'oc', B.oc))
+  + row('塗り', noneSw(pre + 'fc', B.fc, act) + swatches(act, pre + 'fc', B.fc)) + `</div>`
+  + (B.fc !== 'none' ? slider(`${act}:${pre}fa`, '塗りの濃さ', 10, 100, B.fa) : '');
 /* 始点 / 終点 cap pictures and the swap button, for the tool settings (s, 'shape.') or the selected line (o, '') */
-const lineCapRows = (act, pre, cs, ce) => row('始点', ichips(act, pre + 'cs', CAPS.map(([c]) => [c, capIco(c, true)]), cs))
-  + row('終点', ichips(act, pre + 'ce', CAPS.map(([c]) => [c, capIco(c)]), ce) + cmdBtn('lineFlip', svgI('<path d="M4 8h15l-3.5-3.5M20 16H5l3.5 3.5"/>', '矢印の向きを反対に'), undefined, 'ichip'));
+const lineCapRows = (act, pre, base) => row('始点', ichips(act, pre + 'cs', CAPS.map(([c, l]) => [c, sIco(base, { kind: 'line', hz: 1, cs: c, ce: 'none', ls: 'solid' }, '始点：' + l)]), base.cs), true)
+  + row('終点', ichips(act, pre + 'ce', CAPS.map(([c, l]) => [c, sIco(base, { kind: 'line', hz: 1, cs: 'none', ce: c, ls: 'solid' }, '終点：' + l)]), base.ce)
+    + cmdBtn('lineFlip', svgI('<path d="M4 8h15l-3.5-3.5M20 16H5l3.5 3.5"/>', '矢印の向きを反対に'), undefined, 'ichip'), true);
 function syncOChips(k, v) {
   const bs = panelEl().querySelectorAll(`button[data-act="o"][data-k="${k}"]`), js = JSON.stringify(v);
   bs.forEach(b => {
@@ -5375,19 +5408,19 @@ function objPanel(o) {
     case 'shape':
       // switch within the same family: lines keep their two ends, closed shapes their box
       if (isLineK(o.kind)) {
-        h += row('線の形', ichips('o', 'kind', LINE_GEO.map(a => [a, shapeIco(a)]), lineGeo(o)));
-        h += lineCapRows('o', '', capS(o), capE(o));
+        const B = shapeBase(o);
+        h += row('線の形', ichips('o', 'kind', LINE_GEO.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), lineGeo(o)), true);
+        h += lineCapRows('o', '', B);
         h += row('色', swatches('o', 'color', o.color));
         h += slider('o:width', '線の太さ', 1, 60, o.width / u, u);
-        h += row('線種', lsChips('o', 'ls', lStyle(o)));
+        h += row('線種', lsChips('o', 'ls', lStyle(o), B), true);
         if (shapeCtrl(o)) h += slider('o:bend', '曲がり', -100, 100, (o.bend == null ? 0.3 : o.bend) * 100, 0.01);
         h += hint(deskOn ? '端の●をドラッグで向きと長さ、真ん中の◆で曲げられます。Shift で 15°ごと、Alt で吸着なし。' : '端の●をドラッグで向きと長さ、真ん中の◆で曲げられます。');
       } else {
-        h += row('形', ichips('o', 'kind', AREA_KINDS.map(a => [a, shapeIco(a)]), o.kind));
-        h += row('色', swatches('o', 'color', o.color));
-        h += slider('o:width', '線の太さ', 1, 60, o.width / u, u);
-        h += row('塗り', chips('o', 'fill', [['none', '線のみ'], ['semi', '半透明'], ['solid', '塗りつぶし']], o.fill));
-        h += row('線種', lsChips('o', 'ls', lStyle(o)));
+        const B = shapeBase(o);
+        h += row('形', ichips('o', 'kind', AREA_KINDS.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), o.kind), true);
+        h += areaColorRows('o', '', B);
+        if (B.oc !== 'none') h += slider('o:width', '線の太さ', 1, 60, o.width / u, u) + row('線種', lsChips('o', 'ls', lStyle(o), { ...B, color: B.oc }), true);
       }
       break;
     case 'stamp':
@@ -5565,11 +5598,12 @@ function refreshPanel() {
     {
       const k = S.shape.kind, ln = isLineK(k);
       // 形: one 線 chip (its path / ends are in the next rows) + the closed shapes, all shown as pictures
-      h = row('形', ichips('s', 'shape.kind', [[ln ? k : 'line', shapeIco('line')], ...AREA_KINDS.map(a => [a, shapeIco(a)])], k));
-      if (ln) h += row('線の形', ichips('s', 'shape.kind', LINE_GEO.map(a => [a, shapeIco(a)]), k)) + lineCapRows('s', 'shape.', S.shape.cs, S.shape.ce);
-      h += row('色', swatches('s', 'shape.color', S.shape.color)) + slider('s:shape.width', '線の太さ', 1, 60, S.shape.width);
-      if (!ln) h += row('塗り', chips('s', 'shape.fill', [['none', '線のみ'], ['semi', '半透明'], ['solid', '塗りつぶし']], S.shape.fill));
-      h += row('線種', lsChips('s', 'shape.ls', S.shape.ls));
+      const B = shapeBase(S.shape), lk = ln ? k : 'line';
+      h = row('形', ichips('s', 'shape.kind', [[lk, sIco(B, { kind: lk }, '線')], ...AREA_KINDS.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])])], k), true);
+      if (ln) h += row('線の形', ichips('s', 'shape.kind', LINE_GEO.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), k), true) + lineCapRows('s', 'shape.', B);
+      if (ln) h += row('色', swatches('s', 'shape.color', S.shape.color));
+      else h += areaColorRows('s', 'shape.', B);
+      if (ln || B.oc !== 'none') h += slider('s:shape.width', '線の太さ', 1, 60, S.shape.width) + row('線種', lsChips('s', 'shape.ls', S.shape.ls, ln ? B : { ...B, color: B.oc }), true);
       const sel = selObj();
       h += hint(sel && sel.type === 'shape' ? 'いま描いた図形にも反映されます。何もない所をタップすると選択を外します。'
         : ln ? `ドラッグで線を描きます（${deskOn ? 'クリック' : 'タップ'}で標準の長さ）。水平・垂直・45°や、ほかの物の中心・辺に吸着します。${deskOn ? 'Shift で 15°ごと、Alt で吸着なし。' : ''}`
@@ -5670,6 +5704,7 @@ function onSlider(t, final) {
       invalidate(); if (final) { rememberSize(); commit(); }
       return;
     }
+    if (k === 'fa') { areaNorm(o); S.shape.fa = raw; }
     o[k] = v;
     if (o.type === 'mosaic' && k === 'str') S.mosaic.str = raw;
     if (o.type === 'image' && k === 'rad') S.image.rad = raw;
