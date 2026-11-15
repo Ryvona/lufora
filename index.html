@@ -456,6 +456,7 @@ html.desk #cv.hpt{cursor:grab}
 html:not(.desk) #sheetCmd{top:calc(env(safe-area-inset-top,0px) + 8px);bottom:auto;border-radius:0 0 22px 22px}
 html:not(.desk) .cmdnote{display:none}
 html.desk #sheetCmd{top:12vh;bottom:auto;border-radius:18px;border-bottom:1px solid var(--line);max-height:70vh;animation:pop .22s var(--spring)}
+#sheetCmd .cmdbox{margin-right:46px}   /* room for the sheet's × */
 .cmdbox{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;background:var(--chrome2);border:1px solid var(--line)}
 .cmdbox:focus-within{border-color:var(--accent)}
 .cmdbox input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--fg);font:inherit;font-size:16px}
@@ -498,6 +499,20 @@ html:not(.desk) #side.mob .ritem.msearch{margin:0 0 6px;border:1px solid var(--l
 .chip.ichip svg{width:20px;height:20px}
 .chip.ichip .nico{width:26px;height:26px;display:block}
 .chip.ichip .nico.sico{width:30px;height:30px}
+/* ==== template preview ==== */
+.tpvhead{display:flex;align-items:center;gap:10px;margin:2px 44px 10px 0}
+.tpvt{min-width:0}
+.tpvhead h2{margin:0;font-size:18px}
+.tpvmeta{font-size:12px;color:var(--muted);margin-top:2px}
+.tpvstage{display:flex;align-items:center;justify-content:center;gap:8px}
+#tpvImg{display:block;min-width:0;max-width:calc(100% - 96px);max-height:min(56vh,620px);object-fit:contain;border-radius:12px;background:#fff;box-shadow:0 8px 28px rgba(60,50,30,.2)}
+.tpvnav{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--chrome);color:var(--fg);display:grid;place-items:center}
+.tpvnav[disabled]{opacity:.3}
+.tpvdesc{margin:14px 2px 4px;font-size:14px;line-height:1.65}
+.tpvwarn{margin:0 2px 12px;font-size:12px;color:var(--muted)}
+.tpvwarn:empty{display:none}
+#tpvAdd{width:100%;flex:none}
+html.desk #sheetTplPv{width:min(560px,92vw)}
 .cgrp>.row{padding:2px 5px}
 html.desk #panel .cgrp>.row{padding:6px 7px}
 .chip.ichip.al{min-width:0;padding:0 calc(8px*var(--u))}
@@ -584,6 +599,9 @@ html.desk .aiex .chip{height:calc(30px*var(--u));padding:0 calc(10px*var(--u));f
 /* templates drawer */
 .tplwrap .hint{padding:2px 14px 8px}
 .tplcats{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+html:not(.desk) .tplcats{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:12px}   /* phones: one swipeable row instead of six */
+html:not(.desk) .tplcats .chip{flex:0 0 auto}
+html:not(.desk) .row.slr .rl{flex-basis:calc(66px*var(--u));letter-spacing:0;font-size:calc(10.5px*var(--u))}   /* コントラスト fits on one line */
 .tplgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
 .tpl{display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:14px;background:var(--chrome2);border:1px solid var(--line);text-align:left;transition:border-color .15s,transform .15s var(--spring)}
 .tpl:hover{border-color:var(--accent)}
@@ -852,6 +870,20 @@ html.desk:has(#insp #panel:not(:empty)) #drawer{position:absolute;left:100%;top:
   <div id="tplBody"></div>
 </div>
 
+<div class="sheet" id="sheetTplPv" aria-labelledby="tpvName" hidden>
+  <div class="grab"></div>
+  <button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
+  <div class="tpvhead"><button class="chip" id="tpvBack" hidden>‹ 一覧</button><div class="tpvt"><h2 id="tpvName"></h2><div id="tpvMeta" class="tpvmeta"></div></div></div>
+  <div class="tpvstage">
+    <button class="tpvnav" id="tpvPrev" aria-label="前のテンプレート" title="前へ（←）"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <img id="tpvImg" alt="">
+    <button class="tpvnav" id="tpvNext" aria-label="次のテンプレート" title="次へ（→）"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  <p id="tpvDesc" class="tpvdesc"></p>
+  <p id="tpvWarn" class="tpvwarn"></p>
+  <button class="btn primary" id="tpvAdd">追加</button>
+</div>
+
 <div class="sheet light" id="sheetCmd" hidden>
   <h2 class="vh">クイック検索</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
   <div class="cmdbox"><span aria-hidden="true">🔍</span><input id="cmdQ" type="text" autocomplete="off" spellcheck="false" placeholder="やりたいことを入力（例：文字、エモ、保存、背景）" aria-label="機能を検索" aria-controls="cmdList" aria-autocomplete="list"></div>
@@ -926,10 +958,9 @@ const mctx = mk(2, 2).getContext('2d');
 function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); rrectPath(ctx, x, y, w, h, r); }
 function rrectPath(ctx, x, y, w, h, r) {
   r = Math.max(0, Math.min(r, w / 2, h / 2));
-  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  // true circular corners (a full radius on a square is a circle, not a squircle)
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 function strokePath(ctx, pts) {
   ctx.beginPath();
@@ -1026,7 +1057,9 @@ function shapeThumb(sp) {
     if (!isLineK(sp.kind) && o.oc === 'none' && o.fc === 'none') o.oc = '#B8B2A6';   // nothing to see: a grey outline hint
     if (isLineK(sp.kind)) { o.p1 = sp.hz ? [-23, 0] : lineGeo(o) === 'elbow' ? [-22, 15] : [-20, 18]; o.p2 = sp.hz ? [23, 0] : lineGeo(o) === 'elbow' ? [22, -15] : [20, -18]; }
     else { o.w = 44; o.h = sp.kind === 'rect' ? 34 : 44; o.width = 4; }
-    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 1.5;   // keeps white / pale colours visible on the light chip
+    const main = isLineK(sp.kind) ? sp.color : sp.oc !== 'none' ? sp.oc : sp.fc, [r, gg, b] = hexRGB(/^#[0-9a-f]{6}$/i.test(main) ? main : '#808080');
+    const pale = (0.299 * r + 0.587 * gg + 0.114 * b) / 255 > 0.8;
+    g.shadowColor = pale ? 'rgba(40,36,30,.75)' : 'rgba(0,0,0,.35)'; g.shadowBlur = pale ? 2.5 : 1.5;   // keeps white / pale colours visible on the light chip
     drawShape(g, o);
     u = c.toDataURL(); if (shapeIcoCache.size > 300) shapeIcoCache.clear(); shapeIcoCache.set(key, u);
   }
@@ -3073,7 +3106,9 @@ function drawSlot(ctx, o, k) {
     ctx.fillStyle = '#E9E5DE'; ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = '#B9B2A6'; ctx.lineWidth = m * 0.012; ctx.setLineDash([m * 0.04, m * 0.03]); rrect(ctx, x + m * 0.04, y + m * 0.04, w - m * 0.08, h - m * 0.08, Math.max(0, r - m * 0.04)); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = '#9C9488'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const f = `700 ${m * 0.12}px ${famStack('Noto Sans JP')}`; ensureFont(f, '＋写真', 'Noto Sans JP'); ctx.font = f; ctx.fillText('＋ 写真', 0, 0);
+    const lb = '＋ ' + (o.ph || '写真'); let fs = m * 0.12;
+    ctx.font = `700 ${fs}px ${famStack('Noto Sans JP')}`; const tw = ctx.measureText(lb).width; if (tw > w * 0.84) fs *= w * 0.84 / tw;   // a long label (パンの写真) shrinks to fit
+    const f = `700 ${fs}px ${famStack('Noto Sans JP')}`; ensureFont(f, lb, 'Noto Sans JP'); ctx.font = f; ctx.fillText(lb, 0, 0);
   }
   ctx.restore();
   if (o.border && o.border !== 'none') { ctx.save(); ctx.lineWidth = m * 0.05; ctx.strokeStyle = o.border; rrect(ctx, x, y, w, h, r); ctx.stroke(); ctx.restore(); }
@@ -3311,7 +3346,7 @@ function drawShape(ctx, o) {
   }
   const w = o.w, h = o.h, x = -w / 2, y = -h / 2;
   ctx.beginPath();
-  if (o.kind === 'rect') ctx.rect(x, y, w, h);
+  if (o.kind === 'rect') { if (o.rad) rrectPath(ctx, x, y, w, h, o.rad / 100 * Math.min(w, h) / 2); else ctx.rect(x, y, w, h); }
   else if (o.kind === 'tri') { ctx.moveTo(0, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath(); }
   else if (o.kind === 'heart') {
     const X = v => v * w, Y = v => v * h;
@@ -5420,6 +5455,7 @@ function objPanel(o) {
         const B = shapeBase(o);
         h += row('形', ichips('o', 'kind', AREA_KINDS.map(a => [a, sIco(B, { kind: a }, SHAPE_NAMES[a])]), o.kind), true);
         h += areaColorRows('o', '', B);
+        if (o.kind === 'rect') h += slider('o:rad', '角丸', 0, 100, o.rad || 0);
         if (B.oc !== 'none') h += slider('o:width', '線の太さ', 1, 60, o.width / u, u) + row('線種', lsChips('o', 'ls', lStyle(o), { ...B, color: B.oc }), true);
       }
       break;
@@ -6033,12 +6069,738 @@ const TEMPLATES = [
 ];
 TEMPLATES.push(...TEMPLATES_GEN.filter(t => !TEMPLATES.some(x => x.id === t.id)));
 TPL_CATS_GEN.forEach(c => { if (!TPL_CATS.some(d => d[0] === c[0])) TPL_CATS.push(c); });
+/* full layout templates (photo spots + headings + intro / price / info sections), each a new canvas.
+   Generated by sub-agents and pasted between the markers; desc is shown in the preview. */
+//GEN-TPLPRO-START
+const TPL_CATS_PRO = [['intro', '商品紹介'], ['menu', 'メニュー表'], ['flyer', 'チラシ・告知'], ['recipe', 'レシピ'], ['profile', 'プロフィール'], ['report', 'レポート・記録']];
+const TEMPLATES_PRO = [
+  // ---- tpl-sample.js
+  { id: 'pro-bread', name: 'パンの紹介', cat: 'intro', desc: 'メイン写真・パンの名前・価格・紹介文・おすすめポイントが入った、パン屋さんの商品紹介です。',
+    canvas: [1080, 1350], bg: '#FBF6EE', items: () => [
+    { t: 'box', x: .5, y: .055, w: 1, h: .11, fc: '#8B5E3C' },
+    { t: 'text', x: .5, y: .04, text: 'BAKERY komugi', font: 'Playfair Display', size: .05, color: '#FFF7EC' },
+    { t: 'text', x: .5, y: .086, text: '本日のおすすめ', font: 'Zen Maru Gothic', size: .026, color: '#F3DDBF' },
+    { t: 'slot', x: .5, y: .355, w: .86, h: .44, rad: 6, ph: 'パンの写真' },
+    { t: 'box', kind: 'ellipse', x: .84, y: .175, w: .2, h: .16, fc: '#E8A33D', oc: '#FFFFFF', width: .008 },
+    { t: 'text', x: .84, y: .175, text: '焼き\nたて', font: 'Zen Maru Gothic', size: .036, color: '#FFFFFF' },
+    { t: 'text', x: .07, y: .615, anchor: 'left', maxW: .62, text: 'くるみとはちみつの\nカンパーニュ', font: 'Zen Maru Gothic', size: .05, color: '#4A3222' },
+    { t: 'text', x: .93, y: .63, anchor: 'right', text: '¥420', font: 'Oswald', size: .075, color: '#C0602C', bold: false },
+    { t: 'text', x: .93, y: .672, anchor: 'right', text: '税込', font: 'Zen Maru Gothic', size: .022, color: '#9C7B5E' },
+    { t: 'line', x1: .07, y1: .7, x2: .93, y2: .7, color: '#D9C7B0', width: .004, ls: 'dot' },
+    { t: 'text', x: .07, y: .727, anchor: 'left', text: 'このパンについて', font: 'Zen Maru Gothic', size: .03, color: '#8B5E3C' },
+    { t: 'box', x: .5, y: .8, w: .86, h: .1, fc: '#FFFFFF', oc: '#EAD9C2', width: .003, rad: 30 },
+    { t: 'text', x: .1, y: .8, anchor: 'left', maxW: .8, text: '香ばしいくるみと国産はちみつを練りこみ、\nじっくり長時間発酵させました。\nほんのり甘く、噛むほどに広がる味わいです。', font: 'Zen Maru Gothic', size: .026, color: '#5A4636', bold: false },
+    { t: 'box', x: .215, y: .9, w: .29, h: .055, fc: '#F3E3CC', rad: 100 },
+    { t: 'text', x: .215, y: .9, text: '🍯 はちみつ入り', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
+    { t: 'box', x: .5, y: .9, w: .25, h: .055, fc: '#F3E3CC', rad: 100 },
+    { t: 'text', x: .5, y: .9, text: '🔥 トーストで', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
+    { t: 'box', x: .785, y: .9, w: .29, h: .055, fc: '#F3E3CC', rad: 100 },
+    { t: 'text', x: .785, y: .9, text: '📦 1日20個限定', font: 'Zen Maru Gothic', size: .024, color: '#6B4A2E' },
+    { t: 'text', x: .5, y: .962, text: '営業 8:00–18:00 ／ 水曜定休', font: 'Zen Maru Gothic', size: .022, color: '#9C7B5E', bold: false }] },
+  // ---- tpl-a.js
+  { id: 'pro-cake-new', name: 'ケーキの新作紹介', cat: 'intro', desc: 'メイン写真と2枚の詳細写真、ケーキの名前・価格・3つのこだわりポイント・販売期間が入った新作スイーツの紹介です。',
+    canvas: [1080, 1350], bg: '#FFF6F4', items: () => [
+    { t: 'text', x: .06, y: .045, anchor: 'left', text: 'NEW ARRIVAL', font: 'Playfair Display', size: .03, color: '#D27286', italic: true },
+    { t: 'text', x: .06, y: .09, anchor: 'left', text: '冬の新作ケーキ、できました', font: 'Shippori Mincho', size: .05, color: '#4A2E35', maxW: .7 },
+    { t: 'deco', kind: 'kira3', x: .9, y: .07, s: .55, color: '#E8C27A' },
+    { t: 'slot', x: .37, y: .32, w: .62, h: .38, rad: 5, ph: 'メイン写真', shadow: true },
+    { t: 'slot', x: .82, y: .22, w: .24, h: .18, rad: 8, ph: '断面' },
+    { t: 'slot', x: .82, y: .42, w: .24, h: .18, rad: 8, ph: 'アップ' },
+    { t: 'box', kind: 'ellipse', x: .12, y: .165, w: .14, h: .112, fc: '#D27286', oc: '#FFFFFF', width: .006 },
+    { t: 'text', x: .12, y: .165, text: 'NEW', font: 'Playfair Display', size: .036, color: '#FFFFFF' },
+    { t: 'text', x: .06, y: .555, anchor: 'left', text: 'いちごとピスタチオのフレジエ', font: 'Shippori Mincho', size: .046, color: '#4A2E35', maxW: .62 },
+    { t: 'text', x: .06, y: .598, anchor: 'left', text: 'Fraisier aux pistaches', font: 'Playfair Display', size: .022, color: '#B08A92', italic: true, bold: false },
+    { t: 'text', x: .94, y: .56, anchor: 'right', text: '¥680', font: 'Oswald', size: .07, color: '#D27286', bold: false },
+    { t: 'text', x: .94, y: .605, anchor: 'right', text: '税込／1カット', font: 'Shippori Mincho', size: .02, color: '#9C7E84', bold: false },
+    { t: 'line', x1: .06, y1: .635, x2: .94, y2: .635, color: '#EBC9CF', width: .003, ls: 'dot' },
+    { t: 'box', x: .2, y: .73, w: .27, h: .16, fc: '#FFFFFF', oc: '#F0D5DA', width: .003, rad: 18 },
+    { t: 'text', x: .2, y: .675, text: 'POINT 1', font: 'Playfair Display', size: .022, color: '#D27286', italic: true },
+    { t: 'text', x: .2, y: .712, text: '朝摘みいちご', font: 'Shippori Mincho', size: .03, color: '#4A2E35', maxW: .24 },
+    { t: 'text', x: .2, y: .768, text: '契約農家から届く\n完熟いちごを贅沢に', font: 'Zen Maru Gothic', size: .021, color: '#6E5358', bold: false, maxW: .24 },
+    { t: 'box', x: .5, y: .73, w: .27, h: .16, fc: '#FFFFFF', oc: '#F0D5DA', width: .003, rad: 18 },
+    { t: 'text', x: .5, y: .675, text: 'POINT 2', font: 'Playfair Display', size: .022, color: '#D27286', italic: true },
+    { t: 'text', x: .5, y: .712, text: '香るピスタチオ', font: 'Shippori Mincho', size: .03, color: '#4A2E35', maxW: .24 },
+    { t: 'text', x: .5, y: .768, text: 'シチリア産を使った\n濃厚なクリーム', font: 'Zen Maru Gothic', size: .021, color: '#6E5358', bold: false, maxW: .24 },
+    { t: 'box', x: .8, y: .73, w: .27, h: .16, fc: '#FFFFFF', oc: '#F0D5DA', width: .003, rad: 18 },
+    { t: 'text', x: .8, y: .675, text: 'POINT 3', font: 'Playfair Display', size: .022, color: '#D27286', italic: true },
+    { t: 'text', x: .8, y: .712, text: '軽い口どけ', font: 'Shippori Mincho', size: .03, color: '#4A2E35', maxW: .24 },
+    { t: 'text', x: .8, y: .768, text: '甘さひかえめで\n最後のひと口まで軽やか', font: 'Zen Maru Gothic', size: .021, color: '#6E5358', bold: false, maxW: .24 },
+    { t: 'box', x: .5, y: .862, w: .88, h: .072, fc: '#4A2E35', rad: 100 },
+    { t: 'text', x: .5, y: .862, text: '期間限定　11/20(金) 〜 12/25(金)　なくなり次第終了', font: 'Zen Maru Gothic', size: .027, color: '#FFF1F3', maxW: .82 },
+    { t: 'text', x: .5, y: .935, text: 'pâtisserie Lumière ／ 東京都世田谷区〇〇1-2-3 ／ 10:00–19:00', font: 'Zen Maru Gothic', size: .021, color: '#9C7E84', bold: false, maxW: .88 }] },
+
+  { id: 'pro-handmade', name: 'ハンドメイド作品の紹介', cat: 'intro', desc: '大きな写真と3枚のサブ写真、作品名・素材・サイズ・価格の一覧と、つくり手のコメントが入った横長の作品紹介です。',
+    canvas: [1920, 1080], bg: '#F3EEE6', items: () => [
+    { t: 'slot', x: .27, y: .44, w: .44, h: .7, rad: 3, ph: '作品の写真', shadow: true },
+    { t: 'slot', x: .12, y: .885, w: .14, h: .15, rad: 4, ph: '着用' },
+    { t: 'slot', x: .27, y: .885, w: .14, h: .15, rad: 4, ph: 'アップ' },
+    { t: 'slot', x: .42, y: .885, w: .14, h: .15, rad: 4, ph: 'パッケージ' },
+    { t: 'text', x: .54, y: .1, anchor: 'left', text: 'handmade accessory', font: 'Caveat', size: .045, color: '#B86B4B' },
+    { t: 'text', x: .54, y: .23, anchor: 'left', text: '真鍮と天然石の\nしずくピアス', font: 'Shippori Mincho', size: .065, color: '#3B3A36', maxW: .4 },
+    { t: 'text', x: .54, y: .37, anchor: 'left', text: '一つひとつ手作業で仕上げた、揺れるたびにやさしく光るピアスです。', font: 'Zen Kaku Gothic New', size: .025, color: '#5E5A52', bold: false, maxW: .41 },
+    { t: 'box', x: .745, y: .565, w: .41, h: .29, fc: '#FFFFFF', oc: '#E2D8C8', width: .002, rad: 10 },
+    { t: 'text', x: .57, y: .465, anchor: 'left', text: '素材', font: 'Zen Kaku Gothic New', size: .026, color: '#B86B4B' },
+    { t: 'text', x: .65, y: .465, anchor: 'left', text: '真鍮・ラブラドライト・14kgf', font: 'Zen Kaku Gothic New', size: .026, color: '#3B3A36', bold: false, maxW: .28 },
+    { t: 'line', x1: .57, y1: .498, x2: .92, y2: .498, color: '#E6DCCD', width: .002 },
+    { t: 'text', x: .57, y: .532, anchor: 'left', text: 'サイズ', font: 'Zen Kaku Gothic New', size: .026, color: '#B86B4B' },
+    { t: 'text', x: .65, y: .532, anchor: 'left', text: '全長 約3.5cm ／ 重さ 約2g', font: 'Zen Kaku Gothic New', size: .026, color: '#3B3A36', bold: false, maxW: .28 },
+    { t: 'line', x1: .57, y1: .565, x2: .92, y2: .565, color: '#E6DCCD', width: .002 },
+    { t: 'text', x: .57, y: .599, anchor: 'left', text: 'カラー', font: 'Zen Kaku Gothic New', size: .026, color: '#B86B4B' },
+    { t: 'text', x: .65, y: .599, anchor: 'left', text: 'グレー／ミルキーピンク', font: 'Zen Kaku Gothic New', size: .026, color: '#3B3A36', bold: false, maxW: .28 },
+    { t: 'line', x1: .57, y1: .632, x2: .92, y2: .632, color: '#E6DCCD', width: .002 },
+    { t: 'text', x: .57, y: .666, anchor: 'left', text: '価格', font: 'Zen Kaku Gothic New', size: .026, color: '#B86B4B' },
+    { t: 'text', x: .65, y: .666, anchor: 'left', text: '¥3,800', font: 'Oswald', size: .036, color: '#3B3A36', bold: false },
+    { t: 'text', x: .92, y: .668, anchor: 'right', text: '税込・送料無料', font: 'Zen Kaku Gothic New', size: .022, color: '#8A857B', bold: false },
+    { t: 'box', x: .745, y: .83, w: .41, h: .17, fc: '#E7DED0', rad: 14 },
+    { t: 'slot', x: .59, y: .83, w: .07, h: .124, rad: 100, ph: '作家', border: '#FFFFFF' },
+    { t: 'text', x: .64, y: .785, anchor: 'left', text: 'つくり手より', font: 'Zen Kaku Gothic New', size: .024, color: '#B86B4B' },
+    { t: 'text', x: .64, y: .845, anchor: 'left', text: '朝の光みたいな、ささやかなきらめきを\n毎日の耳もとに。金属アレルギー対応も承ります。', font: 'Zen Kaku Gothic New', size: .023, color: '#4A463F', bold: false, maxW: .29 },
+    { t: 'deco', kind: 'il-branch', x: .91, y: .1, s: .55, color: '#9AA88A', rot: 20 },
+    { t: 'text', x: .95, y: .955, anchor: 'right', text: '@atelier_shizuku ／ minne・Creemaで販売中', font: 'Zen Kaku Gothic New', size: .022, color: '#8A857B', bold: false }] },
+
+  { id: 'pro-cosme-review', name: 'コスメのレビュー', cat: 'intro', desc: '商品写真・評価の星・よかったポイント・使い方の3ステップ・価格が入った、ストーリーサイズのコスメ紹介です。',
+    canvas: [1080, 1920], bg: '#F8EEEA', items: () => [
+    { t: 'text', x: .5, y: .05, text: 'COSME REVIEW', font: 'Cinzel', size: .034, color: '#B97A70' },
+    { t: 'line', x1: .3, y1: .072, x2: .7, y2: .072, color: '#DDB8B0', width: .002 },
+    { t: 'box', kind: 'ellipse', x: .5, y: .27, w: .94, h: .36, fc: '#F1DCD5' },
+    { t: 'slot', x: .5, y: .27, w: .72, h: .3, rad: 10, ph: '商品の写真', border: '#FFFFFF', shadow: true },
+    { t: 'deco', kind: 'kira', x: .86, y: .12, s: .6, color: '#E4B768' },
+    { t: 'text', x: .5, y: .462, text: 'Lumi Rose', font: 'Playfair Display', size: .032, color: '#B97A70', italic: true },
+    { t: 'text', x: .5, y: .497, text: 'うるおいティントリップ #03 ピーチベージュ', font: 'Zen Kaku Gothic New', size: .044, color: '#3A2C2E', maxW: .88 },
+    { t: 'text', x: .45, y: .54, anchor: 'right', text: '★★★★★', font: 'Noto Sans JP', size: .046, color: '#E2A64B' },
+    { t: 'text', x: .49, y: .54, anchor: 'left', text: '4.8 / 5.0', font: 'Oswald', size: .042, color: '#3A2C2E', bold: false },
+    { t: 'box', x: .5, y: .647, w: .88, h: .145, fc: '#FFFFFF', rad: 16 },
+    { t: 'text', x: .5, y: .594, text: 'ここが好き！', font: 'Zen Kaku Gothic New', size: .032, color: '#B97A70', bg: '#FBEAE5' },
+    { t: 'text', x: .12, y: .66, anchor: 'left', text: '✔ 塗った瞬間すっと溶ける、なめらかな質感\n✔ 時間がたっても唇が乾きにくい\n✔ 重ねるほど発色が深まるシアーな色', font: 'Zen Kaku Gothic New', size: .028, color: '#4A3A3C', bold: false, maxW: .78 },
+    { t: 'text', x: .5, y: .755, text: 'HOW TO USE', font: 'Cinzel', size: .03, color: '#3A2C2E' },
+    { t: 'box', kind: 'ellipse', x: .2, y: .81, w: .13, h: .073, fc: '#C98B80' },
+    { t: 'text', x: .2, y: .81, text: '1', font: 'Oswald', size: .05, color: '#FFFFFF', bold: false },
+    { t: 'line', x1: .29, y1: .81, x2: .41, y2: .81, color: '#DDB8B0', width: .004, ls: 'dot', ce: 'open' },
+    { t: 'box', kind: 'ellipse', x: .5, y: .81, w: .13, h: .073, fc: '#C98B80' },
+    { t: 'text', x: .5, y: .81, text: '2', font: 'Oswald', size: .05, color: '#FFFFFF', bold: false },
+    { t: 'line', x1: .59, y1: .81, x2: .71, y2: .81, color: '#DDB8B0', width: .004, ls: 'dot', ce: 'open' },
+    { t: 'box', kind: 'ellipse', x: .8, y: .81, w: .13, h: .073, fc: '#C98B80' },
+    { t: 'text', x: .8, y: .81, text: '3', font: 'Oswald', size: .05, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .2, y: .868, text: '唇の中央に\nちょんと置く', font: 'Zen Kaku Gothic New', size: .025, color: '#4A3A3C', bold: false, maxW: .27 },
+    { t: 'text', x: .5, y: .868, text: '指で外側へ\nぼかして広げる', font: 'Zen Kaku Gothic New', size: .025, color: '#4A3A3C', bold: false, maxW: .27 },
+    { t: 'text', x: .8, y: .868, text: '仕上げに\n中央だけ重ねる', font: 'Zen Kaku Gothic New', size: .025, color: '#4A3A3C', bold: false, maxW: .27 },
+    { t: 'box', x: .5, y: .925, w: .88, h: .046, fc: '#3A2C2E', rad: 100 },
+    { t: 'text', x: .5, y: .925, text: '¥1,980（税込）　全6色　11/1 発売', font: 'Zen Kaku Gothic New', size: .032, color: '#FFF3F0', maxW: .82 },
+    { t: 'text', x: .5, y: .962, text: '※個人の感想です', font: 'Zen Kaku Gothic New', size: .02, color: '#A08A86', bold: false }] },
+
+  { id: 'pro-cafe-menu', name: 'カフェのメニュー表', cat: 'menu', desc: 'COFFEE・TEA・SWEETSの品名と価格、写真2枚、ケーキセットの案内とお店の情報が入ったA4のメニュー表です。',
+    canvas: [1240, 1754], bg: '#F6F0E4', items: () => [
+    { t: 'text', x: .5, y: .055, text: 'café hinata', font: 'Playfair Display', size: .075, color: '#2E4034', italic: true },
+    { t: 'text', x: .5, y: .1, text: 'DRINK & SWEETS MENU', font: 'Cinzel', size: .024, color: '#B8864B' },
+    { t: 'deco', kind: 'il-coffee', x: .87, y: .07, s: .45, color: '#9DB39A', color2: '#7A5236' },
+    { t: 'deco', kind: 'il-branch', x: .13, y: .07, s: .45, color: '#8DA584', rot: -30 },
+    { t: 'line', x1: .07, y1: .125, x2: .93, y2: .125, color: '#2E4034', width: .002 },
+    { t: 'text', x: .07, y: .165, anchor: 'left', text: 'COFFEE', font: 'Oswald', size: .042, color: '#2E4034', bold: false },
+    { t: 'text', x: .235, y: .168, anchor: 'left', text: 'コーヒー', font: 'Zen Kaku Gothic New', size: .02, color: '#B8864B' },
+    { t: 'line', x1: .07, y1: .19, x2: .48, y2: .19, color: '#CDBFA6', width: .002 },
+    { t: 'text', x: .07, y: .225, anchor: 'left', text: 'ブレンドコーヒー', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .225, anchor: 'right', text: '¥500', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .07, y: .265, anchor: 'left', text: 'カフェラテ', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .265, anchor: 'right', text: '¥580', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .07, y: .305, anchor: 'left', text: 'カプチーノ', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .305, anchor: 'right', text: '¥580', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .07, y: .345, anchor: 'left', text: 'カフェモカ', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .345, anchor: 'right', text: '¥620', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .07, y: .385, anchor: 'left', text: '水出しアイスコーヒー', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .385, anchor: 'right', text: '¥550', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'slot', x: .275, y: .535, w: .41, h: .2, rad: 4, ph: 'ドリンクの写真' },
+    { t: 'slot', x: .725, y: .26, w: .41, h: .2, rad: 4, ph: 'お店の写真' },
+    { t: 'text', x: .52, y: .405, anchor: 'left', text: 'TEA', font: 'Oswald', size: .042, color: '#2E4034', bold: false },
+    { t: 'text', x: .61, y: .408, anchor: 'left', text: '紅茶・ほか', font: 'Zen Kaku Gothic New', size: .02, color: '#B8864B' },
+    { t: 'line', x1: .52, y1: .43, x2: .93, y2: .43, color: '#CDBFA6', width: .002 },
+    { t: 'text', x: .52, y: .465, anchor: 'left', text: 'アールグレイ', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .465, anchor: 'right', text: '¥550', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .52, y: .505, anchor: 'left', text: 'ダージリン', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .505, anchor: 'right', text: '¥600', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .52, y: .545, anchor: 'left', text: 'ほうじ茶ラテ', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .545, anchor: 'right', text: '¥580', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .52, y: .585, anchor: 'left', text: '自家製レモネード', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .585, anchor: 'right', text: '¥600', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .52, y: .625, anchor: 'left', text: 'オレンジジュース', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .625, anchor: 'right', text: '¥500', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .07, y: .68, anchor: 'left', text: 'SWEETS', font: 'Oswald', size: .042, color: '#2E4034', bold: false },
+    { t: 'text', x: .25, y: .683, anchor: 'left', text: 'スイーツ', font: 'Zen Kaku Gothic New', size: .02, color: '#B8864B' },
+    { t: 'line', x1: .07, y1: .705, x2: .93, y2: .705, color: '#CDBFA6', width: .002 },
+    { t: 'text', x: .07, y: .74, anchor: 'left', text: 'ベイクドチーズケーキ', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .74, anchor: 'right', text: '¥580', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .07, y: .78, anchor: 'left', text: '季節のフルーツタルト', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .78, anchor: 'right', text: '¥650', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .07, y: .82, anchor: 'left', text: 'ガトーショコラ', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .48, y: .82, anchor: 'right', text: '¥550', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .52, y: .74, anchor: 'left', text: '自家製かためプリン', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .74, anchor: 'right', text: '¥480', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .52, y: .78, anchor: 'left', text: 'スコーン（2個）', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .78, anchor: 'right', text: '¥520', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'text', x: .52, y: .82, anchor: 'left', text: 'バニラアイス', font: 'Zen Kaku Gothic New', size: .026, color: '#2F2723', bold: false, maxW: .3 },
+    { t: 'text', x: .93, y: .82, anchor: 'right', text: '¥400', font: 'Oswald', size: .028, color: '#2F2723', bold: false },
+    { t: 'box', x: .5, y: .868, w: .86, h: .045, fc: '#E9DEC8', rad: 100 },
+    { t: 'text', x: .5, y: .868, text: 'ケーキセット　お好きなドリンクと一緒に　−¥150', font: 'Zen Kaku Gothic New', size: .024, color: '#2E4034', maxW: .8 },
+    { t: 'box', x: .5, y: .96, w: 1, h: .08, fc: '#2E4034' },
+    { t: 'text', x: .5, y: .96, text: '東京都杉並区〇〇2-14-5 ／ 9:00–18:00（L.O. 17:30）／ 火曜定休', font: 'Zen Kaku Gothic New', size: .021, color: '#F6F0E4', bold: false, maxW: .88 }] },
+
+  { id: 'pro-bakery-list', name: 'パン屋さんの商品一覧', cat: 'menu', desc: '6つの写真枠それぞれにパンの名前と価格が入った、パン屋さんの本日のラインナップ表です。',
+    canvas: [1080, 1350], bg: '#FFF9F0', bgPat: { kind: 'gingham', color: '#F5E9D8', color2: '#FFF9F0' }, items: () => [
+    { t: 'box', x: .5, y: .085, w: .88, h: .125, fc: '#FFFFFF', oc: '#E7D3B8', width: .003, rad: 20 },
+    { t: 'text', x: .5, y: .068, text: 'Boulangerie Mugi', font: 'Lobster', size: .062, color: '#C46A3A', bold: false },
+    { t: 'text', x: .5, y: .118, text: '本日焼きあがったパン', font: 'Zen Maru Gothic', size: .03, color: '#4B3426' },
+    { t: 'deco', kind: 'il-branch', x: .14, y: .085, s: .4, color: '#B9A15E', rot: -20 },
+    { t: 'deco', kind: 'il-branch', x: .86, y: .085, s: .4, color: '#B9A15E', rot: 110 },
+    { t: 'box', x: .2, y: .335, w: .28, h: .32, fc: '#FFFFFF', rad: 10 },
+    { t: 'slot', x: .2, y: .28, w: .25, h: .19, rad: 6, ph: 'パンの写真' },
+    { t: 'text', x: .2, y: .405, text: 'クロワッサン', font: 'Zen Maru Gothic', size: .028, color: '#4B3426', maxW: .25 },
+    { t: 'text', x: .2, y: .455, text: '¥260', font: 'Fredoka', size: .04, color: '#C46A3A' },
+    { t: 'box', x: .5, y: .335, w: .28, h: .32, fc: '#FFFFFF', rad: 10 },
+    { t: 'slot', x: .5, y: .28, w: .25, h: .19, rad: 6, ph: 'パンの写真' },
+    { t: 'text', x: .5, y: .405, text: '塩バターロール', font: 'Zen Maru Gothic', size: .028, color: '#4B3426', maxW: .25 },
+    { t: 'text', x: .5, y: .455, text: '¥180', font: 'Fredoka', size: .04, color: '#C46A3A' },
+    { t: 'box', x: .8, y: .335, w: .28, h: .32, fc: '#FFFFFF', rad: 10 },
+    { t: 'slot', x: .8, y: .28, w: .25, h: .19, rad: 6, ph: 'パンの写真' },
+    { t: 'text', x: .8, y: .405, text: 'あんバター', font: 'Zen Maru Gothic', size: .028, color: '#4B3426', maxW: .25 },
+    { t: 'text', x: .8, y: .455, text: '¥320', font: 'Fredoka', size: .04, color: '#C46A3A' },
+    { t: 'box', x: .2, y: .675, w: .28, h: .32, fc: '#FFFFFF', rad: 10 },
+    { t: 'slot', x: .2, y: .62, w: .25, h: .19, rad: 6, ph: 'パンの写真' },
+    { t: 'text', x: .2, y: .745, text: 'メロンパン', font: 'Zen Maru Gothic', size: .028, color: '#4B3426', maxW: .25 },
+    { t: 'text', x: .2, y: .795, text: '¥220', font: 'Fredoka', size: .04, color: '#C46A3A' },
+    { t: 'box', x: .5, y: .675, w: .28, h: .32, fc: '#FFFFFF', rad: 10 },
+    { t: 'slot', x: .5, y: .62, w: .25, h: .19, rad: 6, ph: 'パンの写真' },
+    { t: 'text', x: .5, y: .745, text: '揚げカレーパン', font: 'Zen Maru Gothic', size: .028, color: '#4B3426', maxW: .25 },
+    { t: 'text', x: .5, y: .795, text: '¥280', font: 'Fredoka', size: .04, color: '#C46A3A' },
+    { t: 'box', x: .8, y: .675, w: .28, h: .32, fc: '#FFFFFF', rad: 10 },
+    { t: 'slot', x: .8, y: .62, w: .25, h: .19, rad: 6, ph: 'パンの写真' },
+    { t: 'text', x: .8, y: .745, text: '明太フランス', font: 'Zen Maru Gothic', size: .028, color: '#4B3426', maxW: .25 },
+    { t: 'text', x: .8, y: .795, text: '¥300', font: 'Fredoka', size: .04, color: '#C46A3A' },
+    { t: 'box', x: .135, y: .2, w: .15, h: .036, fc: '#C46A3A', rad: 100 },
+    { t: 'text', x: .135, y: .2, text: '人気No.1', font: 'Zen Maru Gothic', size: .022, color: '#FFFFFF' },
+    { t: 'box', x: .5, y: .878, w: .88, h: .056, fc: '#7C8A4A', rad: 100 },
+    { t: 'text', x: .5, y: .878, text: '焼きたて時間　8:00 ／ 11:00 ／ 15:00', font: 'Zen Maru Gothic', size: .028, color: '#FFFFFF', maxW: .82 },
+    { t: 'text', x: .5, y: .94, text: '東京都目黒区〇〇3-8-1 ／ 7:30–18:00 ／ 月曜定休', font: 'Zen Maru Gothic', size: .022, color: '#7A6250', bold: false, maxW: .88 }] },
+
+  { id: 'pro-lunch-today', name: '本日のランチ', cat: 'menu', desc: '丸い大きな写真、定食の名前・セット内容・価格・提供時間が入った、正方形の本日のランチ告知です。',
+    canvas: [1080, 1080], bg: '#FFF4E0', items: () => [
+    { t: 'box', x: .5, y: .075, w: 1, h: .15, fc: '#D9482B' },
+    { t: 'text', x: .06, y: .045, anchor: 'left', text: "TODAY'S LUNCH", font: 'Bebas Neue', size: .036, color: '#F8C94F', bold: false },
+    { t: 'text', x: .06, y: .097, anchor: 'left', text: '本日のランチ', font: 'Dela Gothic One', size: .058, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .94, y: .075, anchor: 'right', text: '11.15 SUN', font: 'Bebas Neue', size: .06, color: '#FFFFFF', bold: false },
+    { t: 'slot', x: .33, y: .5, w: .54, h: .54, rad: 10, ph: 'ランチの写真', border: '#FFFFFF', shadow: true },
+    { t: 'box', kind: 'ellipse', x: .56, y: .72, w: .2, h: .2, fc: '#F2B33D', oc: '#FFFFFF', width: .006 },
+    { t: 'text', x: .56, y: .705, text: '¥1,100', font: 'Bebas Neue', size: .058, color: '#2B2420', bold: false },
+    { t: 'text', x: .56, y: .763, text: '税込', font: 'Zen Kaku Gothic New', size: .022, color: '#2B2420' },
+    { t: 'text', x: .65, y: .26, anchor: 'left', text: '鶏の唐揚げ\n甘酢あんかけ定食', font: 'Zen Kaku Gothic New', size: .042, color: '#2B2420', maxW: .3 },
+    { t: 'box', x: .795, y: .495, w: .3, h: .21, fc: '#FFFFFF', rad: 14 },
+    { t: 'text', x: .675, y: .42, anchor: 'left', text: 'セット内容', font: 'Zen Kaku Gothic New', size: .026, color: '#D9482B' },
+    { t: 'text', x: .675, y: .515, anchor: 'left', text: '・ごはん（おかわり自由）\n・お味噌汁\n・小鉢 2品\n・季節のサラダ', font: 'Zen Kaku Gothic New', size: .026, color: '#2B2420', bold: false, maxW: .25 },
+    { t: 'text', x: .795, y: .675, text: '＋¥150 で\nドリンク付き', font: 'Zen Kaku Gothic New', size: .026, color: '#D9482B', maxW: .28 },
+    { t: 'box', x: .5, y: .875, w: .88, h: .08, fc: '#2B2420', rad: 100 },
+    { t: 'text', x: .5, y: .875, text: '11:00〜14:00（L.O. 13:30）／ 数量限定 20食', font: 'Zen Kaku Gothic New', size: .03, color: '#FFF4E0', maxW: .82 },
+    { t: 'text', x: .5, y: .945, text: '定食屋 こめとしる', font: 'Zen Kaku Gothic New', size: .024, color: '#8A6B55' }] },
+
+  { id: 'pro-drink-menu', name: 'ドリンクメニュー', cat: 'menu', desc: '4つのドリンクの写真・名前・ひとこと説明・M/Lサイズの価格と、トッピング案内が入ったストーリーサイズのメニューです。',
+    canvas: [1080, 1920], bg: '#E8F4F0', bgPat: { kind: 'grad', color: '#E4F3EE', color2: '#FDF0E6' }, items: () => [
+    { t: 'text', x: .5, y: .055, text: 'DRINK MENU', font: 'Bebas Neue', size: .12, color: '#1F3B3A', bold: false },
+    { t: 'text', x: .5, y: .117, text: 'Juice Stand KIKI のドリンクメニュー', font: 'M PLUS Rounded 1c', size: .028, color: '#3E6462', maxW: .8 },
+    { t: 'deco', kind: 'il-boba', x: .14, y: .07, s: .45, color: '#F3B9A6', color2: '#4A3A33', rot: -12 },
+    { t: 'deco', kind: 'kira', x: .87, y: .055, s: .45, color: '#F08A6C' },
+    { t: 'box', x: .33, y: .15, w: .26, h: .028, fc: '#FFFFFF', rad: 100 },
+    { t: 'text', x: .33, y: .15, text: 'M 350ml', font: 'Fredoka', size: .028, color: '#1F3B3A' },
+    { t: 'box', x: .67, y: .15, w: .26, h: .028, fc: '#1F3B3A', rad: 100 },
+    { t: 'text', x: .67, y: .15, text: 'L 500ml', font: 'Fredoka', size: .028, color: '#FFFFFF' },
+    { t: 'box', x: .5, y: .26, w: .88, h: .16, fc: '#FFFFFF', rad: 24 },
+    { t: 'slot', x: .23, y: .26, w: .25, h: .14, rad: 100, ph: 'ドリンク', border: '#FCE3DA' },
+    { t: 'text', x: .41, y: .228, anchor: 'left', text: 'いちごミルク', font: 'M PLUS Rounded 1c', size: .044, color: '#1F3B3A', maxW: .48 },
+    { t: 'text', x: .41, y: .26, anchor: 'left', text: '果肉ごろごろ、とちおとめ使用', font: 'M PLUS Rounded 1c', size: .024, color: '#6A8483', bold: false, maxW: .48 },
+    { t: 'text', x: .41, y: .302, anchor: 'left', text: 'M ¥550　L ¥630', font: 'Fredoka', size: .04, color: '#F08A6C' },
+    { t: 'box', x: .5, y: .435, w: .88, h: .16, fc: '#FFFFFF', rad: 24 },
+    { t: 'slot', x: .77, y: .435, w: .25, h: .14, rad: 100, ph: 'ドリンク', border: '#DDEFE7' },
+    { t: 'text', x: .1, y: .403, anchor: 'left', text: '濃厚抹茶ラテ', font: 'M PLUS Rounded 1c', size: .044, color: '#1F3B3A', maxW: .5 },
+    { t: 'text', x: .1, y: .435, anchor: 'left', text: '宇治抹茶をたっぷり2杯分', font: 'M PLUS Rounded 1c', size: .024, color: '#6A8483', bold: false, maxW: .5 },
+    { t: 'text', x: .1, y: .477, anchor: 'left', text: 'M ¥580　L ¥660', font: 'Fredoka', size: .04, color: '#F08A6C' },
+    { t: 'box', x: .5, y: .61, w: .88, h: .16, fc: '#FFFFFF', rad: 24 },
+    { t: 'slot', x: .23, y: .61, w: .25, h: .14, rad: 100, ph: 'ドリンク', border: '#FCE3DA' },
+    { t: 'text', x: .41, y: .578, anchor: 'left', text: '白桃ソーダ', font: 'M PLUS Rounded 1c', size: .044, color: '#1F3B3A', maxW: .48 },
+    { t: 'text', x: .41, y: .61, anchor: 'left', text: 'しゅわっと甘い、夏の定番', font: 'M PLUS Rounded 1c', size: .024, color: '#6A8483', bold: false, maxW: .48 },
+    { t: 'text', x: .41, y: .652, anchor: 'left', text: 'M ¥500　L ¥580', font: 'Fredoka', size: .04, color: '#F08A6C' },
+    { t: 'box', x: .5, y: .785, w: .88, h: .16, fc: '#FFFFFF', rad: 24 },
+    { t: 'slot', x: .77, y: .785, w: .25, h: .14, rad: 100, ph: 'ドリンク', border: '#DDEFE7' },
+    { t: 'text', x: .1, y: .753, anchor: 'left', text: '黒糖タピオカミルク', font: 'M PLUS Rounded 1c', size: .044, color: '#1F3B3A', maxW: .5 },
+    { t: 'text', x: .1, y: .785, anchor: 'left', text: 'もちもちタピオカ入り', font: 'M PLUS Rounded 1c', size: .024, color: '#6A8483', bold: false, maxW: .5 },
+    { t: 'text', x: .1, y: .827, anchor: 'left', text: 'M ¥600　L ¥680', font: 'Fredoka', size: .04, color: '#F08A6C' },
+    { t: 'box', x: .5, y: .905, w: .88, h: .05, fc: '#1F3B3A', rad: 100 },
+    { t: 'text', x: .5, y: .905, text: 'トッピング +¥50　タピオカ／ナタデココ／ホイップ', font: 'M PLUS Rounded 1c', size: .028, color: '#FFFFFF', maxW: .82 },
+    { t: 'text', x: .5, y: .955, text: '10:00–20:00 ／ 東京都渋谷区〇〇4-1-7', font: 'M PLUS Rounded 1c', size: .024, color: '#3E6462', bold: false, maxW: .88 }] },
+  // ---- tpl-b.js
+  { id: 'pro-marche-flyer', name: 'マルシェ・イベント告知', cat: 'flyer', desc: 'タイトル・日時と会場・出店者の写真4枚・アクセス・主催とお問い合わせが入った、A4のイベント告知チラシです。',
+    canvas: [1240, 1754], bg: '#F6F0E2', items: () => [
+    { t: 'text', x: .5, y: .04, text: 'Handmade Marché', font: 'Playfair Display', size: .038, color: '#D9734E', italic: true },
+    { t: 'text', x: .5, y: .088, text: '森のてづくりマルシェ', font: 'Kaisei Decol', size: .085, color: '#2F4A3A', maxW: .86 },
+    { t: 'text', x: .5, y: .137, text: 'vol.12 ｜ パン・コーヒー・花・雑貨 32店舗が集まります', font: 'Zen Maru Gothic', size: .025, color: '#6B5E4B', bold: false, maxW: .86 },
+    { t: 'slot', x: .5, y: .3, w: .86, h: .27, rad: 5, ph: 'マルシェの写真' },
+    { t: 'deco', kind: 'il-sprout', x: .9, y: .175, s: .7, color: '#8CC26E', color2: '#C9A27E', rot: .3 },
+    { t: 'box', x: .265, y: .52, w: .39, h: .125, fc: '#2F4A3A', rad: 18 },
+    { t: 'text', x: .265, y: .474, text: '2026', font: 'Oswald', size: .028, color: '#E8B64C', bold: false },
+    { t: 'text', x: .265, y: .522, text: '11.23', font: 'Oswald', size: .085, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .265, y: .561, text: 'SUN ・ 雨天決行', font: 'Zen Maru Gothic', size: .022, color: '#E9E1CF' },
+    { t: 'text', x: .51, y: .478, anchor: 'left', text: '時間', font: 'Zen Maru Gothic', size: .022, color: '#FFFFFF', bg: '#D9734E' },
+    { t: 'text', x: .6, y: .478, anchor: 'left', text: '10:00 – 16:00', font: 'Oswald', size: .036, color: '#2F4A3A', bold: false },
+    { t: 'text', x: .51, y: .52, anchor: 'left', text: '会場', font: 'Zen Maru Gothic', size: .022, color: '#FFFFFF', bg: '#D9734E' },
+    { t: 'text', x: .6, y: .52, anchor: 'left', maxW: .33, text: '森のひろば公園 芝生広場', font: 'Zen Maru Gothic', size: .028, color: '#2F4A3A' },
+    { t: 'text', x: .51, y: .562, anchor: 'left', text: '入場', font: 'Zen Maru Gothic', size: .022, color: '#FFFFFF', bg: '#D9734E' },
+    { t: 'text', x: .6, y: .562, anchor: 'left', maxW: .33, text: '無料・どなたでもどうぞ', font: 'Zen Maru Gothic', size: .028, color: '#2F4A3A' },
+    { t: 'line', x1: .07, y1: .618, x2: .3, y2: .618, color: '#CDBF9F', width: .003 },
+    { t: 'line', x1: .7, y1: .618, x2: .93, y2: .618, color: '#CDBF9F', width: .003 },
+    { t: 'text', x: .5, y: .618, text: '出店者のご紹介', font: 'Kaisei Decol', size: .036, color: '#2F4A3A' },
+    ...[['こむぎ舎', 'パン・焼き菓子', 'パンの写真'], ['まめのき珈琲', '自家焙煎コーヒー', 'コーヒーの写真'], ['hanairo', '花・ドライフラワー', '花の写真'], ['木と布', '木工・布小物', '雑貨の写真']].flatMap(([n, k, ph], i) => [
+      { t: 'slot', x: .17 + i * .22, y: .715, w: .2, h: .141, rad: 100, border: '#FFFFFF', shadow: true, ph },
+      { t: 'text', x: .17 + i * .22, y: .808, text: n, font: 'Zen Maru Gothic', size: .026, color: '#2F4A3A', maxW: .2 },
+      { t: 'text', x: .17 + i * .22, y: .833, text: k, font: 'Zen Maru Gothic', size: .02, color: '#8A7A62', bold: false, maxW: .2 }]),
+    { t: 'box', x: .5, y: .893, w: .86, h: .072, fc: '#FFFFFF', oc: '#D9C9A8', width: .003, rad: 20, ls: 'dash' },
+    { t: 'text', x: .1, y: .893, anchor: 'left', text: 'ACCESS', font: 'Oswald', size: .032, color: '#D9734E', bold: false },
+    { t: 'text', x: .25, y: .893, anchor: 'left', maxW: .66, text: '東京都〇〇市森の台3-2-1 ／ 〇〇線「森の台駅」北口から徒歩5分\n駐車場はございません。公共交通機関でお越しください。', font: 'Zen Maru Gothic', size: .021, color: '#4E4636', bold: false },
+    { t: 'box', x: .5, y: .97, w: 1, h: .06, fc: '#2F4A3A' },
+    { t: 'text', x: .5, y: .97, maxW: .9, text: '主催：森のてづくりマルシェ実行委員会　お問い合わせ：mori.marche@example.jp ／ 090-1234-5678', font: 'Zen Maru Gothic', size: .02, color: '#F6F0E2', bold: false }] },
+
+  { id: 'pro-grand-open', name: '新規オープンのお知らせ', cat: 'flyer', desc: 'お店の外観写真・店名・オープン日・オープン記念キャンペーン・住所と営業時間とSNSが入った、開店告知です。',
+    canvas: [1080, 1350], bg: '#FDFBF7', items: () => [
+    { t: 'text', x: .5, y: .06, text: 'GRAND OPEN', font: 'Cinzel', size: .075, color: '#1F2A44' },
+    { t: 'line', x1: .2, y1: .113, x2: .31, y2: .113, color: '#C9A45C', width: .003 },
+    { t: 'line', x1: .69, y1: .113, x2: .8, y2: .113, color: '#C9A45C', width: .003 },
+    { t: 'text', x: .5, y: .113, text: '新規オープンのお知らせ', font: 'Shippori Mincho', size: .03, color: '#1F2A44' },
+    { t: 'slot', x: .5, y: .345, w: .86, h: .37, rad: 0, ph: 'お店の外観' },
+    { t: 'box', kind: 'ellipse', x: .82, y: .53, w: .24, h: .192, fc: '#1F2A44', oc: '#C9A45C', width: .006 },
+    { t: 'text', x: .82, y: .51, text: 'NEW', font: 'Cinzel', size: .04, color: '#C9A45C' },
+    { t: 'text', x: .82, y: .553, text: 'OPEN', font: 'Cinzel', size: .04, color: '#FFFFFF' },
+    { t: 'text', x: .07, y: .585, anchor: 'left', maxW: .58, text: 'cafe & bake hinata', font: 'Playfair Display', size: .055, color: '#1F2A44' },
+    { t: 'text', x: .07, y: .627, anchor: 'left', maxW: .58, text: 'カフェ＆ベーカリー ひなた', font: 'Shippori Mincho', size: .028, color: '#6A6F7D' },
+    { t: 'box', x: .5, y: .715, w: 1, h: .1, fc: '#1F2A44' },
+    { t: 'text', x: .07, y: .693, anchor: 'left', text: 'OPENING DAY', font: 'Cinzel', size: .024, color: '#C9A45C' },
+    { t: 'text', x: .07, y: .73, anchor: 'left', text: '2026.12.5 FRI', font: 'Oswald', size: .058, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .93, y: .715, anchor: 'right', text: '10:00 〜', font: 'Oswald', size: .058, color: '#C9A45C', bold: false },
+    { t: 'box', x: .5, y: .84, w: .86, h: .11, fc: '#F3EDE2', rad: 18 },
+    { t: 'text', x: .1, y: .812, anchor: 'left', text: 'オープン記念', font: 'Shippori Mincho', size: .026, color: '#FFFFFF', bg: '#C9A45C' },
+    { t: 'text', x: .1, y: .858, anchor: 'left', maxW: .8, text: '先着100名様にドリップバッグをプレゼント\n12/5〜12/11 はドリンク全品 10%OFF', font: 'Zen Kaku Gothic New', size: .026, color: '#1F2A44' },
+    { t: 'deco', kind: 'il-coffee', x: .84, y: .835, s: .5, color: '#C9A45C', color2: '#1F2A44' },
+    { t: 'line', x1: .07, y1: .913, x2: .93, y2: .913, color: '#D8D2C4', width: .002 },
+    { t: 'text', x: .5, y: .937, maxW: .86, text: '📍 東京都世田谷区桜丘2-14-8　🕘 8:00–18:00（火曜定休）', font: 'Zen Kaku Gothic New', size: .022, color: '#4A5060', bold: false },
+    { t: 'text', x: .5, y: .968, text: 'Instagram ＠hinata_bake', font: 'Zen Kaku Gothic New', size: .022, color: '#4A5060', bold: false }] },
+
+  { id: 'pro-sale-campaign', name: 'セール・キャンペーン', cat: 'flyer', desc: '大きなSALEの文字・%OFFバッジ・期間・対象商品の写真と価格・注意事項が入った、目立つセール告知です。',
+    canvas: [1080, 1350], bg: '#FFF6E5', items: () => [
+    { t: 'box', x: .5, y: .19, w: 1, h: .38, fc: '#E43D30' },
+    { t: 'text', x: .09, y: .055, anchor: 'left', text: 'WINTER', font: 'Bebas Neue', size: .07, color: '#FFD54F', bold: false },
+    { t: 'text', x: .09, y: .205, anchor: 'left', text: 'SALE', font: 'Bebas Neue', size: .24, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .09, y: .335, anchor: 'left', text: '冬物アイテムが今だけお得！', font: 'Dela Gothic One', size: .034, color: '#FFFFFF', bold: false },
+    { t: 'box', kind: 'ellipse', x: .76, y: .205, w: .36, h: .3, fc: '#FFD54F', oc: '#1A1A1A', width: .006, rot: .14 },
+    { t: 'text', x: .75, y: .115, text: '最大', font: 'Dela Gothic One', size: .036, color: '#1A1A1A', bold: false, rot: .14 },
+    { t: 'text', x: .76, y: .205, text: '50%', font: 'Bebas Neue', size: .12, color: '#E43D30', bold: false, rot: .14 },
+    { t: 'text', x: .77, y: .3, text: 'OFF', font: 'Bebas Neue', size: .06, color: '#1A1A1A', bold: false, rot: .14 },
+    { t: 'box', x: .5, y: .43, w: .86, h: .066, fc: '#1A1A1A', rad: 100 },
+    { t: 'text', x: .12, y: .43, anchor: 'left', text: '期間', font: 'Dela Gothic One', size: .026, color: '#1A1A1A', bg: '#FFD54F', bold: false },
+    { t: 'text', x: .57, y: .43, text: '12.26 SAT  ─  1.12 MON', font: 'Bebas Neue', size: .055, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .5, y: .5, text: '― 対象アイテム ―', font: 'Dela Gothic One', size: .032, color: '#1A1A1A', bold: false },
+    ...[['ウールニット', '¥6,900', '¥3,450', '-50%', 'ニットの写真'], ['ダウンジャケット', '¥18,000', '¥12,600', '-30%', 'アウターの写真'], ['カシミヤマフラー', '¥4,800', '¥2,880', '-40%', '小物の写真']].flatMap(([n, p0, p1, off, ph], i) => [
+      { t: 'slot', x: .2 + i * .3, y: .645, w: .26, h: .208, rad: 6, border: '#FFFFFF', shadow: true, ph },
+      { t: 'box', kind: 'ellipse', x: .3 + i * .3, y: .555, w: .1, h: .08, fc: '#E43D30', oc: '#FFFFFF', width: .004 },
+      { t: 'text', x: .3 + i * .3, y: .555, text: off, font: 'Bebas Neue', size: .034, color: '#FFFFFF', bold: false },
+      { t: 'text', x: .2 + i * .3, y: .78, text: n, font: 'Zen Kaku Gothic New', size: .028, color: '#1A1A1A', maxW: .27 },
+      { t: 'text', x: .2 + i * .3 - .02, y: .82, anchor: 'right', text: p0, font: 'Bebas Neue', size: .032, color: '#9A8F80', bold: false },
+      { t: 'text', x: .2 + i * .3 - .005, y: .82, anchor: 'left', text: '→ ' + p1, font: 'Bebas Neue', size: .05, color: '#E43D30', bold: false }]),
+    { t: 'box', x: .5, y: .898, w: .86, h: .085, fc: '#FFFFFF', oc: '#E9D9B8', width: .003, rad: 14 },
+    { t: 'text', x: .1, y: .898, anchor: 'left', maxW: .8, text: '※ 一部対象外の商品がございます。　※ 他の割引との併用はできません。\n※ 価格はすべて税込です。　※ 商品がなくなり次第終了となります。', font: 'Zen Kaku Gothic New', size: .022, color: '#5A5246', bold: false },
+    { t: 'text', x: .5, y: .965, text: 'STYLE MART 全店 ＆ オンラインストア', font: 'Dela Gothic One', size: .03, color: '#E43D30', bold: false }] },
+
+  { id: 'pro-workshop-wide', name: '教室・ワークショップ参加者募集', cat: 'flyer', desc: '教室の様子と作品の写真3枚・タイトル・内容紹介・開催日一覧・参加費と定員・申込み方法が入った、横長の募集告知です。',
+    canvas: [1920, 1080], bg: '#F3F1EA', items: () => [
+    { t: 'slot', x: .26, y: .4, w: .44, h: .66, rad: 4, ph: '教室の様子' },
+    { t: 'slot', x: .1475, y: .865, w: .215, h: .19, rad: 4, ph: 'つくる作品' },
+    { t: 'slot', x: .3725, y: .865, w: .215, h: .19, rad: 4, ph: '手元のようす' },
+    { t: 'deco', kind: 'il-branch', x: .47, y: .13, s: .8, color: '#8DB27F', rot: .5 },
+    { t: 'text', x: .54, y: .1, anchor: 'left', text: 'Flower Workshop', font: 'Playfair Display', size: .045, color: '#C98A5E', italic: true },
+    { t: 'text', x: .54, y: .245, anchor: 'left', maxW: .41, text: '季節の草花でつくる\nスワッグ教室', font: 'Shippori Mincho', size: .085, color: '#33372F' },
+    { t: 'text', x: .54, y: .41, anchor: 'left', text: '参加者募集中', font: 'Zen Kaku Gothic New', size: .03, color: '#FFFFFF', bg: '#6E8B6A' },
+    { t: 'text', x: .54, y: .5, anchor: 'left', maxW: .41, text: 'ユーカリやミモザなど旬の草花を束ねて、お部屋に飾れる\nスワッグをつくります。道具はすべてご用意。初心者さん大歓迎！', font: 'Zen Kaku Gothic New', size: .026, color: '#4E5248', bold: false },
+    { t: 'box', x: .645, y: .735, w: .21, h: .3, fc: '#FFFFFF', rad: 12 },
+    { t: 'text', x: .645, y: .625, text: '開催日', font: 'Shippori Mincho', size: .03, color: '#6E8B6A' },
+    { t: 'line', x1: .57, y1: .665, x2: .72, y2: .665, color: '#D9D4C5', width: .002 },
+    { t: 'text', x: .645, y: .77, text: '12/6（土）13:00〜\n12/13（土）13:00〜\n12/20（日）10:00〜\n12/21（日）13:00〜', font: 'Zen Kaku Gothic New', size: .026, color: '#33372F', bold: false },
+    { t: 'box', x: .845, y: .66, w: .17, h: .15, fc: '#6E8B6A', rad: 12 },
+    { t: 'text', x: .845, y: .615, text: '参加費', font: 'Zen Kaku Gothic New', size: .022, color: '#E6EDE3' },
+    { t: 'text', x: .845, y: .662, text: '¥4,500', font: 'Oswald', size: .05, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .845, y: .708, text: '材料費込み', font: 'Zen Kaku Gothic New', size: .019, color: '#E6EDE3', bold: false },
+    { t: 'box', x: .845, y: .81, w: .17, h: .13, fc: '#C98A5E', rad: 12 },
+    { t: 'text', x: .845, y: .775, text: '定員', font: 'Zen Kaku Gothic New', size: .022, color: '#FBEDE2' },
+    { t: 'text', x: .845, y: .822, text: '各回 8名', font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF' },
+    { t: 'line', x1: .54, y1: .915, x2: .95, y2: .915, color: '#D9D4C5', width: .002 },
+    { t: 'text', x: .54, y: .953, anchor: 'left', maxW: .41, text: '申込み：Instagram（＠atelier_cotori）のDM またはお電話 03-1234-5678\n会場：アトリエ cotori（東京都杉並区高円寺南4-5-6 2F）', font: 'Zen Kaku Gothic New', size: .02, color: '#4E5248', bold: false }] },
+
+  { id: 'pro-recipe-card', name: 'レシピカード', cat: 'recipe', desc: '料理の写真・料理名・調理時間と人数・材料と分量の一覧・番号つきの作り方が入った、見やすいレシピカードです。',
+    canvas: [1080, 1350], bg: '#FFFDF8', items: () => [
+    { t: 'slot', x: .5, y: .205, w: .86, h: .31, rad: 6, ph: '料理の写真' },
+    { t: 'text', x: .07, y: .405, anchor: 'left', text: 'RECIPE', font: 'Oswald', size: .024, color: '#FFFFFF', bg: '#7A8B3A', bold: false },
+    { t: 'text', x: .07, y: .452, anchor: 'left', maxW: .86, text: 'なすとひき肉のトマトパスタ', font: 'Zen Maru Gothic', size: .056, color: '#3B3226' },
+    { t: 'text', x: .07, y: .505, anchor: 'left', text: '⏱ 25分', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
+    { t: 'text', x: .21, y: .505, anchor: 'left', text: '👤 2人分', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
+    { t: 'text', x: .37, y: .505, anchor: 'left', text: '🔥 かんたん', font: 'Zen Maru Gothic', size: .025, color: '#3B3226', bg: '#F6EFE3' },
+    { t: 'box', x: .26, y: .745, w: .38, h: .37, fc: '#F6EFE3', rad: 8 },
+    { t: 'text', x: .1, y: .592, anchor: 'left', text: '材料', font: 'Zen Maru Gothic', size: .034, color: '#E07A3F' },
+    { t: 'text', x: .42, y: .594, anchor: 'right', text: '2人分', font: 'Zen Maru Gothic', size: .022, color: '#8A7B66', bold: false },
+    ...[['スパゲッティ', '200g'], ['なす', '2本'], ['合いびき肉', '150g'], ['トマト缶', '1缶'], ['玉ねぎ', '1/2個'], ['にんにく', '1かけ'], ['オリーブ油', '大さじ2'], ['塩・こしょう', '少々']].flatMap(([n, a], i) => [
+      { t: 'text', x: .1, y: .64 + i * .036, anchor: 'left', text: n, font: 'Zen Maru Gothic', size: .024, color: '#3B3226', bold: false },
+      { t: 'text', x: .42, y: .64 + i * .036, anchor: 'right', text: a, font: 'Zen Maru Gothic', size: .024, color: '#3B3226' }]),
+    { t: 'text', x: .5, y: .592, anchor: 'left', text: '作り方', font: 'Zen Maru Gothic', size: .034, color: '#E07A3F' },
+    ...['なすは1cm幅の輪切りにし、玉ねぎと\nにんにくはみじん切りにする。', 'オリーブ油でにんにくと玉ねぎを炒め、\nひき肉となすを加えてさらに炒める。', 'トマト缶を加えて10分煮込み、\n塩・こしょうで味をととのえる。', '表示どおりにゆでたパスタを加えて\nからめ、器に盛ったらできあがり！'].flatMap((s, i) => [
+      { t: 'box', kind: 'ellipse', x: .52, y: .652 + i * .08, w: .044, h: .035, fc: '#7A8B3A' },
+      { t: 'text', x: .52, y: .652 + i * .08, text: String(i + 1), font: 'Fredoka', size: .026, color: '#FFFFFF' },
+      { t: 'text', x: .56, y: .66 + i * .08, anchor: 'left', maxW: .37, text: s, font: 'Zen Maru Gothic', size: .022, color: '#3B3226', bold: false }]),
+    { t: 'text', x: .5, y: .968, text: 'POINT：なすは先に焼き色をつけると、とろっと甘く仕上がります', font: 'Zen Maru Gothic', size: .022, color: '#7A8B3A', maxW: .86 }] },
+
+  { id: 'pro-3step-story', name: '3ステップで作れる', cat: 'recipe', desc: '3つの手順写真と番号つきの説明、できあがり写真が入った、ストーリー用の縦長レシピです。',
+    canvas: [1080, 1920], bg: '#FFF4E6', bgPat: { kind: 'dot', color: '#FBE6CF', color2: '#FFF4E6' }, items: () => [
+    { t: 'text', x: .5, y: .045, text: 'かんたん！', font: 'Mochiy Pop One', size: .03, color: '#FFFFFF', bg: '#F08A5D', bold: false },
+    { t: 'text', x: .5, y: .115, text: '3ステップで作れる\nふわふわパンケーキ', font: 'Mochiy Pop One', size: .078, color: '#4A3B33', bold: false, maxW: .9 },
+    { t: 'text', x: .5, y: .188, text: 'ボウルひとつ・10分でできるよ', font: 'Zen Maru Gothic', size: .03, color: '#9A7A66' },
+    ...[['01', '材料をまぜる', '卵・牛乳・砂糖をまぜて\nホットケーキミックスを加える', '混ぜる写真'], ['02', 'じっくり焼く', '弱火でふたをして3分、\n裏返してさらに2分焼く', '焼く写真'], ['03', 'トッピング', 'バターとはちみつ、\nお好みのフルーツをのせる', '盛りつけ写真']].flatMap(([n, h, s, ph], i) => {
+      const y = .3 + i * .17, L = i % 2 === 0, sx = L ? .3 : .7, tx = L ? .58 : .07;
+      return [
+        { t: 'box', x: .5, y, w: .92, h: .15, fc: '#FFFFFF', rad: 14 },
+        { t: 'slot', x: sx, y, w: .48, h: .13, rad: 8, ph },
+        { t: 'text', x: tx, y: y - .045, anchor: 'left', text: n, font: 'Fredoka', size: .08, color: '#F08A5D' },
+        { t: 'text', x: tx, y: y + .005, anchor: 'left', maxW: .35, text: h, font: 'Mochiy Pop One', size: .038, color: '#4A3B33', bold: false },
+        { t: 'text', x: tx, y: y + .045, anchor: 'left', maxW: .35, text: s, font: 'Zen Maru Gothic', size: .024, color: '#6E5B4F', bold: false }];
+    }),
+    { t: 'text', x: .5, y: .755, text: 'できあがり！', font: 'Mochiy Pop One', size: .045, color: '#F08A5D', bold: false },
+    { t: 'deco', kind: 'kira3', x: .2, y: .752, s: .5, color: '#F7C948' },
+    { t: 'deco', kind: 'kira3', x: .8, y: .752, s: .5, color: '#F7C948' },
+    { t: 'slot', x: .5, y: .868, w: .86, h: .18, rad: 10, border: '#FFFFFF', shadow: true, ph: 'できあがり写真' }] },
+
+  { id: 'pro-bento-diary', name: '今日のお弁当記録', cat: 'recipe', desc: 'お弁当の写真・日付・メニュー一覧・ひとことメモ・調理時間などが入った、ノート風のお弁当記録です。',
+    canvas: [1080, 1080], bg: '#FAF6EC', bgPat: { kind: 'grid', color: '#EDE5D2', color2: '#FAF6EC' }, items: () => [
+    { t: 'text', x: .07, y: .085, anchor: 'left', text: '今日のお弁当', font: 'Kiwi Maru', size: .065, color: '#3E3A33' },
+    { t: 'text', x: .07, y: .145, anchor: 'left', text: 'BENTO DIARY  no.128', font: 'Caveat', size: .036, color: '#D9604C' },
+    { t: 'text', x: .93, y: .09, anchor: 'right', text: '11/15（土）', font: 'Kiwi Maru', size: .032, color: '#FFFFFF', bg: '#D9604C' },
+    { t: 'slot', x: .33, y: .52, w: .52, h: .6, rad: 6, border: '#FFFFFF', shadow: true, rot: -.035, ph: 'お弁当の写真' },
+    { t: 'deco', kind: 'tape-check', x: .33, y: .225, s: .55, color: '#A8D8B9', color2: '#FFFFFF', rot: -.08 },
+    { t: 'text', x: .64, y: .235, anchor: 'left', text: 'MENU', font: 'Caveat', size: .05, color: '#6B8F5A' },
+    { t: 'line', x1: .64, y1: .275, x2: .93, y2: .275, color: '#6B8F5A', width: .003, ls: 'dash' },
+    ...['鶏の照り焼き', 'だし巻き玉子', 'ほうれん草のごま和え', 'きんぴらごぼう', 'ミニトマト', '梅しそごはん'].flatMap((m, i) => [
+      { t: 'box', kind: 'ellipse', x: .655, y: .315 + i * .048, w: .016, h: .016, fc: i < 2 ? '#D9604C' : '#6B8F5A' },
+      { t: 'text', x: .68, y: .315 + i * .048, anchor: 'left', maxW: .25, text: m, font: 'Kiwi Maru', size: .028, color: '#3E3A33', bold: false }]),
+    { t: 'note', x: .785, y: .7, w: .3, h: .22, text: 'ゆうべの残りの\nきんぴらを活用！\n明日は鮭にしよう', color: '#FFF3B0', shape: 'rect', deco: 'tape', pattern: 'lines', tcolor: '#3E3A33', font: 'Yomogi', rot: .05 },
+    { t: 'text', x: .07, y: .91, anchor: 'left', text: '⏱ 15分', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
+    { t: 'text', x: .25, y: .91, anchor: 'left', text: '🔥 約520kcal', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
+    { t: 'text', x: .5, y: .91, anchor: 'left', text: '満足度 ★★★★☆', font: 'Kiwi Maru', size: .028, color: '#3E3A33', bg: '#FFFFFF' },
+    { t: 'deco', kind: 'il-onigiri', x: .9, y: .92, s: .45, color: '#FFFDF7', color2: '#3E4A3D', rot: .15 }] },
+
+  { id: 'pro-weekly-menu', name: '1週間の献立', cat: 'recipe', desc: '月曜〜日曜の7日分に、小さな料理写真・主菜・副菜と汁物の欄、買い出しメモが入った、A4の献立表です。',
+    canvas: [1240, 1754], bg: '#F9F7F2', items: () => [
+    { t: 'text', x: .07, y: .045, anchor: 'left', text: 'WEEKLY MENU', font: 'Bebas Neue', size: .04, color: '#E3A857', bold: false },
+    { t: 'text', x: .07, y: .088, anchor: 'left', text: '1週間の献立', font: 'Zen Maru Gothic', size: .07, color: '#2E4F4F' },
+    { t: 'text', x: .93, y: .085, anchor: 'right', text: '11/16 〜 11/22', font: 'Zen Maru Gothic', size: .03, color: '#FFFFFF', bg: '#2E4F4F' },
+    { t: 'text', x: .29, y: .14, text: '写真', font: 'Zen Maru Gothic', size: .02, color: '#8A9493' },
+    { t: 'text', x: .39, y: .14, anchor: 'left', text: '主菜', font: 'Zen Maru Gothic', size: .02, color: '#8A9493' },
+    { t: 'text', x: .67, y: .14, anchor: 'left', text: '副菜・汁物', font: 'Zen Maru Gothic', size: .02, color: '#8A9493' },
+    ...[['月', 'MON', '鮭のちゃんちゃん焼き', 'ほうれん草のおひたし\nなめこのみそ汁'], ['火', 'TUE', '豚の生姜焼き', 'キャベツの浅漬け\n豆腐とわかめのみそ汁'], ['水', 'WED', '鶏むね肉の南蛮漬け', 'ひじきの煮物\n玉ねぎのスープ'], ['木', 'THU', '麻婆豆腐', '春雨サラダ\n中華風たまごスープ'], ['金', 'FRI', 'ハンバーグ', 'にんじんグラッセ\nコーンスープ'], ['土', 'SAT', 'ちらし寿司', '茶碗蒸し\nお吸いもの'], ['日', 'SUN', 'おうちカレー', 'グリーンサラダ\nヨーグルト']].flatMap(([d, e, m, s], i) => {
+      const y = .205 + i * .1, c = i === 5 ? '#4A7FB5' : i === 6 ? '#D0614C' : '#2E4F4F';
+      return [
+        { t: 'box', x: .5, y, w: .86, h: .09, fc: i % 2 ? '#FFFFFF' : '#EFEDE5', rad: 14 },
+        { t: 'box', kind: 'ellipse', x: .14, y, w: .085, h: .06, fc: c },
+        { t: 'text', x: .14, y: y - .008, text: d, font: 'Zen Maru Gothic', size: .036, color: '#FFFFFF' },
+        { t: 'text', x: .14, y: y + .016, text: e, font: 'Bebas Neue', size: .016, color: '#FFFFFF', bold: false },
+        { t: 'slot', x: .29, y, w: .12, h: .076, rad: 12, ph: '写真' },
+        { t: 'text', x: .39, y, anchor: 'left', maxW: .26, text: m, font: 'Zen Maru Gothic', size: .03, color: '#2E3A3A' },
+        { t: 'text', x: .67, y, anchor: 'left', maxW: .24, text: s, font: 'Zen Maru Gothic', size: .021, color: '#5A6565', bold: false }];
+    }),
+    { t: 'box', x: .5, y: .925, w: .86, h: .07, fc: 'none', oc: '#E3A857', width: .003, rad: 14, ls: 'dash' },
+    { t: 'text', x: .1, y: .925, anchor: 'left', text: 'MEMO', font: 'Bebas Neue', size: .034, color: '#E3A857', bold: false },
+    { t: 'text', x: .2, y: .925, anchor: 'left', maxW: .7, text: '買い出し：鮭・豚こま・鶏むね・豆腐・ひき肉・卵・牛乳・キャベツ・にんじん\n日曜のカレーは多めに作って、月曜のお弁当にも。', font: 'Zen Maru Gothic', size: .02, color: '#5A6565', bold: false }] },
+  // ---- tpl-c.js
+  { id: 'pro-selfintro', name: '自己紹介（SNS）', cat: 'profile', desc: '丸い顔写真・名前・タグ・好きなもの／趣味／MBTI／ひとことのQ&A、思い出の写真3枚が入ったSNS向けの自己紹介です。',
+    canvas: [1080, 1350], bg: '#FDF3EE', bgPat: { kind: 'dot', color: '#FDF3EE', color2: '#F7E1D8' }, items: () => [
+    { t: 'text', x: .5, y: .055, text: 'My Profile', font: 'Pacifico', size: .055, color: '#E07A7A', bold: false },
+    { t: 'slot', x: .27, y: .245, w: .36, h: .288, rad: 100, border: '#FFFFFF', shadow: true, ph: 'あなたの写真' },
+    { t: 'deco', kind: 'kira3', x: .1, y: .12, s: .7, color: '#F2B66D' },
+    { t: 'deco', kind: 'heart', x: .43, y: .355, s: .55, color: '#E07A7A' },
+    { t: 'text', x: .52, y: .175, anchor: 'left', maxW: .42, text: 'みずき', font: 'Zen Maru Gothic', size: .07, color: '#4A3B3B' },
+    { t: 'text', x: .52, y: .245, anchor: 'left', maxW: .42, text: 'Mizuki ／ 東京在住・会社員', font: 'Zen Maru Gothic', size: .026, color: '#9B7F7A', bold: false },
+    { t: 'box', x: .62, y: .305, w: .2, h: .045, fc: '#FFFFFF', oc: '#F0C9C0', width: .003, rad: 100 },
+    { t: 'text', x: .62, y: .305, text: '#カフェ巡り', font: 'Zen Maru Gothic', size: .023, color: '#C9645F' },
+    { t: 'box', x: .835, y: .305, w: .2, h: .045, fc: '#FFFFFF', oc: '#F0C9C0', width: .003, rad: 100 },
+    { t: 'text', x: .835, y: .305, text: '#フィルム写真', font: 'Zen Maru Gothic', size: .023, color: '#C9645F' },
+    { t: 'text', x: .07, y: .43, anchor: 'left', text: 'ABOUT ME', font: 'Fredoka', size: .03, color: '#E07A7A' },
+    { t: 'line', x1: .25, y1: .43, x2: .93, y2: .43, color: '#F0C9C0', width: .003, ls: 'dot' },
+    { t: 'box', x: .5, y: .49, w: .86, h: .068, fc: '#FFFFFF', rad: 100 },
+    { t: 'box', x: .185, y: .49, w: .2, h: .046, fc: '#E07A7A', rad: 100 },
+    { t: 'text', x: .185, y: .49, text: '好きなもの', font: 'Zen Maru Gothic', size: .024, color: '#FFFFFF' },
+    { t: 'text', x: .32, y: .49, anchor: 'left', maxW: .58, text: 'あんこ・古着・夜のおさんぽ', font: 'Zen Maru Gothic', size: .029, color: '#4A3B3B', bold: false },
+    { t: 'box', x: .5, y: .57, w: .86, h: .068, fc: '#FFFFFF', rad: 100 },
+    { t: 'box', x: .185, y: .57, w: .2, h: .046, fc: '#F2A65A', rad: 100 },
+    { t: 'text', x: .185, y: .57, text: '趣味', font: 'Zen Maru Gothic', size: .024, color: '#FFFFFF' },
+    { t: 'text', x: .32, y: .57, anchor: 'left', maxW: .58, text: 'フィルムカメラ ／ 純喫茶めぐり', font: 'Zen Maru Gothic', size: .029, color: '#4A3B3B', bold: false },
+    { t: 'box', x: .5, y: .65, w: .86, h: .068, fc: '#FFFFFF', rad: 100 },
+    { t: 'box', x: .185, y: .65, w: .2, h: .046, fc: '#8DB59A', rad: 100 },
+    { t: 'text', x: .185, y: .65, text: 'MBTI', font: 'Zen Maru Gothic', size: .024, color: '#FFFFFF' },
+    { t: 'text', x: .32, y: .65, anchor: 'left', maxW: .58, text: 'INFP（仲介者）', font: 'Zen Maru Gothic', size: .029, color: '#4A3B3B', bold: false },
+    { t: 'box', x: .5, y: .73, w: .86, h: .068, fc: '#FFFFFF', rad: 100 },
+    { t: 'box', x: .185, y: .73, w: .2, h: .046, fc: '#9C8AC9', rad: 100 },
+    { t: 'text', x: .185, y: .73, text: 'ひとこと', font: 'Zen Maru Gothic', size: .024, color: '#FFFFFF' },
+    { t: 'text', x: .32, y: .73, anchor: 'left', maxW: .58, text: 'ゆるっと仲良くしてください☺', font: 'Zen Maru Gothic', size: .029, color: '#4A3B3B', bold: false },
+    { t: 'slot', x: .2, y: .865, w: .26, h: .15, rad: 12, border: '#FFFFFF', shadow: true, rot: -.05, ph: '好きなもの' },
+    { t: 'slot', x: .5, y: .86, w: .26, h: .15, rad: 12, border: '#FFFFFF', shadow: true, rot: .035, ph: '趣味' },
+    { t: 'slot', x: .8, y: .865, w: .26, h: .15, rad: 12, border: '#FFFFFF', shadow: true, rot: -.035, ph: 'おでかけ' },
+    { t: 'text', x: .5, y: .97, text: '@mizuki_film ／ フォローお気軽に♡', font: 'Zen Maru Gothic', size: .022, color: '#9B7F7A', bold: false }] },
+
+  { id: 'pro-staff', name: 'スタッフ紹介', cat: 'profile', desc: '大きなスタッフ写真・役職・ふりがな付きの名前・経歴／得意なこと／休日の過ごし方・メッセージが入った、お店のスタッフ紹介（横長）です。',
+    canvas: [1920, 1080], bg: '#F5F1EA', items: () => [
+    { t: 'box', x: .245, y: .5, w: .49, h: 1, fc: '#2E3A4F' },
+    { t: 'slot', x: .245, y: .44, w: .37, h: .72, rad: 4, border: '#FFFFFF', shadow: true, ph: 'スタッフの写真' },
+    { t: 'text', x: .245, y: .89, text: 'Yuto Takahashi', font: 'Great Vibes', size: .07, color: '#E6C38A', bold: false },
+    { t: 'text', x: .56, y: .085, anchor: 'left', text: 'STAFF INTRODUCTION', font: 'Oswald', size: .032, color: '#C8963E', bold: false },
+    { t: 'line', x1: .775, y1: .085, x2: .94, y2: .085, color: '#C8963E', width: .003 },
+    { t: 'box', x: .636, y: .175, w: .152, h: .056, fc: '#C8963E', rad: 100 },
+    { t: 'text', x: .636, y: .175, text: '店長・スタイリスト', font: 'Zen Kaku Gothic New', size: .026, color: '#FFFFFF' },
+    { t: 'text', x: .56, y: .255, anchor: 'left', text: 'たかはし　ゆうと', font: 'Zen Kaku Gothic New', size: .028, color: '#7A7468', bold: false },
+    { t: 'text', x: .56, y: .37, anchor: 'left', maxW: .38, text: '高橋 悠人', font: 'Shippori Mincho', size: .095, color: '#2E3A4F' },
+    { t: 'line', x1: .56, y1: .475, x2: .94, y2: .475, color: '#D8CDBB', width: .003 },
+    { t: 'text', x: .56, y: .535, anchor: 'left', text: '経歴', font: 'Zen Kaku Gothic New', size: .027, color: '#C8963E' },
+    { t: 'text', x: .62, y: .535, anchor: 'left', maxW: .32, text: '都内サロンで12年勤務、2019年より店長', font: 'Zen Kaku Gothic New', size: .027, color: '#2E3A4F', bold: false },
+    { t: 'text', x: .56, y: .605, anchor: 'left', text: '得意', font: 'Zen Kaku Gothic New', size: .027, color: '#C8963E' },
+    { t: 'text', x: .62, y: .605, anchor: 'left', maxW: .32, text: 'ショートカット・透明感カラー', font: 'Zen Kaku Gothic New', size: .027, color: '#2E3A4F', bold: false },
+    { t: 'text', x: .56, y: .675, anchor: 'left', text: '休日', font: 'Zen Kaku Gothic New', size: .027, color: '#C8963E' },
+    { t: 'text', x: .62, y: .675, anchor: 'left', maxW: .32, text: '映画館めぐりとソロキャンプ', font: 'Zen Kaku Gothic New', size: .027, color: '#2E3A4F', bold: false },
+    { t: 'box', x: .75, y: .835, w: .38, h: .19, fc: '#FFFFFF', oc: '#E4D9C6', width: .003, rad: 12 },
+    { t: 'text', x: .58, y: .775, anchor: 'left', text: 'MESSAGE', font: 'Oswald', size: .026, color: '#C8963E', bold: false },
+    { t: 'text', x: .58, y: .85, anchor: 'left', maxW: .34, text: '「なりたい」を一緒に見つけるのが好きです。\nお手入れしやすい髪型をご提案します！', font: 'Zen Kaku Gothic New', size: .027, color: '#4A4A4A', bold: false },
+    { t: 'text', x: .94, y: .965, anchor: 'right', maxW: .4, text: 'HAIR SALON lumière ／ 東京都渋谷区神宮前3-12-5', font: 'Zen Kaku Gothic New', size: .022, color: '#8A8272', bold: false }] },
+
+  { id: 'pro-pet', name: 'ペットのプロフィール', cat: 'profile', desc: '大きなペット写真と小さな写真2枚、名前・誕生日・犬種・体重・好きなもの／苦手なものが入ったペットのプロフィールです。',
+    canvas: [1080, 1350], bg: '#FFF8EC', bgPat: { kind: 'dot', color: '#FFF8EC', color2: '#F5E6CC' }, items: () => [
+    { t: 'text', x: .07, y: .055, anchor: 'left', text: 'PET PROFILE', font: 'Fredoka', size: .04, color: '#E8894A' },
+    { t: 'text', x: .93, y: .055, anchor: 'right', text: 'うちの子しょうかい 🐾', font: 'Zen Maru Gothic', size: .026, color: '#9A7B62' },
+    { t: 'slot', x: .36, y: .3, w: .58, h: .4, rad: 8, border: '#FFFFFF', shadow: true, ph: 'メイン写真' },
+    { t: 'slot', x: .79, y: .2, w: .26, h: .19, rad: 8, border: '#FFFFFF', shadow: true, ph: '寝顔' },
+    { t: 'slot', x: .79, y: .4, w: .26, h: .19, rad: 8, border: '#FFFFFF', shadow: true, ph: 'おさんぽ' },
+    { t: 'deco', kind: 'il-dog', x: .9, y: .54, s: .55 },
+    { t: 'text', x: .07, y: .585, anchor: 'left', maxW: .55, text: 'むぎ', font: 'Zen Maru Gothic', size: .085, color: '#4B3A2F' },
+    { t: 'text', x: .3, y: .6, anchor: 'left', text: 'Mugi', font: 'Pacifico', size: .045, color: '#E8894A', bold: false },
+    { t: 'text', x: .07, y: .655, anchor: 'left', maxW: .86, text: 'おとこのこ・3さい ／ のんびりやの甘えんぼう', font: 'Zen Maru Gothic', size: .026, color: '#9A7B62', bold: false },
+    { t: 'box', x: .215, y: .745, w: .27, h: .11, fc: '#FFFFFF', oc: '#F1DDC2', width: .003, rad: 20 },
+    { t: 'text', x: .215, y: .718, text: '🎂 誕生日', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
+    { t: 'text', x: .215, y: .762, text: '2023.4.12', font: 'Fredoka', size: .036, color: '#4B3A2F' },
+    { t: 'box', x: .5, y: .745, w: .27, h: .11, fc: '#FFFFFF', oc: '#F1DDC2', width: .003, rad: 20 },
+    { t: 'text', x: .5, y: .718, text: '🐕 犬種', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
+    { t: 'text', x: .5, y: .762, text: '柴犬（赤）', font: 'Zen Maru Gothic', size: .034, color: '#4B3A2F' },
+    { t: 'box', x: .785, y: .745, w: .27, h: .11, fc: '#FFFFFF', oc: '#F1DDC2', width: .003, rad: 20 },
+    { t: 'text', x: .785, y: .718, text: '⚖ 体重', font: 'Zen Maru Gothic', size: .022, color: '#E8894A' },
+    { t: 'text', x: .785, y: .762, text: '9.2 kg', font: 'Fredoka', size: .036, color: '#4B3A2F' },
+    { t: 'box', x: .28, y: .88, w: .42, h: .11, fc: '#FCE3D0', rad: 20 },
+    { t: 'text', x: .28, y: .852, text: '♥ すきなもの', font: 'Zen Maru Gothic', size: .024, color: '#D9703A' },
+    { t: 'text', x: .28, y: .897, maxW: .38, text: 'さつまいも・ボール遊び', font: 'Zen Maru Gothic', size: .027, color: '#4B3A2F', bold: false },
+    { t: 'box', x: .72, y: .88, w: .42, h: .11, fc: '#E3EEDB', rad: 20 },
+    { t: 'text', x: .72, y: .852, text: '✕ にがてなもの', font: 'Zen Maru Gothic', size: .024, color: '#5E8C5F' },
+    { t: 'text', x: .72, y: .897, maxW: .38, text: 'かみなり・シャンプー', font: 'Zen Maru Gothic', size: .027, color: '#4B3A2F', bold: false },
+    { t: 'text', x: .5, y: .965, text: '#柴犬のいる暮らし　#むぎ日記', font: 'Zen Maru Gothic', size: .022, color: '#B39A82', bold: false }] },
+
+  { id: 'pro-oshi', name: '推し紹介シート', cat: 'profile', desc: 'メイン写真・推しの名前・推しポイント3つ・好きな曲／作品・出会いのきっかけが入った、ストーリー用の推し紹介シートです。',
+    canvas: [1080, 1920], bg: '#F4EEFB', bgPat: { kind: 'grid', color: '#F4EEFB', color2: '#E8DDF6' }, items: () => [
+    { t: 'text', x: .5, y: .06, text: 'My Oshi', font: 'Pacifico', size: .085, color: '#B57EDC', bold: false },
+    { t: 'text', x: .5, y: .112, text: '— 推し紹介シート —', font: 'M PLUS Rounded 1c', size: .03, color: '#7A6596' },
+    { t: 'slot', x: .5, y: .3, w: .8, h: .32, rad: 6, border: '#FFFFFF', shadow: true, ph: '推しの写真' },
+    { t: 'deco', kind: 'crown', x: .82, y: .14, s: .8, rot: .26 },
+    { t: 'deco', kind: 'oshi-heart', x: .14, y: .44, s: .8, color: '#B57EDC' },
+    { t: 'deco', kind: 'penlight', x: .9, y: .43, s: .55, color: '#B57EDC', rot: .35 },
+    { t: 'text', x: .5, y: .52, text: 'ひかる', font: 'Mochiy Pop One', size: .085, color: '#3D2E52', bold: false },
+    { t: 'text', x: .5, y: .578, text: 'HIKARU ／ メンカラ：ラベンダー 💜', font: 'M PLUS Rounded 1c', size: .028, color: '#7A6596' },
+    { t: 'box', x: .5, y: .628, w: .62, h: .042, fc: '#FF7AB8', rad: 100 },
+    { t: 'text', x: .5, y: .628, text: 'ここが好き！推しポイント', font: 'M PLUS Rounded 1c', size: .034, color: '#FFFFFF' },
+    { t: 'box', x: .5, y: .69, w: .8, h: .062, fc: '#FFFFFF', rad: 100 },
+    { t: 'box', kind: 'ellipse', x: .17, y: .69, w: .085, h: .048, fc: '#B57EDC' },
+    { t: 'text', x: .17, y: .69, text: '1', font: 'Fredoka', size: .04, color: '#FFFFFF' },
+    { t: 'text', x: .24, y: .69, anchor: 'left', maxW: .62, text: 'ふにゃっと笑う、くしゃくしゃの笑顔', font: 'M PLUS Rounded 1c', size: .03, color: '#3D2E52', bold: false },
+    { t: 'box', x: .5, y: .762, w: .8, h: .062, fc: '#FFFFFF', rad: 100 },
+    { t: 'box', kind: 'ellipse', x: .17, y: .762, w: .085, h: .048, fc: '#B57EDC' },
+    { t: 'text', x: .17, y: .762, text: '2', font: 'Fredoka', size: .04, color: '#FFFFFF' },
+    { t: 'text', x: .24, y: .762, anchor: 'left', maxW: .62, text: 'ダンスの指先まで丁寧なところ', font: 'M PLUS Rounded 1c', size: .03, color: '#3D2E52', bold: false },
+    { t: 'box', x: .5, y: .834, w: .8, h: .062, fc: '#FFFFFF', rad: 100 },
+    { t: 'box', kind: 'ellipse', x: .17, y: .834, w: .085, h: .048, fc: '#B57EDC' },
+    { t: 'text', x: .17, y: .834, text: '3', font: 'Fredoka', size: .04, color: '#FFFFFF' },
+    { t: 'text', x: .24, y: .834, anchor: 'left', maxW: .62, text: 'ファンへの言葉がいつも優しい', font: 'M PLUS Rounded 1c', size: .03, color: '#3D2E52', bold: false },
+    { t: 'box', x: .295, y: .915, w: .39, h: .075, fc: '#E9DCF7', rad: 20 },
+    { t: 'text', x: .295, y: .896, text: '🎵 好きな曲', font: 'M PLUS Rounded 1c', size: .024, color: '#8D5FB8' },
+    { t: 'text', x: .295, y: .93, maxW: .35, text: '「夜明けのソナタ」', font: 'M PLUS Rounded 1c', size: .028, color: '#3D2E52', bold: false },
+    { t: 'box', x: .705, y: .915, w: .39, h: .075, fc: '#FFE0EF', rad: 20 },
+    { t: 'text', x: .705, y: .896, text: '✨ 出会い', font: 'M PLUS Rounded 1c', size: .024, color: '#D9558F' },
+    { t: 'text', x: .705, y: .93, maxW: .35, text: '2024年夏のフェスで沼落ち', font: 'M PLUS Rounded 1c', size: .028, color: '#3D2E52', bold: false }] },
+
+  { id: 'pro-travel', name: '旅行レポート', cat: 'report', desc: '写真3枚・旅のタイトルと日付・2日分のタイムライン・満足度の星・費用の内訳が入ったA4の旅行レポートです。',
+    canvas: [1240, 1754], bg: '#FAF6EF', items: () => [
+    { t: 'text', x: .07, y: .05, anchor: 'left', text: 'TRAVEL REPORT', font: 'Bebas Neue', size: .045, color: '#2F7F8A', bold: false },
+    { t: 'text', x: .93, y: .05, anchor: 'right', text: '2026.10.24 – 10.26', font: 'Oswald', size: .03, color: '#E9785F', bold: false },
+    { t: 'text', x: .07, y: .12, anchor: 'left', maxW: .86, text: '金沢 2泊3日 ひとり旅', font: 'Zen Kaku Gothic New', size: .065, color: '#2B3A3F' },
+    { t: 'slot', x: .35, y: .31, w: .56, h: .26, rad: 4, shadow: true, ph: 'いちばんの景色' },
+    { t: 'slot', x: .79, y: .2425, w: .28, h: .125, rad: 4, shadow: true, ph: 'ごはん' },
+    { t: 'slot', x: .79, y: .3775, w: .28, h: .125, rad: 4, shadow: true, ph: 'おみやげ' },
+    { t: 'box', x: .28, y: .6, w: .42, h: .24, fc: '#FFFFFF', oc: '#E3DCCF', width: .002, rad: 8 },
+    { t: 'box', x: .15, y: .51, w: .14, h: .03, fc: '#2F7F8A', rad: 100 },
+    { t: 'text', x: .15, y: .51, text: 'DAY 1', font: 'Bebas Neue', size: .03, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .24, y: .51, anchor: 'left', maxW: .25, text: '市場と茶屋街', font: 'Zen Kaku Gothic New', size: .026, color: '#2F7F8A' },
+    { t: 'line', x1: .095, y1: .565, x2: .095, y2: .685, color: '#B9D5D8', width: .003 },
+    { t: 'box', kind: 'ellipse', x: .095, y: .565, w: .016, h: .0113, fc: '#E9785F' },
+    { t: 'text', x: .115, y: .565, anchor: 'left', text: '10:30', font: 'Oswald', size: .026, color: '#E9785F', bold: false },
+    { t: 'text', x: .205, y: .565, anchor: 'left', maxW: .27, text: '金沢駅に到着・鼓門へ', font: 'Zen Kaku Gothic New', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'box', kind: 'ellipse', x: .095, y: .625, w: .016, h: .0113, fc: '#E9785F' },
+    { t: 'text', x: .115, y: .625, anchor: 'left', text: '12:00', font: 'Oswald', size: .026, color: '#E9785F', bold: false },
+    { t: 'text', x: .205, y: .625, anchor: 'left', maxW: .27, text: '近江町市場で海鮮丼', font: 'Zen Kaku Gothic New', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'box', kind: 'ellipse', x: .095, y: .685, w: .016, h: .0113, fc: '#E9785F' },
+    { t: 'text', x: .115, y: .685, anchor: 'left', text: '15:00', font: 'Oswald', size: .026, color: '#E9785F', bold: false },
+    { t: 'text', x: .205, y: .685, anchor: 'left', maxW: .27, text: 'ひがし茶屋街で金箔ソフト', font: 'Zen Kaku Gothic New', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'box', x: .72, y: .6, w: .42, h: .24, fc: '#FFFFFF', oc: '#E3DCCF', width: .002, rad: 8 },
+    { t: 'box', x: .58, y: .51, w: .14, h: .03, fc: '#2F7F8A', rad: 100 },
+    { t: 'text', x: .58, y: .51, text: 'DAY 2', font: 'Bebas Neue', size: .03, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .67, y: .51, anchor: 'left', maxW: .25, text: '庭園と美術館', font: 'Zen Kaku Gothic New', size: .026, color: '#2F7F8A' },
+    { t: 'line', x1: .525, y1: .565, x2: .525, y2: .685, color: '#B9D5D8', width: .003 },
+    { t: 'box', kind: 'ellipse', x: .525, y: .565, w: .016, h: .0113, fc: '#E9785F' },
+    { t: 'text', x: .545, y: .565, anchor: 'left', text: '09:00', font: 'Oswald', size: .026, color: '#E9785F', bold: false },
+    { t: 'text', x: .635, y: .565, anchor: 'left', maxW: .27, text: '兼六園を朝さんぽ', font: 'Zen Kaku Gothic New', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'box', kind: 'ellipse', x: .525, y: .625, w: .016, h: .0113, fc: '#E9785F' },
+    { t: 'text', x: .545, y: .625, anchor: 'left', text: '11:00', font: 'Oswald', size: .026, color: '#E9785F', bold: false },
+    { t: 'text', x: .635, y: .625, anchor: 'left', maxW: .27, text: '21世紀美術館へ', font: 'Zen Kaku Gothic New', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'box', kind: 'ellipse', x: .525, y: .685, w: .016, h: .0113, fc: '#E9785F' },
+    { t: 'text', x: .545, y: .685, anchor: 'left', text: '18:30', font: 'Oswald', size: .026, color: '#E9785F', bold: false },
+    { t: 'text', x: .635, y: .685, anchor: 'left', maxW: .27, text: '片町でのどぐろのお寿司', font: 'Zen Kaku Gothic New', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'box', x: .28, y: .835, w: .42, h: .18, fc: '#E7F1F1', rad: 8 },
+    { t: 'text', x: .28, y: .77, text: '旅の満足度', font: 'Zen Kaku Gothic New', size: .026, color: '#2F7F8A' },
+    { t: 'text', x: .28, y: .82, text: '★★★★☆', font: 'Noto Sans JP', size: .05, color: '#E9785F' },
+    { t: 'text', x: .28, y: .87, text: 'ごはん ★5　景色 ★5　天気 ★3', font: 'Zen Kaku Gothic New', size: .022, color: '#4F6266', bold: false },
+    { t: 'text', x: .28, y: .9, text: 'また行きたい度 100%！', font: 'Zen Kaku Gothic New', size: .022, color: '#2B3A3F' },
+    { t: 'box', x: .72, y: .835, w: .42, h: .18, fc: '#FCEBE5', rad: 8 },
+    { t: 'text', x: .72, y: .77, text: '旅の費用（1人分）', font: 'Zen Kaku Gothic New', size: .026, color: '#C9583F' },
+    { t: 'text', x: .545, y: .805, anchor: 'left', text: '交通費（新幹線）', font: 'Zen Kaku Gothic New', size: .022, color: '#2B3A3F', bold: false },
+    { t: 'text', x: .885, y: .805, anchor: 'right', text: '¥28,400', font: 'Oswald', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'text', x: .545, y: .835, anchor: 'left', text: '宿泊（2泊）', font: 'Zen Kaku Gothic New', size: .022, color: '#2B3A3F', bold: false },
+    { t: 'text', x: .885, y: .835, anchor: 'right', text: '¥32,000', font: 'Oswald', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'text', x: .545, y: .865, anchor: 'left', text: '食事・おみやげ', font: 'Zen Kaku Gothic New', size: .022, color: '#2B3A3F', bold: false },
+    { t: 'text', x: .885, y: .865, anchor: 'right', text: '¥18,600', font: 'Oswald', size: .024, color: '#2B3A3F', bold: false },
+    { t: 'line', x1: .545, y1: .882, x2: .885, y2: .882, color: '#E9B4A5', width: .002, ls: 'dot' },
+    { t: 'text', x: .545, y: .903, anchor: 'left', text: '合計', font: 'Zen Kaku Gothic New', size: .024, color: '#C9583F' },
+    { t: 'text', x: .885, y: .903, anchor: 'right', text: '¥79,000', font: 'Oswald', size: .03, color: '#C9583F', bold: false },
+    { t: 'text', x: .07, y: .96, anchor: 'left', maxW: .86, text: 'MEMO：次はカニがおいしい冬に、白川郷まで足をのばしたい！', font: 'Zen Kaku Gothic New', size: .024, color: '#4F6266', bold: false }] },
+
+  { id: 'pro-booklog', name: '読書記録', cat: 'report', desc: '本の表紙写真・タイトル／著者・読了日・評価の星・心に残った言葉・感想が入った読書記録です。',
+    canvas: [1080, 1350], bg: '#F7F3EA', bgPat: { kind: 'grid', color: '#F7F3EA', color2: '#ECE5D6' }, items: () => [
+    { t: 'text', x: .07, y: .06, anchor: 'left', text: 'BOOK LOG', font: 'Cinzel', size: .045, color: '#3E5A4A' },
+    { t: 'text', x: .93, y: .06, anchor: 'right', text: 'No.024', font: 'Oswald', size: .034, color: '#D9A441', bold: false },
+    { t: 'line', x1: .07, y1: .098, x2: .93, y2: .098, color: '#3E5A4A', width: .003 },
+    { t: 'slot', x: .26, y: .33, w: .34, h: .408, rad: 2, shadow: true, ph: '本の表紙' },
+    { t: 'box', x: .545, y: .15, w: .13, h: .042, fc: '#3E5A4A', rad: 100 },
+    { t: 'text', x: .545, y: .15, text: '小説', font: 'Zen Kaku Gothic New', size: .024, color: '#FFFFFF' },
+    { t: 'text', x: .48, y: .255, anchor: 'left', maxW: .45, text: 'ひだまりの\n図書室', font: 'Shippori Mincho', size: .058, color: '#2F2A24' },
+    { t: 'text', x: .48, y: .36, anchor: 'left', maxW: .45, text: '青山 葉子　著', font: 'Zen Kaku Gothic New', size: .028, color: '#6B6358', bold: false },
+    { t: 'line', x1: .48, y1: .395, x2: .93, y2: .395, color: '#D8CFBD', width: .003, ls: 'dot' },
+    { t: 'text', x: .48, y: .427, anchor: 'left', text: '読了日', font: 'Zen Kaku Gothic New', size: .024, color: '#3E5A4A' },
+    { t: 'text', x: .62, y: .427, anchor: 'left', text: '2026.11.08', font: 'Oswald', size: .026, color: '#2F2A24', bold: false },
+    { t: 'text', x: .48, y: .475, anchor: 'left', text: '評価', font: 'Zen Kaku Gothic New', size: .024, color: '#3E5A4A' },
+    { t: 'text', x: .62, y: .475, anchor: 'left', text: '★★★★★', font: 'Noto Sans JP', size: .04, color: '#D9A441' },
+    { t: 'text', x: .48, y: .523, anchor: 'left', text: 'ページ', font: 'Zen Kaku Gothic New', size: .024, color: '#3E5A4A' },
+    { t: 'text', x: .62, y: .523, anchor: 'left', maxW: .31, text: '312ページ（4日で読了）', font: 'Zen Kaku Gothic New', size: .024, color: '#2F2A24', bold: false },
+    { t: 'box', x: .5, y: .665, w: .86, h: .16, fc: '#3E5A4A', rad: 10 },
+    { t: 'box', x: .25, y: .585, w: .3, h: .046, fc: '#D9A441', rad: 100 },
+    { t: 'text', x: .25, y: .585, text: '心に残った言葉', font: 'Zen Kaku Gothic New', size: .026, color: '#FFFFFF' },
+    { t: 'text', x: .11, y: .63, text: '“', font: 'Playfair Display', size: .09, color: '#D9A441' },
+    { t: 'text', x: .5, y: .675, maxW: .74, text: '急がなくていい。本は、いつでも\nあなたが開くのを待っているから。', font: 'Shippori Mincho', size: .033, color: '#FFFFFF' },
+    { t: 'text', x: .07, y: .79, anchor: 'left', text: '感想', font: 'Zen Kaku Gothic New', size: .03, color: '#3E5A4A' },
+    { t: 'line', x1: .16, y1: .79, x2: .93, y2: .79, color: '#D8CFBD', width: .003 },
+    { t: 'box', x: .5, y: .885, w: .86, h: .14, fc: '#FFFFFF', oc: '#E5DCCB', width: .003, rad: 10 },
+    { t: 'text', x: .1, y: .885, anchor: 'left', maxW: .8, text: '小さな町の図書室を舞台にした、やさしい連作短編。\n登場人物それぞれの「居場所」が見つかっていく過程に\n何度も胸があたたかくなりました。寝る前に少しずつ読みたい一冊。', font: 'Zen Kaku Gothic New', size: .025, color: '#4A4238', bold: false }] },
+
+  { id: 'pro-growth', name: '成長記録（赤ちゃん・子ども）', cat: 'report', desc: '丸い写真・月齢（年齢）の大きな数字・身長と体重・できるようになったことが入った、正方形の成長記録です。',
+    canvas: [1080, 1080], bg: '#FFF9E8', bgPat: { kind: 'dot', color: '#FFF9E8', color2: '#F6EBC8' }, items: () => [
+    { t: 'text', x: .07, y: .075, anchor: 'left', text: 'GROWTH RECORD', font: 'Fredoka', size: .03, color: '#7FB7D9' },
+    { t: 'text', x: .07, y: .15, anchor: 'left', maxW: .38, text: 'はるくん', font: 'Zen Maru Gothic', size: .05, color: '#4A4036' },
+    { t: 'text', x: .07, y: .37, anchor: 'left', text: '6', font: 'Fredoka', size: .2, color: '#F4A7B9' },
+    { t: 'text', x: .22, y: .43, anchor: 'left', text: 'か月', font: 'Zen Maru Gothic', size: .06, color: '#4A4036' },
+    { t: 'text', x: .07, y: .565, anchor: 'left', text: '2026.11.15', font: 'Fredoka', size: .028, color: '#9C8F7E', bold: false },
+    { t: 'slot', x: .68, y: .36, w: .5, h: .5, rad: 100, border: '#FFFFFF', shadow: true, ph: '今月の写真' },
+    { t: 'deco', kind: 'kira3', x: .45, y: .15, s: .6, color: '#F7C948' },
+    { t: 'deco', kind: 'il-rabbit', x: .9, y: .58, s: .55 },
+    { t: 'box', x: .19, y: .7, w: .26, h: .13, fc: '#FFFFFF', oc: '#F0E3C2', width: .003, rad: 24 },
+    { t: 'text', x: .19, y: .665, text: '身長', font: 'Zen Maru Gothic', size: .024, color: '#7FB7D9' },
+    { t: 'text', x: .19, y: .725, text: '68.5 cm', font: 'Fredoka', size: .04, color: '#4A4036' },
+    { t: 'box', x: .5, y: .7, w: .26, h: .13, fc: '#FFFFFF', oc: '#F0E3C2', width: .003, rad: 24 },
+    { t: 'text', x: .5, y: .665, text: '体重', font: 'Zen Maru Gothic', size: .024, color: '#F08FA6' },
+    { t: 'text', x: .5, y: .725, text: '7.8 kg', font: 'Fredoka', size: .04, color: '#4A4036' },
+    { t: 'box', x: .81, y: .7, w: .26, h: .13, fc: '#FFFFFF', oc: '#F0E3C2', width: .003, rad: 24 },
+    { t: 'text', x: .81, y: .665, text: '歯', font: 'Zen Maru Gothic', size: .024, color: '#E5B33F' },
+    { t: 'text', x: .81, y: .725, text: '2 本', font: 'Fredoka', size: .04, color: '#4A4036' },
+    { t: 'text', x: .5, y: .82, text: '✿ できるようになったこと ✿', font: 'Zen Maru Gothic', size: .032, color: '#4A4036' },
+    { t: 'box', x: .19, y: .905, w: .26, h: .075, fc: '#DCEEF7', rad: 100 },
+    { t: 'text', x: .19, y: .905, maxW: .24, text: '✔ ねがえり', font: 'Zen Maru Gothic', size: .028, color: '#3F6F8C' },
+    { t: 'box', x: .5, y: .905, w: .26, h: .075, fc: '#FCE3EA', rad: 100 },
+    { t: 'text', x: .5, y: .905, maxW: .24, text: '✔ おすわり', font: 'Zen Maru Gothic', size: .028, color: '#B65A73' },
+    { t: 'box', x: .81, y: .905, w: .26, h: .075, fc: '#FBEFC6', rad: 100 },
+    { t: 'text', x: .81, y: .905, maxW: .24, text: '✔ 離乳食デビュー', font: 'Zen Maru Gothic', size: .028, color: '#8C6A1E' }] },
+
+  { id: 'pro-eventreport', name: '活動報告・イベントレポート', cat: 'report', desc: 'タイトル・日付と会場・キャプション付き写真4枚・来場者数などの数字・次回のお知らせが入った、横長の活動報告です。',
+    canvas: [1920, 1080], bg: '#F2F5F9', items: () => [
+    { t: 'box', x: .5, y: .005, w: 1, h: .01, fc: '#2F6FD6' },
+    { t: 'text', x: .05, y: .075, anchor: 'left', text: 'EVENT REPORT', font: 'Bebas Neue', size: .042, color: '#2F6FD6', bold: false },
+    { t: 'text', x: .05, y: .155, anchor: 'left', maxW: .58, text: '親子でつくる！秋のクラフトマルシェ 開催報告', font: 'Zen Kaku Gothic New', size: .056, color: '#1F2A3A' },
+    { t: 'text', x: .95, y: .075, anchor: 'right', text: '2026.11.03（祝）10:00–16:00', font: 'Zen Kaku Gothic New', size: .028, color: '#1F2A3A' },
+    { t: 'text', x: .95, y: .13, anchor: 'right', maxW: .3, text: '会場：みどり市民交流センター 1F ホール', font: 'Zen Kaku Gothic New', size: .024, color: '#5B6778', bold: false },
+    { t: 'slot', x: .19, y: .385, w: .27, h: .27, rad: 6, shadow: true, ph: '会場のようす' },
+    { t: 'text', x: .055, y: .555, anchor: 'left', maxW: .27, text: '① 開場前から長い列ができました', font: 'Zen Kaku Gothic New', size: .024, color: '#1F2A3A', bold: false },
+    { t: 'slot', x: .48, y: .385, w: .27, h: .27, rad: 6, shadow: true, ph: 'ワークショップ' },
+    { t: 'text', x: .345, y: .555, anchor: 'left', maxW: .27, text: '② 木のおもちゃづくり体験', font: 'Zen Kaku Gothic New', size: .024, color: '#1F2A3A', bold: false },
+    { t: 'slot', x: .19, y: .73, w: .27, h: .27, rad: 6, shadow: true, ph: '出店ブース' },
+    { t: 'text', x: .055, y: .9, anchor: 'left', maxW: .27, text: '③ 地元作家さんの手作り雑貨', font: 'Zen Kaku Gothic New', size: .024, color: '#1F2A3A', bold: false },
+    { t: 'slot', x: .48, y: .73, w: .27, h: .27, rad: 6, shadow: true, ph: '集合写真' },
+    { t: 'text', x: .345, y: .9, anchor: 'left', maxW: .27, text: '④ スタッフ・出店者のみなさん', font: 'Zen Kaku Gothic New', size: .024, color: '#1F2A3A', bold: false },
+    { t: 'text', x: .66, y: .28, anchor: 'left', text: 'RESULTS ／ 結果', font: 'Zen Kaku Gothic New', size: .03, color: '#2F6FD6' },
+    { t: 'box', x: .805, y: .39, w: .29, h: .13, fc: '#FFFFFF', rad: 12 },
+    { t: 'text', x: .68, y: .39, anchor: 'left', text: '来場者数', font: 'Zen Kaku Gothic New', size: .028, color: '#5B6778' },
+    { t: 'text', x: .935, y: .39, anchor: 'right', text: '1,280人', font: 'Oswald', size: .06, color: '#2F6FD6', bold: false },
+    { t: 'box', x: .805, y: .535, w: .29, h: .13, fc: '#FFFFFF', rad: 12 },
+    { t: 'text', x: .68, y: .535, anchor: 'left', text: '出店ブース', font: 'Zen Kaku Gothic New', size: .028, color: '#5B6778' },
+    { t: 'text', x: .935, y: .535, anchor: 'right', text: '42', font: 'Oswald', size: .06, color: '#2F6FD6', bold: false },
+    { t: 'box', x: .805, y: .68, w: .29, h: .13, fc: '#FFFFFF', rad: 12 },
+    { t: 'text', x: .68, y: .68, anchor: 'left', text: '満足度', font: 'Zen Kaku Gothic New', size: .028, color: '#5B6778' },
+    { t: 'text', x: .935, y: .68, anchor: 'right', text: '96%', font: 'Oswald', size: .06, color: '#F28C28', bold: false },
+    { t: 'box', x: .805, y: .86, w: .29, h: .17, fc: '#2F6FD6', rad: 12 },
+    { t: 'box', x: .705, y: .81, w: .06, h: .045, fc: '#F28C28', rad: 100 },
+    { t: 'text', x: .705, y: .81, text: 'NEXT', font: 'Bebas Neue', size: .028, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .68, y: .885, anchor: 'left', maxW: .25, text: '次回は2027年4月、春のマルシェを開催予定！\nボランティアスタッフも募集中です。', font: 'Zen Kaku Gothic New', size: .024, color: '#FFFFFF', bold: false },
+    { t: 'text', x: .95, y: .965, anchor: 'right', text: '主催：みどり子育てネットワーク', font: 'Zen Kaku Gothic New', size: .02, color: '#8A94A3', bold: false }] }
+];
+//GEN-TPLPRO-END
+TEMPLATES.unshift(...TEMPLATES_PRO.filter(t => !TEMPLATES.some(x => x.id === t.id)));
+TPL_CATS.splice(1, 0, ...TPL_CATS_PRO.filter(c => !TPL_CATS.some(d => d[0] === c[0])));
+/* template specs: positions are fractions of the photo (x, y), sizes of the short side (MIN) unless noted.
+   text: anchor 'left' / 'right' puts the text's edge (not its centre) at x; maxW (fraction of the width) shrinks a long text to fit.
+   slot: w / h fractions of the width / height, ph = placeholder label. box: a closed 図形 (kind, w / h of width / height, fc / oc / fa, rad, ls).
+   line: x1 y1 x2 y2 (fractions), color, width, ls, cs / ce caps. */
 function tplObj(s) {
   const M = MIN(), X = s.x * doc.w, Y = s.y * doc.h;
   switch (s.t) {
-    case 'text': return { ...baseObj('text', X, Y), rot: s.rot || 0, text: s.text, font: s.font || 'Noto Sans JP', bold: s.bold !== false, italic: !!s.italic, underline: !!s.underline,
-      size: Math.round(M * s.size), color: s.color || '#FFFFFF', outline: s.outline || 'none', bg: s.bg || 'none', align: s.align || 'center', vert: !!s.vert, shadow: !!s.shadow };
-    case 'slot': return { ...baseObj('image', X, Y), rot: s.rot || 0, slot: true, bmp: null, w: s.w * doc.w, h: s.h * doc.h, border: s.border || 'none', rad: s.rad || 0, shadow: !!s.shadow, fz: 1, fx: 0, fy: 0 };
+    case 'text': {
+      const o = { ...baseObj('text', X, Y), rot: s.rot || 0, text: s.text, font: s.font || 'Noto Sans JP', bold: s.bold !== false, italic: !!s.italic, underline: !!s.underline,
+        size: Math.round(M * s.size), color: s.color || '#FFFFFF', outline: s.outline || 'none', bg: s.bg || 'none', align: s.align || (s.anchor === 'left' ? 'left' : s.anchor === 'right' ? 'right' : 'center'), vert: !!s.vert, shadow: !!s.shadow };
+      if (s.maxW || s.anchor) {
+        let L = layoutText(o);
+        if (s.maxW && L.w > s.maxW * doc.w) { o.size = Math.max(4, Math.floor(o.size * s.maxW * doc.w / L.w)); L = layoutText(o); }
+        if (s.anchor === 'left') o.x += L.w / 2; else if (s.anchor === 'right') o.x -= L.w / 2;
+      }
+      return o;
+    }
+    case 'slot': return { ...baseObj('image', X, Y), rot: s.rot || 0, slot: true, bmp: null, w: s.w * doc.w, h: s.h * doc.h, border: s.border || 'none', rad: s.rad || 0, shadow: !!s.shadow, fz: 1, fx: 0, fy: 0, ...(s.ph ? { ph: s.ph } : {}) };
+    case 'box': return { ...baseObj('shape', X, Y), rot: s.rot || 0, op: s.op == null ? 1 : s.op, kind: s.kind || 'rect', color: s.oc && s.oc !== 'none' ? s.oc : (s.fc || '#000000'), width: M * (s.width || .006),
+      oc: s.oc || 'none', fc: s.fc || 'none', fa: s.fa == null ? 100 : s.fa, ls: s.ls || 'solid', rad: s.rad || 0, w: s.w * doc.w, h: s.h * doc.h };
+    case 'line': {
+      const a = { x: s.x1 * doc.w, y: s.y1 * doc.h }, b = { x: s.x2 * doc.w, y: s.y2 * doc.h };
+      const o = { ...baseObj('shape', 0, 0), kind: s.kind || 'line', color: s.color || '#2A2724', width: M * (s.width || .004), ls: s.ls || 'solid', cs: s.cs || 'none', ce: s.ce || 'none', bend: s.bend == null ? 0.3 : s.bend };
+      setRectGeom(o, a, b); return o;
+    }
     case 'deco': {
       const d = DECO[s.kind]; if (!d) return null;   // the sticker library may not have this kind
       const k = s.s || 1, base = d.full ? { w: doc.w, h: doc.h } : { w: M * d.w * k, h: M * d.h * k };
@@ -6101,13 +6863,56 @@ function renderTemplates(host) {
   if (host) tplHost = host;
   const list = TEMPLATES.filter(t => tplCat === 'all' || t.cat === tplCat);
   TEMPLATES.forEach(t => t.items().forEach(s => { if (s.font) familyCSS(s.font); }));
-  tplHost.innerHTML = `<div class="tplwrap">${hint('選ぶと写真に重なります。「コラージュ」は新しいキャンバスで作ります。')}`
+  tplHost.innerHTML = `<div class="tplwrap">${hint(`${deskOn ? 'クリック' : 'タップ'}で大きく確かめて、「追加」で反映されます。「新しいキャンバス」のものは今の作品と入れ替わります。`)}`
     + `<div class="tplcats">${TPL_CATS.map(([k, l]) => `<button class="chip${tplCat === k ? ' on' : ''}" data-tplc="${k}" aria-pressed="${tplCat === k}">${l}</button>`).join('')}</div>`
     + `<div class="tplgrid">${list.map(t => `<button class="tpl" data-tpl="${t.id}"><span class="tim" data-tim="${t.id}" style="aspect-ratio:${t.canvas ? t.canvas[0] + '/' + t.canvas[1] : doc.w + '/' + doc.h}"></span><span class="tnm">${esc(t.name)}${t.canvas ? '<small>新しいキャンバス</small>' : ''}</span></button>`).join('')}</div></div>`;
   fillTplThumbs();
   if (!tplFontPass) { tplFontPass = true; setTimeout(() => { if (tplOpen()) { tplThumbs.clear(); renderTemplates(); } }, 1800); }   // redo once the template fonts have loaded
 }
 function openTplSheet() { renderTemplates($('#tplBody')); openSheet('#sheetTpl'); }
+/* ==== template preview ==== a tap only shows the template large (with its description); 追加 applies it.
+   ‹ › (or ← →) step through the current category; on phones ‹ 一覧 goes back to the grid sheet. */
+let tpvId = null, tpvFromSheet = false;
+function tplRender(t, px) {
+  const c = mk(1, 1);
+  if (t.canvas) {
+    const d0 = doc, id = regBitmap(mk(t.canvas[0], t.canvas[1]), null, true);
+    try { doc = normDoc({ w: t.canvas[0], h: t.canvas[1], baseId: id, bg: t.bg, bgPat: t.bgPat || null, adjust: { ...DEFAULT_ADJ }, objects: [] }); doc.objects = tplBuild(t); renderDoc(c, px / Math.max(doc.w, doc.h), {}); }
+    finally { doc = d0; bitmaps.delete(id); }
+  } else {
+    const o0 = doc.objects, a0 = doc.adjust;
+    try { doc.objects = o0.concat(tplBuild(t)); if (t.preset) doc.adjust = { ...a0, preset: t.preset, amt: t.amt || 100 }; renderDoc(c, px / Math.max(doc.w, doc.h), {}); }
+    finally { doc.objects = o0; doc.adjust = a0; }
+  }
+  return c.toDataURL('image/jpeg', 0.9);
+}
+const tpvList = () => TEMPLATES.filter(t => tplCat === 'all' || t.cat === tplCat);
+function tpvShow(id) {
+  const t = TEMPLATES.find(x => x.id === id); if (!t || !doc) return;
+  tpvId = id;
+  const L = tpvList(), i = L.findIndex(x => x.id === id), cat = TPL_CATS.find(c => c[0] === t.cat);
+  $('#tpvName').textContent = t.name;
+  $('#tpvMeta').textContent = [cat ? cat[1] : '', t.canvas ? `新しいキャンバス ${t.canvas[0]}×${t.canvas[1]}` : '今の写真に重ねる', L.length > 1 && i >= 0 ? `${i + 1} / ${L.length}` : ''].filter(Boolean).join('・');
+  $('#tpvDesc').textContent = t.desc || (t.canvas ? '写真枠に写真を入れて、文字を書き換えて使います。' : '今の写真の上に文字や飾りを重ねます。あとから自由に動かせます。');
+  $('#tpvWarn').textContent = t.canvas ? '追加すると新しいキャンバスで作り直します。今の作品は置き換わるので、必要なら先に保存してください（Ctrl+Z では戻せません）。' : '';
+  $('#tpvPrev').disabled = i <= 0; $('#tpvNext').disabled = i < 0 || i >= L.length - 1;
+  const img = $('#tpvImg'); img.alt = t.name + 'のプレビュー'; img.style.aspectRatio = t.canvas ? `${t.canvas[0]}/${t.canvas[1]}` : `${doc.w}/${doc.h}`;
+  img.src = tplRender(t, 760);
+  // fonts arrive late: draw once more when they are ready (if still showing this one)
+  tplBuild(t).forEach(o => { if (o.font) familyCSS(o.font); });
+  document.fonts.ready.then(() => setTimeout(() => { if (tpvId === id && !$('#sheetTplPv').hidden) { layoutMemo.clear(); img.src = tplRender(t, 760); } }, 700));
+}
+function openTplPreview(id, fromSheet) {
+  tpvFromSheet = !!fromSheet; $('#tpvBack').hidden = !tpvFromSheet;
+  openSheet('#sheetTplPv'); tpvShow(id);
+  requestAnimationFrame(() => $('#tpvAdd').focus({ preventScroll: true }));
+}
+const tpvStep = d => { const L = tpvList(), i = L.findIndex(x => x.id === tpvId), n = L[i + d]; if (n) tpvShow(n.id); };
+$('#tpvPrev').addEventListener('click', () => tpvStep(-1));
+$('#tpvNext').addEventListener('click', () => tpvStep(1));
+$('#tpvBack').addEventListener('click', openTplSheet);
+$('#tpvAdd').addEventListener('click', () => { const id = tpvId; closeSheets(true); if (id) applyTemplate(id, true); });
+$('#sheetTplPv').addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); tpvStep(e.key === 'ArrowLeft' ? -1 : 1); } });
 function fillTplThumbs() {
   const key = doc.baseId + '|' + bmpRev + '|' + doc.w + 'x' + doc.h + '|' + JSON.stringify(doc.adjust) + '|' + doc.objects.length;
   if (key !== tplKey) { tplThumbs.clear(); tplKey = key; }
@@ -6170,12 +6975,12 @@ sidePanel.addEventListener('compositionend', e => {
 });
 sidePanel.addEventListener('click', e => {
   const t = e.target.closest('[data-tpl]'), c = e.target.closest('[data-tplc]');
-  if (t) applyTemplate(t.dataset.tpl);
+  if (t) openTplPreview(t.dataset.tpl);
   else if (c) { tplCat = c.dataset.tplc; renderTemplates(sidePanel); }
 });
 $('#sheetTpl').addEventListener('click', e => {
   const t = e.target.closest('[data-tpl]'), c = e.target.closest('[data-tplc]');
-  if (t) { closeSheets(); applyTemplate(t.dataset.tpl); }
+  if (t) openTplPreview(t.dataset.tpl, true);
   else if (c) { tplCat = c.dataset.tplc; renderTemplates($('#tplBody')); }
 });
 sidePanel.addEventListener('click', e => {
@@ -6303,7 +7108,7 @@ function cmdItems() {
   CHART_PRESETS.forEach(p => add('素材：' + p.name, '表・グラフ', ['chart', 'graph', 'table', 'ひょう', 'ぐらふ', p.kind], () => addChart(p.id)));
   {
     add('テンプレート一覧', '写真に重ねるデザイン・コラージュ', ['template', 'てんぷれーと', 'デザイン', 'こらーじゅ'], () => deskOn ? openInDrawer('template') : openTplSheet());
-    TEMPLATES.forEach(t => add('テンプレート：' + t.name, 'テンプレート', ['template', 'てんぷれーと', t.id], () => applyTemplate(t.id)));
+    TEMPLATES.forEach(t => add('テンプレート：' + t.name, 'テンプレート', ['template', 'てんぷれーと', t.id], () => openTplPreview(t.id)));
   }
   Object.entries(AI_LOOKS).forEach(([id, v]) => add('トレンド風：' + v[0], 'AIおまかせ', ['look', 'ai', id, v[0]], () => runCmd('aiLook', id)));
   return it;
