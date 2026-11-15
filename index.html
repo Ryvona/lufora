@@ -1029,7 +1029,7 @@ html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
 <div class="sheet" id="sheetName" hidden>
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">ユーザーネームを決めてください</h2><button class="xbtn" id="nameX" data-ex="close" aria-label="閉じる" title="閉じる" hidden>×</button></div>
-  <p class="note">みんなの作品に投稿したときに、作者名として表示されます。ほかの人と同じ名前は使えません。あとからアカウント画面で変えられます。</p>
+  <p class="note">みんなの作品に投稿したときに、作者名として表示されます。ほかの人と同じ名前は使えません。あとからアカウント画面で変えられますが、変更は15日に1回までです。</p>
   <form id="nameForm" class="acctmail" autocomplete="off">
     <input id="nameIn" maxlength="20" placeholder="例：yui_photo" aria-label="ユーザーネーム" autocomplete="username" enterkeyhint="done">
     <p class="note" id="nameMsg" aria-live="polite">2〜20文字。空白と &lt; &gt; " ' &amp; / \ @ # は使えません。</p>
@@ -8595,20 +8595,25 @@ async function authReturn() {
 /* ==== username ==== signed-in users pick a unique user name (table profiles, supabase/schema_profiles.sql); right after the
    first login it is required (#sheetName without ×; closeSheets / openSheet hold it until saved or logged out).
    Posts show it as the author (set on the server by a trigger; guests are ゲスト). */
-let acctName = null, profOff = false, nameRequired = false, nameT = 0;
+let acctName = null, acctNameAt = 0, profOff = false, nameRequired = false, nameT = 0;
+/* the user name can be changed again only 15 days after it was set (the server enforces it too: schema_profiles_cooldown.sql) */
+const NAME_GAP = 15 * 864e5, nameNext = () => acctNameAt ? acctNameAt + NAME_GAP : 0;
+const mdDate = t => { const d = new Date(t); return `${d.getMonth() + 1}月${d.getDate()}日`; };
 const NAME_BAD = /[\s<>"'&/\\@#]/;
 const nameOk = v => v.length >= 2 && v.length <= 20 && !NAME_BAD.test(v);
 const missingTable = e => /PGRST20[25]|42P01|42883|schema cache|does not exist|404/.test(((e && (e.code || '')) + ' ' + (e && (e.message || '')) + ' ' + (e && e.status || '')));
 async function loadProfile(c) {
   if (!acct || profOff) return;
-  const r = await c.from('profiles').select('username').eq('owner', acct.id).maybeSingle();
+  let r = await c.from('profiles').select('username,name_changed_at').eq('owner', acct.id).maybeSingle();
+  if (r.error && /42703|name_changed_at/.test((r.error.code || '') + ' ' + (r.error.message || ''))) r = await c.from('profiles').select('username').eq('owner', acct.id).maybeSingle();   // cooldown SQL not run yet
   if (r.error) { if (missingTable(r.error)) { profOff = true; return; } throw r.error; }
-  acctName = r.data ? r.data.username : null;
+  acctName = r.data ? r.data.username : null; acctNameAt = r.data && r.data.name_changed_at ? Date.parse(r.data.name_changed_at) || 0 : 0;
   if (!acctName) openNameSheet(true);
   acctRender();
 }
 function openNameSheet(required) {
   if (!acct || profOff) return;
+  if (!required && acctName && Date.now() < nameNext()) { toast(`ユーザーネームは15日に1回まで変えられます。次は${mdDate(nameNext())}から変更できます`, 3600); return; }
   nameRequired = !!required;
   $('#nameX').hidden = nameRequired; $('#nameOut').hidden = !nameRequired;
   const i = $('#nameIn'); i.value = acctName || ''; $('#nameMsg').textContent = '2〜20文字。空白と < > " \' & / \\ @ # は使えません。'; $('#nameMsg').classList.remove('bad');
@@ -8637,10 +8642,12 @@ $('#nameForm').addEventListener('submit', async e => {
     const r = await c.from('profiles').upsert({ owner: acct.id, username: v });
     if (r.error) {
       const k = (r.error.code || '') + ' ' + (r.error.message || '');
-      $('#nameMsg').textContent = /23505|duplicate/.test(k) ? `「${v}」はほかの人が使っています` : /23514|check/.test(k) ? '使えない文字が入っています' : '保存できませんでした。もう一度お試しください';
+      const nx = Date.parse(r.error.details || '') || nameNext();
+      $('#nameMsg').textContent = /name_cooldown/.test(k) ? `ユーザーネームは15日に1回まで変えられます${nx ? `（次は${mdDate(nx)}から）` : ''}`
+        : /23505|duplicate/.test(k) ? `「${v}」はほかの人が使っています` : /23514|check/.test(k) ? '使えない文字が入っています' : '保存できませんでした。もう一度お試しください';
       $('#nameMsg').classList.add('bad'); return;
     }
-    acctName = v; nameRequired = false; closeSheets(); acctRender(); renderPub();
+    acctName = v; acctNameAt = Date.now(); nameRequired = false; closeSheets(); acctRender(); renderPub();
     toast(`ユーザーネームを「${v}」にしました`);
   } catch (err) { console.warn('username', err); $('#nameMsg').textContent = netErr('保存できませんでした'); $('#nameMsg').classList.add('bad'); }
   finally { b.disabled = false; }
@@ -8844,7 +8851,7 @@ function acctRender() {
   const cl = !cloudInfo ? 'クラウドにはまだありません' : cloudInfo.mine ? `この端末の作品を保存済み（${ago(cloudInfo.at)}）` : `別の端末の作品があります（${ago(cloudInfo.at)}）`;
   const nm = acct.name || acct.email || 'ログイン中', sub = [acct.name ? acct.email : '', (acct.provs.map(p => PROV_NAMES[p]).join('・') || 'アカウント') + ' でログイン中'].filter(Boolean).join(' ・ ');
   b.innerHTML = `<div class="acctcard"><span class="acav" aria-hidden="true">${esc([...nm][0].toUpperCase())}</span><span><b>${esc(nm)}</b><small>${esc(sub)}</small></span></div>
-    ${profOff ? '' : `<div class="acctsync"><span>ユーザーネーム：<b>${acctName ? '@' + esc(acctName) : '未設定'}</b></span><button class="chip" data-acct="name">${acctName ? '変更' : '決める'}</button></div>`}
+    ${profOff ? '' : (() => { const wait = acctName && Date.now() < nameNext(); return `<div class="acctsync"><span>ユーザーネーム：<b>${acctName ? '@' + esc(acctName) : '未設定'}</b>${wait ? `<br><small>次に変更できるのは ${mdDate(nameNext())} から</small>` : ''}</span><button class="chip" data-acct="name"${wait ? ' disabled' : ''}>${acctName ? '変更' : '決める'}</button></div>`; })()}
     <div class="acctsync"><span>${st}</span><button class="chip" data-acct="sync"${syncState === 'busy' ? ' disabled' : ''}>今すぐ同期</button></div>
     <h3>作業中の作品</h3><p class="note">${cl}</p>
     <div class="acctbtns">${cloudInfo && !cloudInfo.mine ? '<button class="btn primary" data-acct="cloudOpen">別の端末の作品を開く</button>' : ''}<button class="btn" data-acct="cloudPush">今の作品をクラウドに保存</button></div>
