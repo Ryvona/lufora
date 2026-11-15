@@ -9148,58 +9148,610 @@ const GAL_SAMPLE_DEF = [
   ['s6', '夢かわピンク', ['夢かわ', 'エモ'], 480, 560, ['#F6B7D2', '#FCE0EC', '#FFF4F8'], '#C67AA8', { preset: 'dreamy', amt: 70, tint: 6 }]
 ];
 let galSampleCache = null;
-/* ==== AI作例 ==== works edited by the AI (Claude) for みんなの作品: the photo is a scene drawn by code (sceneCanvas), the edit is
-   an ordinary document (filter + template-style specs) rendered with renderDoc. Always listed (also with the server), marked AI. */
+/* ==== AI作例 scenes ==== richer code-drawn "photos" for the AI作例 (no outside images). AIS.<name>(W, H, opt) returns a canvas;
+   every scene is deterministic (seeded), so the works look the same on every device. Helpers: AIS.crop / paper / grain. */
+const AIS = (() => {
+const TAU = Math.PI * 2, { sin, cos, min, max, abs, sqrt, pow, PI } = Math;
+const rng = s => () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const hex = h => { const n = parseInt(h.slice(1, 7), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const ca = (h, a) => `rgba(${hex(h).join(',')},${a})`;
+const mixc = (a, b, t) => { const x = hex(a), y = hex(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+const lg = (g, x0, y0, x1, y1, st) => { const r = g.createLinearGradient(x0, y0, x1, y1); st.forEach(([o, c]) => r.addColorStop(o, c)); return r; };
+const rgr = (g, x, y, r, st) => { const q = g.createRadialGradient(x, y, 0, x, y, r); st.forEach(([o, c]) => q.addColorStop(o, c)); return q; };
+const glow = (g, x, y, r, col, a, sx = 1, sy = 1) => { g.save(); g.translate(x, y); g.scale(sx, sy); g.fillStyle = rgr(g, 0, 0, r, [[0, ca(col, a)], [.35, ca(col, a * .45)], [1, ca(col, 0)]]); g.fillRect(-r, -r, 2 * r, 2 * r); g.restore(); };
+const disc = (g, x, y, r, col, a, soft = .7) => { g.fillStyle = rgr(g, x, y, r, [[0, ca(col, a)], [soft, ca(col, a * .9)], [1, ca(col, 0)]]); g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); };
+const gauss = R => (R() + R() + R() + R() - 2) / 2;
+/* smooth value noise as a canvas: random cells upscaled twice (bilinear), several octaves */
+function fog(W, H, cell, R, col, oct = 3) {
+  const out = mk(W, H), og = out.getContext('2d'); og.imageSmoothingEnabled = true; og.imageSmoothingQuality = 'high';
+  for (let o = 0; o < oct; o++) {
+    const cs = cell / pow(2, o), w = Math.ceil(W / cs) + 3, h = Math.ceil(H / cs) + 3, s = mk(w, h), sg = s.getContext('2d'), id = sg.createImageData(w, h), [r, gg, b] = hex(col);
+    for (let i = 0; i < w * h; i++) { id.data[i * 4] = r; id.data[i * 4 + 1] = gg; id.data[i * 4 + 2] = b; id.data[i * 4 + 3] = R() * 255; }
+    sg.putImageData(id, 0, 0);
+    const m = mk(w * 4, h * 4), mg = m.getContext('2d'); mg.imageSmoothingQuality = 'high'; mg.drawImage(s, 0, 0, w * 4, h * 4);
+    og.globalAlpha = 1 / (o + 1.3); og.drawImage(m, 6, 6, w * 4 - 12, h * 4 - 12, -cs, -cs, w * cs, h * cs);
+  }
+  og.globalAlpha = 1; return out;
+}
+/* cheap blur: down- then up-scale */
+function soften(c, f) {
+  const w = c.width, h = c.height, s = mk(w / f, h / f), sg = s.getContext('2d'); sg.imageSmoothingQuality = 'high'; sg.drawImage(c, 0, 0, s.width, s.height);
+  const g = c.getContext('2d'); g.save(); g.clearRect(0, 0, w, h); g.imageSmoothingQuality = 'high'; g.drawImage(s, 0, 0, w, h); g.restore(); return c;
+}
+function grain(c, amt, seed = 7) {
+  const g = c.getContext('2d'), id = g.getImageData(0, 0, c.width, c.height), d = id.data; let s = seed * 9301 + 49297;
+  for (let i = 0; i < d.length; i += 4) { s = (s * 1103515245 + 12345) & 0x7fffffff; const n = ((s >> 8) / 8388608 - .5) * amt; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  g.putImageData(id, 0, 0); return c;
+}
+/* a crop of the given aspect (w/h) around (cx, cy) (fractions); z ≥ 1 zooms in */
+function crop(c, asp, cx = .5, cy = .5, z = 1) {
+  let w = c.width, h = w / asp; if (h > c.height) { h = c.height; w = h * asp; }
+  w /= z; h /= z; const x = clamp(cx * c.width - w / 2, 0, c.width - w), y = clamp(cy * c.height - h / 2, 0, c.height - h);
+  const o = mk(w, h); o.getContext('2d').drawImage(c, x, y, w, h, 0, 0, o.width, o.height); return o;
+}
+/* layered ridge path: fills from y(x) down to the bottom */
+function ridge(g, W, H, base, amp, R, col, step = 4, f = [.004, .011, .03]) {
+  const ph = [R() * 9, R() * 9, R() * 9]; g.fillStyle = col; g.beginPath(); g.moveTo(0, H);
+  for (let x = 0; x <= W + step; x += step) g.lineTo(x, base - amp * (.55 * sin(x * f[0] + ph[0]) + .3 * sin(x * f[1] + ph[1]) + .15 * sin(x * f[2] + ph[2])));
+  g.lineTo(W, H); g.closePath(); g.fill();
+}
+function pine(g, x, y, h, w, col) {   // a conifer silhouette with ragged tiers
+  g.fillStyle = col; g.beginPath(); g.moveTo(x, y - h); const n = 6;
+  for (let i = 1; i <= n; i++) { const t = i / n, yy = y - h + h * t, ww = w * t * .5; g.lineTo(x + ww, yy); g.lineTo(x + ww * .45, yy - h * .02); }
+  g.lineTo(x + w * .06, y); g.lineTo(x - w * .06, y);
+  for (let i = n; i >= 1; i--) { const t = i / n, yy = y - h + h * t, ww = w * t * .5; g.lineTo(x - ww * .45, yy - h * .02); g.lineTo(x - ww, yy); }
+  g.closePath(); g.fill();
+}
+function treeLine(g, W, base, hMin, hMax, R, col, dens = 1) {
+  for (let x = -20; x < W + 20; x += (hMin * .22 + R() * hMin * .3) / dens) { const h = hMin + R() * (hMax - hMin); pine(g, x, base + R() * hMin * .15, h, h * (.32 + R() * .12), col); }
+  g.fillStyle = col; g.fillRect(0, base, W, hMax);
+}
+/* mirror the area above y0 into y0..H with ripples and a darkening/tint */
+function reflect(g, c, W, H, y0, R, tint, ta, amp = 1) {
+  const src = mk(W, y0); src.getContext('2d').drawImage(c, 0, 0);
+  for (let y = 0; y < H - y0; y += 2) {
+    const t = y / (H - y0), sy = y0 - 1 - y * .92; if (sy < 0) break;
+    const dx = (sin(y * .09) * .7 + sin(y * .23 + 1) * .3) * (1 + t * 10) * amp;
+    g.drawImage(src, 0, sy, W, 2, dx, y0 + y, W, 2);
+  }
+  g.fillStyle = lg(g, 0, y0, 0, H, [[0, ca(tint, ta * .6)], [1, ca(tint, ta)]]); g.fillRect(0, y0, W, H - y0);
+}
+
+/* ---------- ocean at sunset: clouds lit from below, sun glitter path, waves, wet sand ---------- */
+function ocean(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 11), M = min(W, H), hz = H * (o.hz || .56), sx = W * (o.sx || .62), sy = hz - M * .02;
+  g.fillStyle = lg(g, 0, 0, 0, hz, [[0, '#1B2457'], [.3, '#4A3A7A'], [.58, '#C9658A'], [.82, '#F59A66'], [1, '#FFD49A']]); g.fillRect(0, 0, W, hz);
+  glow(g, sx, sy, W * .9, '#FF9C6A', .45); glow(g, sx, sy, M * .32, '#FFD9A0', .7);
+  const cl = mk(W, hz), g0 = g; { const g = cl.getContext('2d');
+  for (let k = 0; k < 34; k++) {   // cloud streaks: dark tops, warm undersides near the sun
+    const y = hz * (.12 + R() * .74), x = R() * W, w = W * (.12 + R() * .45), h = M * (.006 + R() * .02), near = 1 - min(1, abs(x - sx) / W);
+    g.save(); g.globalAlpha = .35 + R() * .45; g.beginPath(); g.ellipse(x, y, w / 2, h, 0, 0, TAU);
+    g.fillStyle = lg(g, 0, y - h, 0, y + h, [[0, ca('#3E2E66', .7)], [.6, ca(mixc('#B0587E', '#FFB27A', near * (y / hz)), .9)], [1, ca('#FFC896', .95 * near)]]); g.fill(); g.restore();
+  } } soften(cl, 3); g0.drawImage(cl, 0, 0);
+  g.save(); g.beginPath(); g.rect(0, 0, W, hz); g.clip(); disc(g, sx, sy, M * .05, '#FFF4DC', 1, .85); g.restore();
+  g.fillStyle = '#3C2C52'; g.beginPath(); g.moveTo(-5, hz); for (let x = 0; x < W * .3; x += 4) g.lineTo(x, hz - M * .03 * pow(sin(PI * x / (W * .3)), .7) * (1 + .15 * sin(x * .05))); g.lineTo(W * .3, hz); g.fill();
+  g.fillStyle = lg(g, 0, hz, 0, H, [[0, '#E79A86'], [.06, '#A2607E'], [.4, '#3E3566'], [1, '#121838']]); g.fillRect(0, hz, W, H - hz);
+  glow(g, sx, hz, H * .5, '#FFA46A', .5, .32, 1);
+  for (let i = 0; i < 190; i++) {   // waves: wider and further apart towards the viewer
+    const t = pow(i / 190, 1.7), y = hz + (H - hz) * t, lw = 1 + t * 3.5;
+    let x = -R() * 200; while (x < W) { const len = W * (.02 + R() * .12) * (1 + t * 2); g.strokeStyle = R() < .6 ? ca('#0C1030', .18 + .3 * t) : ca('#FFB98E', .08 + .12 * (1 - t)); g.lineWidth = lw; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + len / 2, y - lw * 1.2, x + len, y); g.stroke(); x += len + R() * 40 * (1 + t * 3); }
+  }
+  for (let n = 0; n < 3200; n++) {   // glitter path
+    const t = pow(R(), 1.3), y = hz + (H - hz) * t, spread = W * (.025 + .2 * t), dx = gauss(R) * spread, a = max(0, 1 - abs(dx) / (spread * 1.8));
+    g.fillStyle = ca(R() < .5 ? '#FFF1CC' : '#FFC58A', a * (.35 + .65 * R())); const len = W * (.003 + .03 * t) * (.3 + R()); g.fillRect(sx + dx - len / 2, y, len, 1 + t * 2.5);
+  }
+  if (o.shore !== false) {   // wet sand + foam at the bottom
+    const sy0 = H * .9; g.fillStyle = lg(g, 0, sy0, 0, H, [[0, '#4A3448'], [1, '#2A1C2C']]);
+    g.beginPath(); g.moveTo(0, H); for (let x = 0; x <= W; x += 6) g.lineTo(x, sy0 + M * .012 * sin(x * .008 + 1) + M * .006 * sin(x * .031)); g.lineTo(W, H); g.fill();
+    glow(g, sx, sy0 + M * .03, M * .4, '#FFB07A', .35, 1, .18);
+    g.strokeStyle = ca('#FFE6D0', .55); g.lineWidth = M * .004; g.beginPath(); for (let x = 0; x <= W; x += 6) { const y = sy0 + M * .012 * sin(x * .008 + 1) + M * .006 * sin(x * .031) - 1; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
+  }
+  return grain(c, 10, 3);
+}
+
+/* ---------- starry night: milky way with dust lane, layered ridges, a lit cabin, a meteor ---------- */
+function stars(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 23), M = min(W, H), hz = H * .74;
+  g.fillStyle = lg(g, 0, 0, 0, hz, [[0, '#03050E'], [.45, '#0B1230'], [.8, '#1C2752'], [1, '#3D4A7A']]); g.fillRect(0, 0, W, H);
+  glow(g, W * .5, hz, W * .9, '#D77E96', .22, 1, .35); glow(g, W * .2, hz, W * .5, '#5FA7B8', .14, 1, .3);
+  const ang = -1.05, cx = W * .55, cy = H * .42, ux = cos(ang), uy = sin(ang);   // band direction
+  const mw = mk(W, H), mg = mw.getContext('2d'); mg.drawImage(fog(W, H, M * .16, R, '#F2DCC8', 4), 0, 0); mg.drawImage(fog(W, H, M * .08, R, '#9FB4E8', 3), 0, 0);
+  mg.globalCompositeOperation = 'destination-in'; mg.save(); mg.translate(cx, cy); mg.rotate(ang); mg.fillStyle = lg(mg, 0, -M * .3, 0, M * .3, [[0, 'rgba(0,0,0,0)'], [.5, 'rgba(0,0,0,.95)'], [1, 'rgba(0,0,0,0)']]); mg.fillRect(-W * 2, -M * .3, W * 4, M * .6); mg.restore();
+  g.save(); g.globalCompositeOperation = 'screen'; g.globalAlpha = .75; g.drawImage(mw, 0, 0); g.restore();
+  const dust = fog(W, H, M * .05, R, '#05060E', 3), dg = dust.getContext('2d'); dg.globalCompositeOperation = 'destination-in'; dg.save(); dg.translate(cx, cy); dg.rotate(ang);
+  dg.fillStyle = lg(dg, 0, -M * .09, 0, M * .09, [[0, 'rgba(0,0,0,0)'], [.5, 'rgba(0,0,0,.9)'], [1, 'rgba(0,0,0,0)']]); dg.fillRect(-W * 2, -M * .09, W * 4, M * .18); dg.restore();
+  g.globalAlpha = .7; g.drawImage(dust, 0, 0); g.globalAlpha = 1;
+  const k = M / 1000, star = (x, y, r, a, col) => { g.fillStyle = ca(col, a); if (r < 1.2) g.fillRect(x, y, r * 1.4, r * 1.4); else { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); } };
+  const cols = ['#FFFFFF', '#DDE6FF', '#FFE9D2', '#BFD0FF'];
+  for (let n = 0; n < 2600; n++) star(R() * W, R() * hz, (.5 + pow(R(), 6) * 2.2) * k * 1.3, .25 + .75 * R(), cols[n & 3]);
+  for (let n = 0; n < 4200; n++) { const t = (R() - .5) * W * 2.2, s = gauss(R) * M * .11; star(cx + ux * t - uy * s, cy + uy * t + ux * s, (.4 + pow(R(), 8) * 1.6) * k * 1.2, .2 + .6 * R(), cols[n & 3]); }
+  for (let n = 0; n < 18; n++) { const x = R() * W, y = R() * hz * .9; glow(g, x, y, M * (.012 + R() * .018), '#DCE6FF', .45); star(x, y, 1.8 * k * 1.3, 1, '#FFFFFF'); }
+  g.strokeStyle = lg(g, W * .72, H * .08, W * .88, H * .16, [[0, 'rgba(255,255,255,0)'], [1, 'rgba(255,255,255,.85)']]); g.lineWidth = 1.6 * k; g.beginPath(); g.moveTo(W * .72, H * .08); g.lineTo(W * .88, H * .16); g.stroke();
+  ridge(g, W, H, hz - M * .02, M * .05, R, '#1E2850'); ridge(g, W, H, hz + M * .03, M * .04, R, '#121A38');
+  ridge(g, W, H, hz + M * .09, M * .035, R, '#070A16'); treeLine(g, W, H * .9, M * .05, M * .12, R, '#04060C', .7);
+  const hx = W * .3, hy = H * .9 - M * .005, hw = M * .07, hh = M * .045;   // cabin with a warm window
+  glow(g, hx, hy - hh * .5, M * .2, '#FFB45E', .22);
+  g.fillStyle = '#05070D'; g.fillRect(hx - hw / 2, hy - hh, hw, hh); g.beginPath(); g.moveTo(hx - hw * .62, hy - hh); g.lineTo(hx, hy - hh - M * .035); g.lineTo(hx + hw * .62, hy - hh); g.fill();
+  g.fillStyle = '#FFC777'; g.fillRect(hx - hw * .25, hy - hh * .65, hw * .18, hh * .3); g.fillRect(hx + hw * .07, hy - hh * .65, hw * .18, hh * .3);
+  return grain(c, 9, 5);
+}
+
+/* ---------- flower field (cosmos): blurred far rows, sharp mid flowers, bokeh foreground, sun flare ---------- */
+function cosmos(g, x, y, r, R, col) {
+  const n = 8, rot = R() * TAU;
+  for (let i = 0; i < n; i++) {
+    const a = rot + i * TAU / n; g.save(); g.translate(x + cos(a) * r * .55, y + sin(a) * r * .55 * .8); g.rotate(a); g.beginPath(); g.ellipse(0, 0, r * .55, r * .22, 0, 0, TAU);
+    g.fillStyle = lg(g, -r * .5, 0, r * .55, 0, [[0, mixc(col, '#7A2048', .25)], [.5, col], [1, mixc(col, '#FFFFFF', .35)]]); g.fill(); g.restore();
+  }
+  g.fillStyle = '#F2B731'; g.beginPath(); g.arc(x, y, r * .2, 0, TAU); g.fill(); g.fillStyle = '#B5781A'; for (let i = 0; i < 6; i++) g.fillRect(x + gauss(R) * r * .12, y + gauss(R) * r * .1, r * .05, r * .05);
+}
+function flowers(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 37), M = min(W, H), hz = H * (o.hz || .36);
+  g.fillStyle = lg(g, 0, 0, 0, hz, [[0, '#8DBBE2'], [.7, '#DDE8EE'], [1, '#F6EEDF']]); g.fillRect(0, 0, W, H);
+  glow(g, W * .82, H * .06, M * .9, '#FFF3D6', .7);
+  const far = mk(W, H), fg = far.getContext('2d');   // distant trees + far flowers (blurred)
+  for (let i = 0; i < 90; i++) { const x = R() * W, r = M * (.03 + R() * .07); disc(fg, x, hz - r * .3, r, R() < .5 ? '#7E9C7C' : '#93AE8A', .9, .8); }
+  fg.fillStyle = lg(fg, 0, hz, 0, H, [[0, '#A9BF8C'], [.25, '#7FA563'], [1, '#3D6A38']]); fg.fillRect(0, hz, W, H - hz);
+  const pal = ['#F4A6C6', '#E8679C', '#FFFFFF', '#F7C6DA', '#D94F8A'];
+  for (let n = 0; n < 9000; n++) { const t = pow(R(), 1.6) * .55, y = hz + (H - hz) * t, r = M * (.0025 + .012 * t); disc(fg, R() * W, y, r, pal[n % 5], .9, .75); }
+  soften(far, 5); g.drawImage(far, 0, 0);
+  for (let n = 0; n < 900; n++) { const t = .3 + R() * .45, y = hz + (H - hz) * t; g.strokeStyle = ca('#4E7A3E', .5); g.lineWidth = M * .002; const x = R() * W; g.beginPath(); g.moveTo(x, y); g.lineTo(x + gauss(R) * M * .006, y + M * (.02 + .05 * t)); g.stroke(); }
+  const fl = [];
+  for (let n = 0; n < 70; n++) { const t = .3 + pow(R(), .8) * .45; fl.push([R() * W, hz + (H - hz) * t, M * (.012 + .035 * t)]); }
+  fl.sort((a, b) => a[1] - b[1]).forEach(([x, y, r], i) => {
+    g.strokeStyle = '#3F6B33'; g.lineWidth = r * .09; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + r * .4, y + r * 2, x + gauss(R) * r, y + r * 5); g.stroke();
+    cosmos(g, x, y, r, R, pal[i % 5] === '#FFFFFF' ? '#FCEFF4' : pal[i % 5]);
+  });
+  for (let n = 0; n < 14; n++) disc(g, R() * W, H * (.84 + R() * .25), M * (.06 + R() * .1), R() < .6 ? pal[n % 5] : '#6C9A55', .45 + R() * .25, .55);   // out-of-focus foreground
+  for (let n = 0; n < 16; n++) { const x = W * (.55 + R() * .45), y = H * (R() * .3); g.strokeStyle = ca('#FFFFFF', .25); disc(g, x, y, M * (.015 + R() * .04), '#FFF6E0', .18 + R() * .15, .85); }
+  if (o.bokeh) { soften(c, o.bokeh); for (let n = 0; n < 26; n++) disc(g, R() * W, R() * H, M * (.03 + R() * .08), R() < .5 ? '#FFF4E8' : pal[n % 5], .12 + R() * .2, .88); }
+  return grain(c, 8, 9);
+}
+
+/* ---------- night city across the water: layered skyline, lit windows, a lattice tower, rippled reflections ---------- */
+function city(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 41), M = min(W, H), hz = H * (o.hz || .6);
+  g.fillStyle = lg(g, 0, 0, 0, hz, [[0, '#070B24'], [.45, '#1B2258'], [.78, '#4E3676'], [1, '#D97E6E']]); g.fillRect(0, 0, W, H);
+  glow(g, W * .5, hz, W * .8, '#FF8A66', .3, 1, .4);
+  for (let i = 0; i < 12; i++) { const y = hz * (.15 + R() * .55); g.fillStyle = ca('#2A2350', .35); g.beginPath(); g.ellipse(R() * W, y, W * (.1 + R() * .25), M * (.008 + R() * .012), 0, 0, TAU); g.fill(); }
+  for (let n = 0; n < 160; n++) { g.fillStyle = ca('#FFFFFF', .2 + R() * .5); g.fillRect(R() * W, R() * hz * .55, 1.4, 1.4); }
+  const winC = ['#FFD58A', '#FFF0C8', '#FFE2A8', '#BFE3FF'];
+  const layer = (hMin, hMax, col, wa, lit) => {
+    let x = -R() * 40;
+    while (x < W) {
+      const bw = M * (.03 + R() * .07), bh = M * (hMin + R() * (hMax - hMin)), top = hz - bh; g.fillStyle = col; g.fillRect(x, top, bw, bh + 2);
+      if (R() < .25) { g.fillRect(x + bw * .35, top - bh * .12, bw * .3, bh * .12); g.fillStyle = '#FF4A4A'; g.fillRect(x + bw * .48, top - bh * .12 - 3, 3, 3); glow(g, x + bw * .5, top - bh * .12, M * .012, '#FF4A4A', .6); }
+      const cw = max(2, bw / (5 + (R() * 4 | 0))), chh = max(3, M * .008), on = lit * (.4 + R() * .6), col2 = winC[R() * 4 | 0];
+      for (let y = top + chh; y < hz - chh; y += chh * 1.9) for (let xx = x + cw * .5; xx < x + bw - cw; xx += cw * 1.6) if (R() < on) { g.fillStyle = ca(R() < .8 ? col2 : winC[R() * 4 | 0], wa * (.5 + R() * .5)); g.fillRect(xx, y, cw * .8, chh); }
+      x += bw + M * R() * .008;
+    }
+  };
+  layer(.05, .16, '#2C3164', .35, .3); glow(g, W * .5, hz, W * .6, '#B05A7A', .18, 1, .25);
+  const tx = W * (o.tower || .68), th = M * .5, tb = hz - M * .02;   // lattice tower
+  glow(g, tx, tb - th * .6, M * .25, '#FF7A3A', .25);
+  g.strokeStyle = '#FF8A4A'; g.lineWidth = M * .003; g.beginPath(); g.moveTo(tx - M * .05, tb); g.quadraticCurveTo(tx - M * .012, tb - th * .4, tx - M * .003, tb - th); g.moveTo(tx + M * .05, tb); g.quadraticCurveTo(tx + M * .012, tb - th * .4, tx + M * .003, tb - th); g.stroke();
+  for (let i = 1; i < 14; i++) { const t = i / 14, y = tb - th * t, w = M * .05 * pow(1 - t, 1.6) + M * .004; g.beginPath(); g.moveTo(tx - w, y); g.lineTo(tx + w, y - th / 14); g.moveTo(tx + w, y); g.lineTo(tx - w, y - th / 14); g.lineWidth = M * .0015; g.stroke(); }
+  g.fillStyle = '#FFC08A'; g.fillRect(tx - M * .022, tb - th * .37, M * .044, M * .012); g.fillRect(tx - M * .012, tb - th * .65, M * .024, M * .008); g.fillRect(tx - 1.5, tb - th * 1.08, 3, th * .08);
+  layer(.08, .28, '#141836', .9, .45); layer(.03, .1, '#0A0C1E', .95, .55);
+  g.fillStyle = '#07081A'; g.fillRect(0, hz - M * .008, W, M * .012);
+  for (let x = M * .02; x < W; x += M * .07) { glow(g, x, hz - M * .02, M * .02, '#FFD28A', .55); g.fillStyle = '#FFE7B0'; g.fillRect(x - 1.5, hz - M * .022, 3, 3); }
+  reflect(g, c, W, H, hz, R, '#050818', .55, 1.3);
+  for (let n = 0; n < 900; n++) { const x = R() * W, t = pow(R(), 1.5), y = hz + (H - hz) * t * .9; g.fillStyle = ca(winC[n & 3], .25 * (1 - t)); g.fillRect(x, y, M * (.006 + R() * .02), 1.5); }
+  return grain(c, 12, 4);
+}
+
+/* ---------- café still life: window light on a wall, wooden table, cup + saucer + latte art, steam, cookie plate ---------- */
+function cafe(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 53), M = min(W, H), ty = H * .5;
+  g.fillStyle = lg(g, 0, 0, W, 0, [[0, '#D8C1A2'], [.6, '#BFA383'], [1, '#8E7358']]); g.fillRect(0, 0, W, ty);
+  g.save(); g.globalAlpha = .55; g.fillStyle = lg(g, W * .2, 0, W * .9, ty, [[0, 'rgba(255,240,210,.9)'], [1, 'rgba(255,240,210,0)']]);   // window light patches (4 panes)
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { const x0 = W * (.42 + i * .17) + j * W * .05, y0 = ty * (.08 + j * .34); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + W * .15, y0 + ty * .04); g.lineTo(x0 + W * .19, y0 + ty * .34); g.lineTo(x0 + W * .04, y0 + ty * .3); g.closePath(); g.fill(); }
+  g.restore();
+  const lf = mk(W, ty), lfg = lf.getContext('2d'); lfg.fillStyle = 'rgba(60,40,20,.5)';   // leaf shadows
+  for (let i = 0; i < 26; i++) { const x = W * (.55 + R() * .35), y = ty * (.05 + R() * .6); lfg.save(); lfg.translate(x, y); lfg.rotate(R() * TAU); lfg.beginPath(); lfg.ellipse(0, 0, M * .05, M * .018, 0, 0, TAU); lfg.fill(); lfg.restore(); }
+  soften(lf, 6); g.globalAlpha = .35; g.drawImage(lf, 0, 0); g.globalAlpha = 1;
+  const vx = W * .5, vy = -H * .2;   // table planks converging to a vanishing point
+  for (let i = -6; i < 7; i++) {
+    const x0 = vx + (i - .5) * W * .5, x1 = vx + (i + .5) * W * .5, t0 = (ty - vy) / (H - vy), base = i & 1 ? '#80522F' : '#8B5C36';
+    g.fillStyle = lg(g, 0, ty, 0, H, [[0, mixc(base, '#C89A6A', .25)], [1, mixc(base, '#2E1A0E', .35)]]); g.beginPath(); g.moveTo(vx + (x0 - vx) * t0, ty); g.lineTo(vx + (x1 - vx) * t0, ty); g.lineTo(x1, H); g.lineTo(x0, H); g.closePath(); g.fill();
+    for (let k = 0; k < 14; k++) { const u = (k + R()) / 14, xa = x0 + (x1 - x0) * u; g.strokeStyle = ca('#3A2010', .12 + R() * .15); g.lineWidth = 1 + R() * 1.5; g.beginPath(); g.moveTo(vx + (xa - vx) * t0, ty); g.quadraticCurveTo(vx + (xa - vx) * .7 + gauss(R) * 8, ty + (H - ty) * .45, xa + gauss(R) * 10, H); g.stroke(); }
+    g.strokeStyle = 'rgba(30,15,5,.55)'; g.lineWidth = 2; g.beginPath(); g.moveTo(vx + (x0 - vx) * t0, ty); g.lineTo(x0, H); g.stroke();
+  }
+  g.fillStyle = lg(g, 0, ty - 4, 0, ty + M * .02, [[0, '#5A3A22'], [1, 'rgba(90,58,34,0)']]); g.fillRect(0, ty - 2, W, M * .02);
+  glow(g, W * .3, H * .78, M * .6, '#FFE0AA', .35, 1.4, .45);
+  const shadow = (x, y, rx, ry, a) => { const s = mk(W, H), sg = s.getContext('2d'); sg.fillStyle = `rgba(30,15,5,${a})`; sg.beginPath(); sg.ellipse(x, y, rx, ry, 0, 0, TAU); sg.fill(); soften(s, 14); g.drawImage(s, 0, 0); };
+  /* cookie plate (back left, slightly soft) */
+  const px = W * .2, py = H * .6, pr = M * .14; shadow(px + M * .03, py + M * .02, pr, pr * .32, .45);
+  g.fillStyle = lg(g, px - pr, py, px + pr, py, [[0, '#FFFFFF'], [1, '#D9D1C6']]); g.beginPath(); g.ellipse(px, py, pr, pr * .3, 0, 0, TAU); g.fill();
+  for (let i = 0; i < 3; i++) { const x = px - pr * .4 + i * pr * .38, y = py - pr * .06 + (i & 1) * pr * .06; g.fillStyle = '#C98A4A'; g.beginPath(); g.ellipse(x, y, pr * .22, pr * .09, 0, 0, TAU); g.fill(); g.fillStyle = '#E0A866'; g.beginPath(); g.ellipse(x, y - pr * .02, pr * .2, pr * .07, 0, 0, TAU); g.fill(); }
+  /* saucer + cup */
+  const cx = W * (o.cup || .58), cy = H * .72, sr = M * .3, cr = M * .16, chh = M * .17;
+  shadow(cx + M * .06, cy + M * .04, sr * 1.05, sr * .34, .55);
+  g.fillStyle = lg(g, cx - sr, cy, cx + sr, cy, [[0, '#FFFFFF'], [.6, '#EFE9E0'], [1, '#BDB3A6']]); g.beginPath(); g.ellipse(cx, cy, sr, sr * .32, 0, 0, TAU); g.fill();
+  g.strokeStyle = 'rgba(150,130,110,.4)'; g.lineWidth = M * .003; g.beginPath(); g.ellipse(cx, cy - sr * .01, sr * .62, sr * .2, 0, 0, TAU); g.stroke();
+  g.strokeStyle = '#C9BFB2'; g.lineWidth = M * .03; g.beginPath(); g.ellipse(cx + cr * 1.05, cy - chh * .55, cr * .34, chh * .3, .2, -1.6, 1.6); g.stroke();   // handle
+  g.strokeStyle = '#F4EFE8'; g.lineWidth = M * .02; g.stroke();
+  const top = cy - chh; g.fillStyle = lg(g, cx - cr, 0, cx + cr, 0, [[0, '#FFFFFF'], [.35, '#F6F2EC'], [.8, '#CFC6BA'], [1, '#A89D90']]);
+  g.beginPath(); g.moveTo(cx - cr, top); g.bezierCurveTo(cx - cr, top + chh * .7, cx - cr * .7, cy - chh * .02, cx, cy); g.bezierCurveTo(cx + cr * .7, cy - chh * .02, cx + cr, top + chh * .7, cx + cr, top); g.closePath(); g.fill();
+  g.fillStyle = '#EFE8DF'; g.beginPath(); g.ellipse(cx, top, cr, cr * .32, 0, 0, TAU); g.fill();
+  g.fillStyle = rgr(g, cx - cr * .2, top, cr * .9, [[0, '#8A5430'], [.7, '#5A321A'], [1, '#3A1E0E']]); g.beginPath(); g.ellipse(cx, top + cr * .01, cr * .88, cr * .27, 0, 0, TAU); g.fill();
+  g.fillStyle = '#F3E6D2'; g.beginPath();   // latte art heart (flattened by perspective)
+  g.save(); g.translate(cx, top + cr * .01); g.scale(1, .3); const hr = cr * .42; g.moveTo(0, hr * .9); g.bezierCurveTo(-hr * 1.4, -hr * .1, -hr * .6, -hr * 1.1, 0, -hr * .35); g.bezierCurveTo(hr * .6, -hr * 1.1, hr * 1.4, -hr * .1, 0, hr * .9); g.restore(); g.fill();
+  g.strokeStyle = ca('#C8955E', .7); g.lineWidth = M * .004; g.beginPath(); g.ellipse(cx, top + cr * .01, cr * .85, cr * .255, 0, 0, TAU); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = M * .004; g.beginPath(); g.ellipse(cx, top, cr, cr * .32, 0, PI * .95, PI * 1.55); g.stroke();
+  g.fillStyle = lg(g, 0, cy + sr * .1, 0, cy + sr * .35, [[0, '#B8B0A8'], [1, '#8E867E']]);   // spoon
+  g.beginPath(); g.ellipse(cx - sr * .62, cy + sr * .05, sr * .1, sr * .05, -.3, 0, TAU); g.fill(); g.fillRect(cx - sr * .55, cy + sr * .07, sr * .55, sr * .025);
+  const st = mk(W, H), sg = st.getContext('2d'); sg.lineCap = 'round';   // steam
+  for (let i = 0; i < 4; i++) { const x0 = cx + (i - 1.5) * cr * .3; sg.strokeStyle = `rgba(255,255,255,${.22 + R() * .15})`; sg.lineWidth = M * (.012 + R() * .012); sg.beginPath(); sg.moveTo(x0, top - M * .01); sg.lineJoin = 'round'; for (let k = 1; k <= 60; k++) sg.lineTo(x0 + sin(k * .11 + i * 2) * M * .025 * (1 + k * .02), top - k * M * .0048); sg.stroke(); }
+  soften(st, 9); g.drawImage(st, 0, 0);
+  g.save(); g.globalCompositeOperation = 'screen'; g.fillStyle = lg(g, 0, 0, W, H, [[0, 'rgba(255,230,190,.25)'], [.5, 'rgba(255,230,190,0)']]); g.fillRect(0, 0, W, H); g.restore();
+  return grain(c, 10, 6);
+}
+
+/* ---------- cherry blossoms: branches with blossom clusters against the sky, blurred trees below, falling petals ---------- */
+function blossom(g, x, y, r, R, a = 1) {
+  const rot = R() * TAU; g.globalAlpha = a;
+  for (let i = 0; i < 5; i++) {
+    const t = rot + i * TAU / 5; g.save(); g.translate(x + cos(t) * r * .5, y + sin(t) * r * .5); g.rotate(t);
+    g.fillStyle = lg(g, -r * .5, 0, r * .5, 0, [[0, '#F2A7BD'], [.6, '#FCDDE6'], [1, '#FFF4F7']]); g.beginPath(); g.ellipse(0, 0, r * .52, r * .4, 0, 0, TAU); g.fill(); g.restore();
+  }
+  g.fillStyle = '#D9587A'; g.beginPath(); g.arc(x, y, r * .16, 0, TAU); g.fill();
+  g.fillStyle = '#FFE08A'; for (let i = 0; i < 5; i++) { const t = rot + i * TAU / 5 + .6; g.fillRect(x + cos(t) * r * .28, y + sin(t) * r * .28, r * .06, r * .06); }
+  g.globalAlpha = 1;
+}
+function sakura(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 61), M = min(W, H);
+  g.fillStyle = lg(g, 0, 0, 0, H, [[0, '#4F97DA'], [.55, '#9FCBF0'], [1, '#E4F1FA']]); g.fillRect(0, 0, W, H);
+  const cl = fog(W, H, M * .2, R, '#FFFFFF', 3), cg = cl.getContext('2d'); cg.globalCompositeOperation = 'destination-in'; cg.fillStyle = lg(cg, 0, 0, 0, H, [[0, 'rgba(0,0,0,0)'], [.45, 'rgba(0,0,0,.2)'], [.8, 'rgba(0,0,0,.8)']]); cg.fillRect(0, 0, W, H);
+  g.drawImage(cl, 0, 0); glow(g, W * .3, H * .2, M * .6, '#FFFFFF', .35);
+  const bg = mk(W, H), bgg = bg.getContext('2d');   // blurred blossom trees far below
+  for (let i = 0; i < 110; i++) { const x = R() * W, y = H * (.74 + R() * .3), r = M * (.04 + R() * .09); disc(bgg, x, y, r, ['#F8CFDC', '#F3B8CA', '#FFFFFF', '#E9A9BD'][i & 3], .95, .8); }
+  for (let i = 0; i < 12; i++) disc(bgg, R() * W, H * (.86 + R() * .2), M * (.05 + R() * .05), '#7FA36A', .7, .7);
+  soften(bg, 8); g.drawImage(bg, 0, 0);
+  const flat = a => { if (!o.flat) return a; const s = clamp(sin(a), -o.flat, o.flat); return Math.atan2(s, (cos(a) < 0 ? -1 : 1) * sqrt(1 - s * s)); };
+  const tips = [], br = (x, y, a, len, w, d) => {
+    a = flat(a);
+    const x2 = x + cos(a) * len, y2 = y + sin(a) * len; if (d && ((o.minY && y2 - M * .05 < o.minY * H) || (o.maxY && y2 + M * .05 > o.maxY * H))) return; const mx = (x + x2) / 2 + gauss(R) * len * .15, my = (y + y2) / 2 + gauss(R) * len * .15;
+    g.strokeStyle = d < 2 ? '#2E2224' : '#4A3434'; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(mx, my, x2, y2); g.stroke();
+    if (d >= 1) tips.push([mx, my, d]); tips.push([x2, y2, d]);
+    if (d < 5 && w > 1.2) { const n = d < (o.kids || 2) ? 2 : 1 + (R() < .6); for (let i = 0; i < n; i++) br(x2, y2, a + gauss(R) * .9 + (i ? .45 : -.3), len * (.62 + R() * .18), w * .62, d + 1); }
+  };
+  (o.branches || [[-M * .05, H * .06, .35], [W + M * .05, -M * .02, 2.4]]).forEach(([x, y, a], i) => br(x, y, a, M * (.42 - i * .08), M * (.035 - i * .008), 0));
+  const dn = o.dense || 1;
+  tips.forEach(([x, y, d]) => { if (d < 1 || (o.minY && y - M * .05 < o.minY * H) || (o.maxY && y + M * .05 > o.maxY * H)) return; const n = (3 + R() * 9) * dn | 0; for (let i = 0; i < n; i++) blossom(g, x + gauss(R) * M * .045, y + gauss(R) * M * .04, M * (.016 + R() * .014), R, .85 + R() * .15); });
+  for (let n = 0; n < 70; n++) { const x = R() * W, y = R() * H, r = M * (.006 + R() * .01); g.save(); g.translate(x, y); g.rotate(R() * TAU); g.fillStyle = ca('#FBD3DF', .85); g.beginPath(); g.ellipse(0, 0, r, r * .6, 0, 0, TAU); g.fill(); g.restore(); }
+  for (let n = 0; n < 7; n++) disc(g, R() < .5 ? R() * W * .25 : W - R() * W * .25, H * (.55 + R() * .45), M * (.05 + R() * .07), '#F7C3D3', .45, .6);
+  return grain(c, 7, 8);
+}
+
+/* ---------- snowy town at blue hour: misty mountains, houses with snowy roofs, warm windows, lamps, falling snow ---------- */
+function snow(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 71), M = min(W, H), hz = H * (o.hz || .5);
+  g.fillStyle = lg(g, 0, 0, 0, hz, [[0, '#18244A'], [.5, '#3E5088'], [.85, '#8C97C4'], [1, '#E4B9B0']]); g.fillRect(0, 0, W, H);
+  ridge(g, W, H, hz - M * .04, M * .09, R, '#7C88B6', 4, [.003, .009, .02]);
+  const sn = mk(W, H), sng = sn.getContext('2d'); ridge(sng, W, H, hz - M * .04, M * .09, rng(o.seed || 71), '#E8EDF8', 4, [.003, .009, .02]); sng.globalCompositeOperation = 'destination-in'; sng.fillStyle = lg(sng, 0, hz - M * .14, 0, hz, [[0, 'rgba(0,0,0,.85)'], [1, 'rgba(0,0,0,0)']]); sng.fillRect(0, 0, W, H); g.drawImage(sn, 0, 0);
+  g.fillStyle = lg(g, 0, hz - M * .05, 0, hz + M * .08, [[0, 'rgba(200,205,230,0)'], [1, 'rgba(200,205,230,.7)']]); g.fillRect(0, hz - M * .05, W, M * .14);
+  g.fillStyle = lg(g, 0, hz, 0, H, [[0, '#AEB7D8'], [1, '#E9EDF7']]); g.fillRect(0, hz, W, H - hz);
+  const house = (x, y, s, fogA) => {
+    const w = M * .09 * s, h = M * .07 * s, rh = h * .7, wall = mixc('#2E3456', '#9AA3C8', fogA), roof = mixc('#E9EEF8', '#C9D0E6', fogA);
+    glow(g, x, y - h * .4, w * 1.4, '#FFB866', .25 * (1 - fogA));
+    g.fillStyle = wall; g.fillRect(x - w / 2, y - h, w, h);
+    g.fillStyle = mixc('#4A4F70', '#9AA3C8', fogA); g.fillRect(x + w * .2, y - h - rh * .9, w * .12, rh * .5);
+    g.fillStyle = roof; g.beginPath(); g.moveTo(x - w * .62, y - h + 2); g.lineTo(x, y - h - rh); g.lineTo(x + w * .62, y - h + 2); g.quadraticCurveTo(x, y - h + w * .06, x - w * .62, y - h + 2); g.fill();
+    g.fillStyle = ca('#FFC877', 1 - fogA * .6); const ww = w * .16, wh = h * .28; [[-.28, .5], [.1, .5]].forEach(([a, b]) => { if (R() < .82) { g.fillRect(x + w * a, y - h * b - wh / 2, ww, wh); } });
+    g.fillStyle = mixc('#E9EEF8', '#C9D0E6', fogA); g.fillRect(x - w * .55, y - 2, w * 1.1, h * .12);
+  };
+  const rows = [[hz + M * .02, .5, .55, 16], [hz + M * .07, .7, .35, 11], [hz + M * .14, 1, .15, 7], [hz + M * .23, 1.35, 0, 4]];
+  rows.forEach(([y, s, f, n], ri) => {
+    for (let i = 0; i < n; i++) { if (ri < 3 && R() < .18) continue; const x = (i + .5 + (R() - .5) * .7) * W / n; y += (R() - .5) * M * .012; if (R() < .3) { pine(g, x, y, M * .1 * s, M * .05 * s, mixc('#22304A', '#9AA3C8', f)); g.fillStyle = ca('#EEF2FA', .7); g.fillRect(x - M * .01 * s, y - M * .06 * s, M * .02 * s, M * .01 * s); } else house(x, y + gauss(R) * M * .01, s * (.85 + R() * .3), f); }
+    g.fillStyle = lg(g, 0, y - M * .03, 0, y + M * .04, [[0, 'rgba(200,206,232,0)'], [1, `rgba(200,206,232,${.3 * f + .05})`]]); g.fillRect(0, y - M * .03, W, M * .07);
+  });
+  g.fillStyle = lg(g, 0, hz + M * .2, 0, H, [[0, 'rgba(140,150,190,.15)'], [1, 'rgba(140,150,190,.45)']]);   // a trodden path towards the town
+  g.beginPath(); g.moveTo(W * .47, hz + M * .2); g.bezierCurveTo(W * .5, H * .8, W * .3, H * .88, W * .25, H); g.lineTo(W * .62, H); g.bezierCurveTo(W * .62, H * .88, W * .56, H * .8, W * .53, hz + M * .2); g.fill();
+  [[.12, .9, 1], [.87, .87, 1.05]].forEach(([fx, fy, s]) => {   // street lamps with pools of light on the snow
+    const x = W * fx, y = H * fy, h = M * .2 * s; g.fillStyle = '#1E2238'; g.fillRect(x - 2, y - h, 4, h);
+    glow(g, x, y, M * .14, '#FFC37A', .35, 1.4, .35); glow(g, x, y - h, M * .08, '#FFD08A', .7); disc(g, x, y - h, M * .008, '#FFF4D8', 1, .8);
+  });
+  const fall = (n, r0, r1, a, soft) => { for (let i = 0; i < n; i++) disc(g, R() * W, R() * H, M * (r0 + R() * (r1 - r0)), '#FFFFFF', a * (.5 + R() * .5), soft); };
+  fall(1400, .0008, .002, .8, .9); fall(300, .002, .004, .8, .7); fall(40, .007, .016, .5, .4);
+  return grain(c, 8, 2);
+}
+
+/* ---------- misty forest (optionally with a lake + jetty): receding conifer layers, mist, reflection ---------- */
+function forest(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 83), M = min(W, H), lake = !!o.lake, hz = H * (o.hz || .6);
+  const sky = o.sky || ['#BFCFD6', '#E9E4D8', '#F4E6D2'], far = o.far || '#B3C2C4', dark = o.dark || '#18291F';
+  g.fillStyle = lg(g, 0, 0, 0, H, [[0, sky[0]], [.5, sky[1]], [1, sky[2]]]); g.fillRect(0, 0, W, H);
+  glow(g, W * .7, H * .28, M * .7, '#FFF1D8', .6);
+  const L = 5, bottom = lake ? hz : H * 1.02;
+  for (let k = 0; k < L; k++) {
+    const t = (k + 1) / L, base = lake ? hz - M * (.17 - .035 * k) : H * (.38 + .13 * k), col = mixc(far, dark, pow(t, 1.4)), hM = M * (.08 + .07 * k) * (lake ? .7 : 1);
+    ridge(g, W, H, base, M * (lake ? .05 - .008 * k : .025), R, col); treeLine(g, W, base, hM * .45, hM, R, col, 1.2 + k * .2);
+    if (k < L - 1) { const fg = fog(W, H, M * .2, R, sky[1], 3), f2 = fg.getContext('2d'); f2.globalCompositeOperation = 'destination-in'; f2.fillStyle = lg(f2, 0, base - hM * .9, 0, base + M * .06, [[0, 'rgba(0,0,0,0)'], [.6, 'rgba(0,0,0,.8)'], [1, 'rgba(0,0,0,.95)']]); f2.fillRect(0, 0, W, H); g.globalAlpha = .55 + .1 * k; g.drawImage(fg, 0, 0); g.globalAlpha = 1; }
+  }
+  if (lake) {
+    g.clearRect(0, hz, W, H); g.fillStyle = sky[2]; g.fillRect(0, hz, W, H - hz);
+    reflect(g, c, W, H, hz, R, sky[1], .35, .6);
+    g.fillStyle = lg(g, 0, hz, 0, H, [[0, ca(sky[1], .05)], [.3, ca(sky[1], .45)], [.62, ca(sky[2], .88)], [1, ca(sky[2], .95)]]); g.fillRect(0, hz, W, H - hz);   // the water fades into mist
+    for (let i = 0; i < 70; i++) { const y = hz + (H - hz) * pow(R(), 1.5), w = W * (.05 + R() * .3); g.fillStyle = ca('#FFFFFF', .12 + R() * .12); g.fillRect(R() * W, y, w, 1 + (y - hz) / (H - hz) * 2); }
+    const fm = fog(W, H, M * .25, R, '#FFFFFF', 2), fmg = fm.getContext('2d'); fmg.globalCompositeOperation = 'destination-in'; fmg.fillStyle = lg(fmg, 0, hz - M * .05, 0, hz + M * .12, [[0, 'rgba(0,0,0,0)'], [.5, 'rgba(0,0,0,.7)'], [1, 'rgba(0,0,0,0)']]); fmg.fillRect(0, 0, W, H); g.drawImage(fm, 0, 0);
+    if (o.jetty !== false) {   // a little wooden jetty from the lower left
+      const jx = W * (o.jx || .18), jy = H; g.fillStyle = '#3A3026';
+      g.beginPath(); g.moveTo(jx - W * .16, jy); g.lineTo(jx + W * .1, jy); g.lineTo(jx + W * .05, hz + (H - hz) * .42); g.lineTo(jx - W * .02, hz + (H - hz) * .42); g.closePath(); g.fill();
+      for (let i = 0; i < 9; i++) { const t = i / 9, y = H - (H - hz) * .58 * t; g.strokeStyle = 'rgba(15,10,5,.5)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(jx - W * .16 + W * .14 * t, y); g.lineTo(jx + W * .1 - W * .05 * t, y); g.stroke(); }
+      [[-.01, .42], [.045, .42]].forEach(([dx, f]) => { g.fillStyle = '#2A221C'; g.fillRect(jx + W * dx, hz + (H - hz) * f - M * .03, M * .008, M * .06); });
+    }
+  } else {
+    for (let n = 0; n < 9; n++) { const x = W * (.55 + R() * .4), w = M * (.01 + R() * .02); g.fillStyle = lg(g, x, 0, x + M * .3, H, [[0, 'rgba(255,245,220,.18)'], [1, 'rgba(255,245,220,0)']]); g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w, 0); g.lineTo(x - M * .25 + w * 4, H); g.lineTo(x - M * .25, H); g.fill(); }
+  }
+  return grain(c, 9, 1);
+}
+
+/* ---------- backgrounds for framed layouts ---------- */
+function paper(W, H, col = '#F4EEE2', o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 5), M = min(W, H);
+  g.fillStyle = col; g.fillRect(0, 0, W, H);
+  g.globalAlpha = .08; g.drawImage(fog(W, H, M * .12, R, mixc(col, '#6B5A40', .6), 3), 0, 0); g.globalAlpha = 1;
+  for (let i = 0; i < 500; i++) { g.strokeStyle = ca(mixc(col, '#6B5A40', .5), .08); g.lineWidth = 1; const x = R() * W, y = R() * H, a = R() * TAU, l = M * .01 * (1 + R()); g.beginPath(); g.moveTo(x, y); g.lineTo(x + cos(a) * l, y + sin(a) * l); g.stroke(); }
+  if (o.grid) { g.strokeStyle = ca(o.grid, .55); g.lineWidth = 1.2; const s = M * (o.gs || .045); for (let x = s / 2; x < W; x += s) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); } for (let y = s / 2; y < H; y += s) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); } }
+  if (o.vig) { g.fillStyle = rgr(g, W / 2, H / 2, max(W, H) * .75, [[.5, 'rgba(0,0,0,0)'], [1, `rgba(40,25,10,${o.vig})`]]); g.fillRect(0, 0, W, H); }
+  return grain(c, o.grain || 6, 12);
+}
+function wood(W, H, o = {}) {
+  const c = mk(W, H), g = c.getContext('2d'), R = rng(o.seed || 9), M = min(W, H), n = o.planks || 5;
+  for (let i = 0; i < n; i++) {
+    const x = i * W / n, base = ['#6E4A30', '#7A5236', '#654229'][i % 3]; g.fillStyle = lg(g, 0, 0, 0, H, [[0, mixc(base, '#000000', .1)], [1, mixc(base, '#000000', .3)]]); g.fillRect(x, 0, W / n, H);
+    for (let k = 0; k < 40; k++) { const u = x + R() * W / n; g.strokeStyle = ca(R() < .5 ? '#2E1A0C' : '#A9784E', .1 + R() * .15); g.lineWidth = 1 + R() * 2; g.beginPath(); g.moveTo(u, 0); for (let y = 0; y <= H; y += 40) g.lineTo(u + sin(y * .004 + k) * M * .01 + sin(y * .02 + k * 3) * 2, y); g.stroke(); }
+    g.fillStyle = 'rgba(20,10,5,.55)'; g.fillRect(x, 0, 2.5, H);
+  }
+  g.fillStyle = rgr(g, W * .35, H * .3, max(W, H) * .9, [[0, 'rgba(255,220,170,.22)'], [.6, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.45)']]); g.fillRect(0, 0, W, H);
+  return grain(c, 10, 14);
+}
+/* vertical gradient overlay (scrim) as a tiny canvas stretched by the image object */
+function scrim(stops) { const c = mk(4, 256), g = c.getContext('2d'); g.fillStyle = lg(g, 0, 0, 0, 256, stops); g.fillRect(0, 0, 4, 256); return c; }
+function radial(col, a0, a1) { const c = mk(256, 256), g = c.getContext('2d'); g.fillStyle = rgr(g, 128, 128, 128, [[0, ca(col, a0)], [.45, ca(col, a0 * .85)], [.75, ca(col, a0 * .35)], [1, ca(col, a1)]]); g.fillRect(0, 0, 256, 256); return c; }
+return { rng, ca, mixc, lg, rgr, glow, disc, fog, soften, grain, crop, ocean, stars, flowers, city, cafe, sakura, snow, forest, paper, wood, scrim, radial, cosmos, blossom };
+})();
+/* ==== AI作例 ==== works edited by the AI (Claude) for みんなの作品, laid out after DESIGN-GUIDE (margins ≥ 6 %, one focal point,
+   2 typefaces, text on calm areas or scrims, frames as real objects). The "photos" are scenes drawn by code (AIS, no outside images);
+   each work is an ordinary document (base + doc.adjust + template-style specs, plus `img` specs = image objects holding code-drawn
+   canvases) rendered with renderDoc. Images placed as objects are pre-graded with the work's filter (doc.adjust only grades the base).
+   Always listed (also with the server), marked AI. def: {id, title, tags, w, h, adj, fonts, make(S) → {base, badj?, specs}} */
+const trk = (s, n = 1) => [...s].join(' '.repeat(n));   // tracking for small caps / labels (thin spaces)
+function aiGrade(c, adj) { const o = mk(c.width, c.height); o.getContext('2d').drawImage(c, 0, 0); processCanvas(o, effParams(cleanAdjust(adj))); return o; }
+function aiBarcode(w, h, col = '#1C1C1C', seed = 3) {
+  const c = mk(w, h), g = c.getContext('2d'), R = AIS.rng(seed); g.fillStyle = col;
+  for (let x = 0; x < w * .96;) { const bw = 1 + (R() * 4 | 0) * w / 220; if (R() < .58) g.fillRect(x, 0, bw, h * .8); x += bw + w / 220 * (1 + (R() * 2 | 0)); }
+  g.font = `${h * .17}px monospace`; g.textBaseline = 'bottom'; g.fillText('4 910123 450682', 0, h); return c;
+}
+/* a polaroid print: photo (square) + thick bottom margin, slight paper tone */
+function aiPolaroid(photo, P) {
+  const m = P * .06, w = P + m * 2, h = P + m + P * .24, c = mk(w, h), g = c.getContext('2d');
+  g.fillStyle = AIS.lg(g, 0, 0, w, h, [[0, '#FDFCF8'], [1, '#EEEBE3']]); g.fillRect(0, 0, w, h);
+  g.drawImage(photo, m, m, P, P); g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = 2; g.strokeRect(m, m, P, P);
+  return AIS.grain(c, 6, 4);
+}
+/* 35 mm film strip (vertical) with sprocket holes, edge markings and a burned-in date stamp on the last frame */
+function aiFilm(frames, w, h, date, di = frames.length - 1) {
+  const c = mk(w, h), g = c.getContext('2d'), fw = w * .74, fh = fw / 1.5, gap = fh * .12, x0 = (w - fw) / 2, hole = w * .055;
+  g.fillStyle = '#16120F'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#EDE6D6'; for (let y = -hole * .4; y < h; y += hole * 1.75) { [w * .045, w - w * .045 - hole * .7].forEach(x => { g.beginPath(); g.roundRect ? g.roundRect(x, y, hole * .7, hole, hole * .14) : g.rect(x, y, hole * .7, hole); g.fill(); }); }
+  const y0 = (h - (frames.length * fh + (frames.length - 1) * gap)) / 2;
+  frames.forEach((f, i) => {
+    const y = y0 + i * (fh + gap); g.drawImage(f, x0, y, fw, fh);
+    g.save(); g.translate(w * .955, y + fh * .5); g.rotate(PI_2); g.fillStyle = '#E2A34C'; g.font = `600 ${w * .03}px "Oswald",sans-serif`; g.textAlign = 'center'; g.fillText(`${14 + i}    ▸ ${14 + i}A`, 0, 0); g.restore();
+    if (i === di && date) { g.save(); g.font = `${fw * .065}px "DotGothic16",monospace`; g.textAlign = 'right'; g.shadowColor = 'rgba(255,120,30,.9)'; g.shadowBlur = fw * .015; g.fillStyle = '#FF9A3A'; g.fillText(date, x0 + fw * .95, y + fh * .92); g.restore(); }
+  });
+  g.save(); g.translate(w * .045, h * .5); g.rotate(-PI_2); g.fillStyle = '#E2A34C'; g.font = `600 ${w * .03}px "Oswald",sans-serif`; g.textAlign = 'center'; g.fillText('LUFORA 400      ◀ 36 EXP      LUFORA 400', 0, w * .02); g.restore();
+  return AIS.grain(c, 8, 6);
+}
+const PI_2 = Math.PI / 2;
 const AI_WORKS_DEF = [
-  ['a1', '夕焼けの約束', ['エモ', '夕焼け'], 600, 750, ['#2E4A8C', '#E58FA0', '#FFD49A'], '#2A3A6E', 0, null, { preset: 'dusk', amt: 90, warm: 6 },
-    [{ t: 'text', x: .5, y: .16, text: 'golden hour', font: 'Caveat', size: .14, color: '#FFFFFF', bold: false, shadow: true }, { t: 'deco', kind: 'kira', x: .82, y: .3, s: 1.1, color: '#FFE08A' }]],
-  ['a2', '夜の街とネオン', ['夜', 'サイバー'], 600, 800, ['#0B0F2E', '#3B2470', '#C2508A'], '#14143A', 2, 'night', { preset: 'cyber', amt: 85, glow: 18 },
-    [{ t: 'text', x: .5, y: .14, text: 'TOKYO NIGHT', font: 'Bebas Neue', size: .15, color: '#FF7AD9', bold: false, outline: '#2A0A3A', maxW: .88 }, { t: 'text', x: .5, y: .24, text: '眠らない街の、いちばん静かな時間', font: 'Zen Kaku Gothic New', size: .04, color: '#FFFFFF', shadow: true, maxW: .86 }]],
-  ['a3', '透明感の空', ['透明感', '空'], 600, 600, ['#8EC9F0', '#D8EEFA', '#FFFFFF'], '#5C8FB0', 3, null, { preset: 'clear', amt: 100, bri: 6 },
-    [{ t: 'text', x: .5, y: .2, text: 'blue day', font: 'Pacifico', size: .12, color: '#FFFFFF', bold: false, shadow: true }, { t: 'deco', kind: 'heart', x: .8, y: .38, s: .6, color: '#FFFFFF' }]],
-  ['a4', 'フィルムの記憶', ['フィルム', 'レトロ'], 600, 450, ['#7FB4D8', '#F2E2C0', '#F7C98E'], '#8A5A44', 1, 'day', { preset: 'film', amt: 90, fade: 12, grain: 20 },
-    [{ t: 'text', x: .93, y: .9, anchor: 'right', text: "'26 11 16", font: 'Oswald', size: .065, color: '#FF8A2A', bold: false, shadow: true }]],
-  ['a5', '夢かわ放課後', ['夢かわ', 'ピンク'], 600, 700, ['#F6B7D2', '#FCE0EC', '#FFF4F8'], '#C67AA8', 5, null, { preset: 'dreamy', amt: 75, tint: 6 },
-    [{ t: 'note', x: .3, y: .2, w: .34, h: .34, shape: 'sticker', color: '#FFFFFF', text: 'すき♡', deco: 'none', tcolor: '#E0457B', font: 'Hachi Maru Pop', rot: -.12 },
-     { t: 'deco', kind: 'heart', x: .78, y: .14, s: .7, color: '#FF8FB1' }, { t: 'deco', kind: 'kira', x: .86, y: .3, s: .8, color: '#FFFFFF' }]],
-  ['a6', '白黒の朝', ['モノクロ', '静か'], 600, 750, ['#6C7A8C', '#C9CED6', '#F2F2F2'], '#2E3440', 4, null, { preset: 'bwfilm', amt: 90 },
-    [{ t: 'text', x: .86, y: .32, text: '静かな朝', font: 'Shippori Mincho', size: .085, color: '#FFFFFF', vert: true, shadow: true }]],
-  ['a7', '夏の思い出', ['夏', 'ポップ'], 600, 600, ['#4FB3F0', '#9EDCFA', '#FFF1B8'], '#2F8A6A', 7, null, { preset: 'summer', amt: 90, vib: 0 },
-    [{ t: 'text', x: .5, y: .16, text: 'SUMMER', font: 'Bungee', size: .15, color: '#FFE45C', bold: false, outline: '#1E5FA8' }, { t: 'stamp', x: .82, y: .78, ch: '🌻', size: .14 }]],
-  ['a8', 'レトロ喫茶の夕方', ['昭和', 'レトロ'], 600, 750, ['#5A4A7A', '#D98A6A', '#F6C88A'], '#5A3A2A', 8, 'day', { preset: 'showa', amt: 85 },
-    [{ t: 'text', x: .5, y: .15, text: '純喫茶', font: 'Dela Gothic One', size: .12, color: '#FFF3D6', outline: '#7A2E1E' }, { t: 'text', x: .5, y: .25, text: 'COFFEE & MEMORIES', font: 'Oswald', size: .045, color: '#FFF3D6', bold: false, shadow: true }]]
+  { id: 'cine', title: '夜の向こう側', tags: ['シネマ', '夜景'], w: 1080, h: 1350, adj: { preset: 'cinema', amt: 90, glow: 12 }, fonts: ['Oswald', 'Shippori Mincho', 'Cinzel', 'Noto Sans JP'],
+    make: S => {
+      const city = aiGrade(AIS.crop(S.scene('city', 1600, 1000, { hz: .62, tower: .64 }), 2.39, .5, .5), { preset: 'cinema', amt: 90, glow: 12 });
+      return { base: AIS.paper(1080, 1350, '#0D0D11', { grain: 9 }), badj: {}, specs: [
+        { t: 'text', x: .07, y: .17, anchor: 'left', text: trk('SCENE 12'), font: 'Oswald', size: .024, color: '#A9A7B0', bold: false },
+        { t: 'text', x: .93, y: .17, anchor: 'right', text: '23:41', font: 'Oswald', size: .024, color: '#A9A7B0', bold: false },
+        { t: 'img', c: city, x: .5, y: .405, w: 1, h: 1080 / 2.39 / 1350 },
+        { t: 'text', x: .5, y: .535, text: 'この街の灯りの数だけ、だれかの夜がある。', font: 'Noto Sans JP', size: .03, color: '#F4F1EA', bold: false, shadow: true, maxW: .84 },
+        { t: 'text', x: .5, y: .7, text: trk('夜の向こう側'), font: 'Shippori Mincho', size: .085, color: '#F2EEE6', maxW: .8 },
+        { t: 'text', x: .5, y: .775, text: trk('BEYOND THE NIGHT', 2), font: 'Cinzel', size: .026, color: '#9C98A4', bold: false },
+        { t: 'line', x1: .46, y1: .825, x2: .54, y2: .825, color: '#55535C', width: .002 },
+        { t: 'text', x: .5, y: .87, text: '監督・撮影　Lufora AI　　　音楽　夜風', font: 'Noto Sans JP', size: .022, color: '#8A8892', bold: false }
+      ] };
+    } },
+  { id: 'haru', title: '春を、迎えにいく。', tags: ['雑誌風', '桜'], w: 1080, h: 1350, adj: { preset: 'youth', amt: 55, bri: 3 }, fonts: ['Oswald', 'Playfair Display', 'Shippori Mincho', 'Noto Sans JP'],
+    make: S => ({ base: S.scene('sakura', 1080, 1350, { branches: [[1140, 440, 2.82]], minY: .3, maxY: .62, flat: .45, dense: 2.4, kids: 4 }), specs: [
+      { t: 'img', c: AIS.scrim([[0, 'rgba(40,20,40,0)'], [.45, 'rgba(40,20,40,.35)'], [1, 'rgba(40,20,40,.7)']]), x: .5, y: .78, w: 1, h: .44 },
+      { t: 'text', x: .07, y: .045, anchor: 'left', text: trk('SPRING ISSUE', 2), font: 'Oswald', size: .022, color: '#FFFFFF', bold: false },
+      { t: 'text', x: .93, y: .045, anchor: 'right', text: trk('No.04 / 2026'), font: 'Oswald', size: .022, color: '#FFFFFF', bold: false },
+      { t: 'text', x: .5, y: .17, text: trk('HARU', 2), font: 'Playfair Display', size: .25, color: '#FFFFFF', maxW: .86 },
+      { t: 'text', x: .5, y: .275, text: '春をあるく、ひと月の手帖', font: 'Shippori Mincho', size: .03, color: '#FFFFFF' },
+      { t: 'box', kind: 'ellipse', x: .84, y: .56, w: .17, h: .17 * 1080 / 1350, fc: '#D94F6E', oc: 'none' },
+      { t: 'text', x: .84, y: .548, text: '保存版', font: 'Shippori Mincho', size: .034, color: '#FFFFFF' },
+      { t: 'text', x: .84, y: .585, text: trk('SPECIAL'), font: 'Oswald', size: .02, color: '#FFE3EA', bold: false },
+      { t: 'text', x: .07, y: .705, anchor: 'left', text: '春を、\n迎えにいく。', font: 'Shippori Mincho', size: .095, color: '#FFFFFF' },
+      { t: 'text', x: .07, y: .845, anchor: 'left', text: '特集　桜の名所と、歩きたい道 12', font: 'Noto Sans JP', size: .03, color: '#FFFFFF' },
+      { t: 'line', x1: .07, y1: .878, x2: .2, y2: .878, color: '#FFFFFF', width: .002 },
+      { t: 'text', x: .07, y: .91, anchor: 'left', text: '花見弁当の手帖　／　淡いピンクの撮りかた', font: 'Noto Sans JP', size: .024, color: '#F6E6EC', bold: false },
+      { t: 'text', x: .93, y: .855, anchor: 'right', text: '¥680', font: 'Oswald', size: .03, color: '#FFFFFF', bold: false },
+      { t: 'img', c: aiBarcode(300, 110, '#FFFFFF'), x: .87, y: .915, w: .12, h: .12 * 1080 / 1350 * 110 / 300 }
+    ] }) },
+  { id: 'polaroid', title: '夏のおわり、ふたりで。', tags: ['ポラロイド', '海'], w: 1080, h: 1350, adj: { preset: 'instant', amt: 85 }, fonts: ['Klee One', 'Caveat'],
+    make: S => {
+      const P = 680, card = aiPolaroid(aiGrade(AIS.crop(S.scene('ocean', 1080, 1350), 1, .5, .55), { preset: 'instant', amt: 85 }), P), r = -.05, cx = .5, cy = .45;
+      const cw = card.width / 1080, ch = card.height / 1350, d = (card.height / 2 - P * .12);   // caption centre, rotated with the card
+      return { base: AIS.wood(1080, 1350), badj: {}, specs: [
+        { t: 'img', c: card, x: cx, y: cy, w: cw, h: ch, rot: r, shadow: true },
+        { t: 'text', x: cx + (-d * Math.sin(r)) / 1080, y: cy + d * Math.cos(r) / 1350, text: '夏のおわり、ふたりで。', font: 'Klee One', size: .044, color: '#34343F', bold: false, rot: r, maxW: .56 },
+        { t: 'deco', kind: 'tape-stripe', x: cx + (card.height / 2 * Math.sin(r)) / 1080, y: cy - card.height / 2 * Math.cos(r) / 1350 + .004, s: .9, color: '#E9C9B2', color2: '#FBF3EA', rot: r - .08 },
+        { t: 'text', x: .9, y: .885, anchor: 'right', text: '2026.08.31', font: 'Caveat', size: .06, color: '#F3E6D2', rot: -.04 },
+        { t: 'text', x: .9, y: .93, anchor: 'right', text: '海辺の町で', font: 'Klee One', size: .028, color: '#E6D6C0', bold: false, rot: -.04 }
+      ] };
+    } },
+  { id: 'film', title: '霧の森を歩いた日', tags: ['フィルム', '森'], w: 1080, h: 1350, adj: { preset: 'film', amt: 90 }, fonts: ['Oswald', 'Shippori Mincho', 'Noto Sans JP', 'DotGothic16'],
+    make: S => {
+      const f = S.scene('forest', 1080, 1350), gr = c => aiGrade(c, { preset: 'film', amt: 90 });
+      const strip = aiFilm([[.7, .35, 2.4], [.5, .5, 1.5], [.25, .55, 1.9], [.35, .8, 2], [.65, .7, 1.8]].map(([x, y, z]) => gr(AIS.crop(f, 1.5, x, y, z))), 500, 1460, "'26 10 03", 3);
+      return { base: AIS.paper(1080, 1350, '#EEE7D8', { vig: .18 }), badj: {}, specs: [
+        { t: 'img', c: strip, x: .3, y: .5, w: 500 / 1080, h: 1460 / 1350, rot: .035, shadow: true },
+        { t: 'text', x: .93, y: .075, anchor: 'right', text: trk('FILM DIARY  No.36'), font: 'Oswald', size: .022, color: '#8A6A4A', bold: false },
+        { t: 'text', x: .8, y: .4, text: '霧の森を\n歩いた日', font: 'Shippori Mincho', size: .07, color: '#2C2A26', vert: true },
+        { t: 'line', x1: .62, y1: .7, x2: .7, y2: .7, color: '#8A6A4A', width: .002 },
+        { t: 'text', x: .62, y: .785, anchor: 'left', text: '落ち葉の音と、霧のにおい。\n36枚撮りのうちの3枚。', font: 'Noto Sans JP', size: .025, color: '#5A5148', bold: false, maxW: .32 },
+        { t: 'text', x: .62, y: .875, anchor: 'left', text: trk('OCT. 2026'), font: 'Oswald', size: .022, color: '#8A6A4A', bold: false }
+      ] };
+    } },
+  { id: 'lake', title: '霧の朝', tags: ['ミニマル', '湖'], w: 1080, h: 1350, adj: { preset: 'matte', amt: 55, warm: -6 }, fonts: ['Shippori Mincho', 'Cinzel'],
+    make: S => ({ base: S.scene('lake', 1080, 1350, { lake: true, jx: .1 }), specs: [
+      { t: 'text', x: .5, y: .865, text: '霧の朝、湖はまだ眠っている。', font: 'Shippori Mincho', size: .032, color: '#2B3633', bold: false },
+      { t: 'text', x: .5, y: .907, text: trk('MORNING LAKE · 05:42', 2), font: 'Cinzel', size: .02, color: '#5C6965', bold: false }
+    ] }) },
+  { id: 'hoshi', title: '星は遠いほど', tags: ['詩', '星空'], w: 1080, h: 1350, adj: { preset: 'cool', amt: 45, glow: 14, vig: 20 }, fonts: ['Shippori Mincho', 'Noto Sans JP'],
+    make: S => ({ base: S.scene('stars', 1080, 1350), specs: [
+      { t: 'text', x: .2, y: .3, text: '星は\n遠いほど\nやさしく光る', font: 'Shippori Mincho', size: .052, color: '#F4F2EC', bold: false, vert: true },
+      { t: 'box', kind: 'rect', x: .133, y: .47, w: .042, h: .042 * 1080 / 1350, fc: '#B8322A', oc: 'none', rad: 12 },
+      { t: 'text', x: .133, y: .47, text: '星', font: 'Shippori Mincho', size: .028, color: '#FFF4EC' },
+      { t: 'text', x: .93, y: .93, anchor: 'right', text: '冬の夜、山小屋にて', font: 'Noto Sans JP', size: .024, color: '#C4CAE2', bold: false }
+    ] }) },
+  { id: 'ticket', title: '夜景クルーズ乗船券', tags: ['チケット', '夜景'], w: 1080, h: 1350, adj: { preset: 'night', amt: 60, glow: 10 }, fonts: ['Bebas Neue', 'Zen Kaku Gothic New', 'Oswald', 'Klee One'],
+    make: S => {
+      const W = 1080, H = 1350, cw = 713, chh = 1134, card = mk(cw, chh), g = card.getContext('2d'), pf = 852, nr = 26;
+      g.fillStyle = '#F6F0E2'; g.beginPath(); g.roundRect ? g.roundRect(0, 0, cw, chh, 22) : g.rect(0, 0, cw, chh); g.fill();
+      g.globalCompositeOperation = 'destination-out'; [[0, pf], [cw, pf]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, nr, 0, Math.PI * 2); g.fill(); }); g.globalCompositeOperation = 'source-over';
+      const ph = aiGrade(AIS.crop(S.scene('city', 1600, 1000, { hz: .62, tower: .64 }), (cw - 72) / 454, .62, .45, 1.15), { preset: 'night', amt: 60, glow: 10 });
+      g.drawImage(ph, 36, 36, cw - 72, 454);
+      g.strokeStyle = '#B9AE98'; g.lineWidth = 3; g.setLineDash([10, 9]); g.beginPath(); g.moveTo(nr + 10, pf); g.lineTo(cw - nr - 10, pf); g.stroke(); g.setLineDash([]);
+      AIS.grain(card, 6, 2);
+      const bg = AIS.paper(W, H, '#11162C', { grain: 8 }), bgc = bg.getContext('2d'), R = AIS.rng(4);
+      for (let i = 0; i < 40; i++) AIS.disc(bgc, R() * W, R() * H, 20 + R() * 60, ['#FFC47A', '#7FA8FF', '#FF8FB0'][i % 3], .05 + R() * .1, .8);
+      const X = px => px / W, Y = py => py / H, x0 = (W - cw) / 2, y0 = 108;
+      return { base: bg, badj: {}, specs: [
+        { t: 'img', c: card, x: .5, y: Y(y0 + chh / 2), w: cw / W, h: chh / H, shadow: true },
+        { t: 'text', x: X(x0 + 44), y: Y(y0 + 560), anchor: 'left', text: trk('NIGHT CRUISE'), font: 'Bebas Neue', size: .085, color: '#1C2340', bold: false, maxW: .55 },
+        { t: 'text', x: X(x0 + 44), y: Y(y0 + 630), anchor: 'left', text: '夜景クルーズ　乗船券', font: 'Zen Kaku Gothic New', size: .03, color: '#1C2340' },
+        ...[['日付', '12.24', 44], ['出航', '19:30', 250], ['座席', 'A-12', 456]].flatMap(([l, v, dx]) => [
+          { t: 'text', x: X(x0 + dx), y: Y(y0 + 688), anchor: 'left', text: l, font: 'Zen Kaku Gothic New', size: .02, color: '#8C8270', bold: false },
+          { t: 'text', x: X(x0 + dx), y: Y(y0 + 726), anchor: 'left', text: v, font: 'Oswald', size: .036, color: '#1C2340', bold: false }]),
+        { t: 'line', x1: X(x0 + 44), y1: Y(y0 + 768), x2: X(x0 + cw - 44), y2: Y(y0 + 768), color: '#D8CDB6', width: .002 },
+        { t: 'text', x: X(x0 + 44), y: Y(y0 + 804), anchor: 'left', text: '港の灯りと、星のあいだを。', font: 'Klee One', size: .026, color: '#5A5246', bold: false },
+        { t: 'text', x: X(x0 + 44), y: Y(y0 + 912), anchor: 'left', text: trk('ADMIT ONE'), font: 'Bebas Neue', size: .05, color: '#1C2340', bold: false },
+        { t: 'text', x: X(x0 + cw - 44), y: Y(y0 + 912), anchor: 'right', text: 'No. 000824', font: 'Oswald', size: .024, color: '#C0574A', bold: false },
+        { t: 'text', x: X(x0 + 44), y: Y(y0 + 962), anchor: 'left', text: '半券は下船まで大切にお持ちください', font: 'Zen Kaku Gothic New', size: .02, color: '#8C8270', bold: false },
+        { t: 'img', c: aiBarcode(560, 70, '#2A2A30', 9), x: .5, y: Y(y0 + 1050), w: (cw - 88) / W, h: 70 / H }
+      ] };
+    } },
+  { id: 'postcard', title: 'コスモス畑より', tags: ['ポストカード', '花'], w: 1350, h: 1080, adj: { preset: 'natural', amt: 80, warm: 6, fade: 8 }, fonts: ['Shippori Mincho', 'Cinzel'],
+    make: S => {
+      const W = 1350, H = 1080, m = 54, ph = aiGrade(AIS.crop(S.scene('flowers', 1350, 1000, { hz: .3, seed: 38 }), (W - 2 * m) / (H - m - 184), .5, .5), { preset: 'natural', amt: 80, warm: 6, fade: 8 });
+      const st = mk(150, 184), SS = 1.45, sg = st.getContext('2d'), R = AIS.rng(2);   // postage stamp with a perforated edge and a little cosmos
+      sg.fillStyle = '#FFFDF8'; sg.fillRect(0, 0, 150, 184); sg.globalCompositeOperation = 'destination-out';
+      for (let x = 0; x <= 150; x += 15) [0, 184].forEach(y => { sg.beginPath(); sg.arc(x, y, 5, 0, 7); sg.fill(); }); for (let y = 0; y <= 184; y += 15.3) [0, 150].forEach(x => { sg.beginPath(); sg.arc(x, y, 5, 0, 7); sg.fill(); });
+      sg.globalCompositeOperation = 'source-over'; sg.fillStyle = AIS.lg(sg, 0, 14, 0, 170, [[0, '#BFD9EC'], [1, '#F3E7D6']]); sg.fillRect(14, 14, 122, 156);
+      sg.strokeStyle = '#4E7A3E'; sg.lineWidth = 3; sg.beginPath(); sg.moveTo(78, 92); sg.quadraticCurveTo(70, 130, 76, 170); sg.stroke(); AIS.cosmos(sg, 78, 88, 34, R, '#E8679C');
+      sg.fillStyle = '#7A2E4A'; sg.font = '700 22px "Cinzel",serif'; sg.fillText('84', 22, 40); sg.font = '600 11px "Cinzel",serif'; sg.fillText('FLOWER', 80, 160);
+      const pm = mk(300, 170), pg = pm.getContext('2d'); pg.strokeStyle = 'rgba(40,36,48,.62)'; pg.fillStyle = 'rgba(40,36,48,.62)'; pg.lineWidth = 3;   // postmark
+      pg.beginPath(); pg.arc(210, 85, 66, 0, 7); pg.stroke(); pg.beginPath(); pg.arc(210, 85, 56, 0, 7); pg.lineWidth = 1.5; pg.stroke();
+      pg.textAlign = 'center'; pg.font = '600 17px "Cinzel",serif'; pg.fillText('2026.10.03', 210, 92); pg.font = '600 12px "Cinzel",serif'; pg.fillText('COSMOS', 210, 62); pg.fillText('FIELD', 210, 122);
+      pg.lineWidth = 3; for (let i = 0; i < 4; i++) { pg.beginPath(); for (let x = 0; x <= 140; x += 4) pg.lineTo(x, 40 + i * 28 + Math.sin(x * .09) * 6); pg.stroke(); }
+      return { base: AIS.paper(W, H, '#F5F0E6'), badj: {}, specs: [
+        { t: 'img', c: ph, x: .5, y: (m + (H - m - 184) / 2) / H, w: (W - 2 * m) / W, h: (H - m - 184) / H },
+        { t: 'img', c: st, x: (W - m - 34 - 75 * SS) / W, y: (m + 34 + 92 * SS) / H, w: 150 * SS / W, h: 184 * SS / H, rot: .04, shadow: true },
+        { t: 'img', c: pm, x: (W - m - 34 - 75 * SS - 150) / W, y: (m + 34 + 130) / H, w: 300 * 1.3 / W, h: 170 * 1.3 / H, rot: -.12 },
+        { t: 'text', x: m / W, y: (H - 92) / H, anchor: 'left', text: 'コスモス畑より、秋のたよりを。', font: 'Shippori Mincho', size: .042, color: '#3A3330' },
+        { t: 'text', x: 1 - m / W, y: (H - 108) / H, anchor: 'right', text: trk('GREETINGS FROM THE COSMOS FIELD'), font: 'Cinzel', size: .02, color: '#7A6E66', bold: false },
+        { t: 'text', x: 1 - m / W, y: (H - 76) / H, anchor: 'right', text: trk('AUTUMN · 2026'), font: 'Cinzel', size: .02, color: '#7A6E66', bold: false }
+      ] };
+    } },
+  { id: 'cafe', title: '午後三時の喫茶店', tags: ['カフェ', 'コラージュ'], w: 1080, h: 1350, adj: { preset: 'warm', amt: 70, fade: 10 }, fonts: ['Oswald', 'Shippori Mincho', 'Noto Sans JP'],
+    make: S => {
+      const c = S.scene('cafe', 1080, 1350), gr = x => aiGrade(x, { preset: 'warm', amt: 70, fade: 10 }), a1 = (.86 * 1080) / (.34 * 1350), a2 = (.42 * 1080) / (.22 * 1350);
+      return { base: AIS.paper(1080, 1350, '#F3EDE3'), badj: {}, specs: [
+        { t: 'text', x: .07, y: .068, anchor: 'left', text: trk('COFFEE BREAK — vol.12'), font: 'Oswald', size: .022, color: '#B0643C', bold: false },
+        { t: 'text', x: .07, y: .19, anchor: 'left', text: '午後三時の\n喫茶店。', font: 'Shippori Mincho', size: .075, color: '#2E2622' },
+        { t: 'text', x: .57, y: .205, anchor: 'left', text: '窓ぎわの席に、\n午後の光がななめに届く。\n湯気が消えるまでの、\nちいさな休憩。', font: 'Noto Sans JP', size: .024, color: '#5A4E46', bold: false, maxW: .36 },
+        { t: 'img', c: gr(AIS.crop(c, a1, .5, .62)), x: .5, y: .49, w: .86, h: .34 },
+        { t: 'img', c: gr(AIS.crop(c, a2, .6, .6, 2.1)), x: .28, y: .79, w: .42, h: .22 },
+        { t: 'img', c: gr(AIS.crop(c, a2, .2, .6, 2.6)), x: .72, y: .79, w: .42, h: .22 },
+        { t: 'line', x1: .07, y1: .925, x2: .93, y2: .925, color: '#D6CABA', width: .0015 },
+        { t: 'text', x: .07, y: .952, anchor: 'left', text: trk('PHOTO & EDIT : LUFORA AI'), font: 'Oswald', size: .02, color: '#8A7D72', bold: false },
+        { t: 'text', x: .93, y: .952, anchor: 'right', text: 'P.12', font: 'Oswald', size: .02, color: '#8A7D72', bold: false }
+      ] };
+    } },
+  { id: 'quote', title: '花は、ちゃんと咲く', tags: ['ことば', '花'], w: 1080, h: 1080, adj: { preset: 'soft', amt: 70 }, fonts: ['Playfair Display', 'Shippori Mincho'],
+    make: S => ({ base: S.scene('bokeh', 1080, 1080, { bokeh: 9 }), specs: [
+      { t: 'img', c: AIS.radial('#FFF9F4', .78, 0), x: .5, y: .5, w: 1.05, h: .95 },
+      { t: 'text', x: .5, y: .27, text: '“', font: 'Playfair Display', size: .2, color: '#D9648E' },
+      { t: 'text', x: .5, y: .5, text: '急がなくていい。\n花は、ちゃんと\n咲くから。', font: 'Shippori Mincho', size: .064, color: '#3A2A30' },
+      { t: 'line', x1: .46, y1: .685, x2: .54, y2: .685, color: '#D9648E', width: .003 },
+      { t: 'text', x: .5, y: .735, text: '春のメモより', font: 'Shippori Mincho', size: .028, color: '#6A5A60', bold: false }
+    ] }) },
+  { id: 'diary', title: '今日もえらかった日記', tags: ['韓国っぽ', '日記'], w: 1080, h: 1350, adj: { preset: 'korea', amt: 80 }, fonts: ['Caveat', 'Zen Maru Gothic'],
+    make: S => ({ base: AIS.paper(1080, 1350, '#F6F0E5', { grid: '#E2D6C2', gs: .05 }), badj: {}, specs: [
+      { t: 'text', x: .08, y: .085, anchor: 'left', text: '11.16 sun.', font: 'Caveat', size: .08, color: '#6B5446' },
+      { t: 'text', x: .9, y: .085, anchor: 'right', text: 'mood ・ ふわふわ', font: 'Zen Maru Gothic', size: .026, color: '#6B5446', bg: '#EBD8CF' },
+      { t: 'img', c: aiGrade(AIS.crop(S.scene('sakura', 1080, 1350), .8, .62, .4, 1.25), { preset: 'korea', amt: 80 }), x: .4, y: .43, w: .56, h: .56 * 1080 / .8 / 1350, rot: -.035, border: '#FFFFFF', shadow: true },
+      { t: 'deco', kind: 'tape-solid', x: .2, y: .175, s: .7, color: '#E7C3BE', rot: -.55 },
+      { t: 'deco', kind: 'tape-dot', x: .64, y: .7, s: .7, color: '#C9D3BC', color2: '#FFFFFF', rot: -.6 },
+      { t: 'deco', kind: 'il-cloud', x: .83, y: .29, s: .7, color: '#FFFFFF' },
+      { t: 'deco', kind: 'heart', x: .8, y: .44, s: .5, color: '#E3A5A5' },
+      { t: 'deco', kind: 'star', x: .87, y: .53, s: .42, color: '#E9C46A' },
+      { t: 'text', x: .1, y: .785, anchor: 'left', text: '今日もよくがんばりました', font: 'Zen Maru Gothic', size: .045, color: '#6B5446' },
+      { t: 'text', x: .1, y: .875, anchor: 'left', text: '・ 桜を見に、となり町まで\n・ いちごラテ（甘め）\n・ 早く寝る ← たぶん無理', font: 'Zen Maru Gothic', size: .028, color: '#7A6658', bold: false },
+      { t: 'text', x: .91, y: .9, anchor: 'right', text: 'see you tomorrow', font: 'Caveat', size: .045, color: '#C98B8B', rot: -.07 }
+    ] }) },
+  { id: 'yuki', title: '雪の街の、ちいさな灯り', tags: ['冬', '雪'], w: 1080, h: 1350, adj: { preset: 'clear', amt: 55, glow: 12 }, fonts: ['Cinzel', 'Shippori Mincho'],
+    make: S => ({ base: S.scene('snow', 1080, 1350), specs: [
+      { t: 'text', x: .5, y: .1, text: trk('WINTER LIGHTS', 2), font: 'Cinzel', size: .028, color: '#E6EAF6', bold: false },
+      { t: 'text', x: .5, y: .205, text: '雪の街の、\nちいさな灯り。', font: 'Shippori Mincho', size: .074, color: '#FFFFFF' },
+      { t: 'line', x1: .47, y1: .3, x2: .53, y2: .3, color: '#E6EAF6', width: .002 },
+      { t: 'text', x: .5, y: .925, text: '帰り道は、すこし遠回りして。', font: 'Shippori Mincho', size: .03, color: '#34406A' }
+    ] }) }
 ];
 let aiWorkCache = null, aiWorkP = null;
-/* fonts first (at most ~3 s), so the titles are drawn in their own typefaces */
+/* fonts first (at most ~6 s), so the titles are drawn in their own typefaces; then one work per task so the UI stays responsive */
 function aiWorks() {
   if (aiWorkCache) return Promise.resolve(aiWorkCache);
   return aiWorkP || (aiWorkP = (async () => {
-    const fams = [...new Set(AI_WORKS_DEF.flatMap(w => w[10].map(x => x.font)).filter(Boolean))];
+    const fams = [...new Set(AI_WORKS_DEF.flatMap(w => w.fonts))];
     fams.forEach(f => familyCSS(f));
-    // the Google Fonts stylesheets arrive first, then the faces: poll until every family can draw (or ~4 s passed)
+    // the Google Fonts stylesheets arrive first, then the faces: poll until every family can draw (or ~6 s passed)
     const ready = f => document.fonts.check(`700 40px "${f}"`, 'あAa') && [...document.fonts].some(ff => ff.family.replace(/"/g, '') === f && ff.status === 'loaded');
-    for (let t = 0; t < 20 && !fams.every(ready); t++) {
+    for (let t = 0; t < 30 && !fams.every(ready); t++) {
       fams.forEach(f => document.fonts.load(`700 40px "${f}"`, 'あAa').catch(() => { }));
       await new Promise(r => setTimeout(r, 200));
     }
     layoutMemo.clear();
-    return aiWorksNow();
+    const S = aiScenes(), out = [];
+    for (const w of AI_WORKS_DEF) { try { const m = w.make(S); await aiFontsFor(m.specs); out.push(aiWorkOne(w, S, m)); } catch (e) { console.warn('ai work', w.id, e); } await new Promise(r => setTimeout(r, 0)); }
+    return (aiWorkCache = out);
   })());
 }
-function aiWorksNow() {
-  aiWorkCache = AI_WORKS_DEF.map(([id, title, tags, W, H, sky, land, seed, town, adj, specs]) => {
-    const base = sceneCanvas(W, H, sky, land, seed, town), adjust = cleanAdjust(adj), d0 = doc, bid = regBitmap(base, null, false);
-    const c = mk(1, 1);
-    try {
-      doc = normDoc({ w: W, h: H, baseId: bid, bg: null, adjust: { ...DEFAULT_ADJ, ...adjust }, objects: [] });
-      doc.objects = specs.map(tplObj).filter(Boolean);
-      doc.objects.forEach(o => { if (o.font) familyCSS(o.font); });
-      renderDoc(c, 1, { cache: false });
-    } finally { doc = d0; bitmaps.delete(bid); }
-    return { id: 'ai-' + id, title, tags, visibility: 'public', createdAt: 0, w: W, h: H, thumb: c.toDataURL('image/jpeg', 0.86),
-      recipe: { v: 1, adjust, fonts: [...new Set(specs.map(x => x.font).filter(Boolean))], counts: {} }, author: { name: 'Lufora AI' }, mine: false, sample: true, ai: true };
-  });
-  return aiWorkCache;
+const aiScenes = () => { const m = new Map(); return { scene(n, W, H, o = {}) { const k = n + W + 'x' + H + JSON.stringify(o); if (!m.has(k)) m.set(k, n === 'lake' ? AIS.forest(W, H, o) : n === 'bokeh' ? AIS.flowers(W, H, o) : AIS[n](W, H, o)); return m.get(k); } }; };
+function aiWorksNow() { const S = aiScenes(); return (aiWorkCache = AI_WORKS_DEF.map(w => aiWorkOne(w, S))); }
+/* CJK web fonts arrive in unicode-range slices: load the slices this work's texts need (≤ 3 s) before the one-shot render */
+function aiFontsFor(specs) {
+  const L = specs.filter(s => s.font && s.text).map(s => document.fonts.load(`${s.bold === false ? 400 : 700} 40px "${s.font}"`, s.text).catch(() => { }));
+  return Promise.race([Promise.all(L), new Promise(r => setTimeout(r, 3000))]).then(() => layoutMemo.clear());
+}
+function aiWorkOne(w, S, m) {
+  const { base, badj, specs } = m || w.make(S), W = w.w, H = w.h, adjust = cleanAdjust(w.adj), d0 = doc, ids = [regBitmap(base, null, false)];
+  const c = mk(1, 1);
+  try {
+    doc = normDoc({ w: W, h: H, baseId: ids[0], bg: null, adjust: { ...DEFAULT_ADJ, ...(badj ? cleanAdjust(badj) : adjust) }, objects: [] });
+    doc.objects = specs.map(s => {
+      if (s.t !== 'img') return tplObj(s);
+      const id = regBitmap(s.c, null, true); ids.push(id);
+      return { ...baseObj('image', s.x * W, s.y * H), rot: s.rot || 0, bmp: id, w: s.w * W, h: s.h * H, border: s.border || 'none', rad: s.rad || 0, shadow: !!s.shadow };
+    }).filter(Boolean);
+    doc.objects.forEach(o => { if (o.font) familyCSS(o.font); });
+    renderDoc(c, 1, { cache: false });
+  } finally { doc = d0; ids.forEach(id => bitmaps.delete(id)); }
+  const th = mk(W * 540 / Math.max(W, H), H * 540 / Math.max(W, H)), tg = th.getContext('2d'); tg.imageSmoothingQuality = 'high'; tg.drawImage(c, 0, 0, th.width, th.height);
+  return { id: 'ai-' + w.id, title: w.title, tags: w.tags, visibility: 'public', createdAt: 0, w: W, h: H, thumb: th.toDataURL('image/jpeg', 0.85), full: c.toDataURL('image/jpeg', 0.88),
+    recipe: { v: 1, adjust, fonts: w.fonts.slice(0, 4), counts: specs.reduce((a, s) => { const k = s.t === 'img' ? 'image' : s.t === 'box' || s.t === 'line' ? 'shape' : s.t; if (TYPE_NAMES[k]) a[k] = (a[k] || 0) + 1; return a; }, {}) },
+    author: { name: 'Lufora AI' }, mine: false, sample: true, ai: true };
 }
 /* a landscape drawn by code (sky gradient, sun, hills, optional town lights): no outside image, so no copyright questions */
 function sceneCanvas(W, H, sky, land, i, town) {
