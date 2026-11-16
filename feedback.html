@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ご意見・ご要望</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#F4EFE4;--chrome:#FBF8F1;--fg:#2A2724;--muted:#7A746A;--line:#E2DACB;--accent:#5E8C5F;--accent2:#4F7A50;--ng:#C0503A}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+#cnt:empty{display:none}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+main{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:21px;margin:4px 0 4px}
+.lead{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 16px}
+.top .n{font-weight:700;color:var(--accent2)}
+button,.btn{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;color:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.sum{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px;color:var(--muted);margin:0 0 14px}
+.sum b{color:var(--fg)}
+.e{background:var(--chrome);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px}
+.e.done{opacity:.6}
+.body{margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted);align-items:center}
+.k{display:inline-flex;padding:1px 10px;border-radius:999px;color:#fff;font-weight:700;font-size:12.5px}
+.k.bug{background:var(--ng)}.k.idea{background:#3F7FB0}.k.thanks{background:var(--accent)}.k.other{background:#8A8274}
+.stars{color:#C98A1B;letter-spacing:1px}
+.mail a{color:var(--accent2);font-weight:700}
+.e .act{margin-top:8px}
+.warn{background:#F6E7D6;color:#7A4A22;border-radius:12px;padding:12px 14px}
+</style>
+</head>
+<body>
+<main>
+  <h1>ご意見・ご要望</h1>
+  <p class="lead">アプリの「ご意見・ご要望」から届いた声を、新しい順に表示します（管理者のみ）。</p>
+  <div class="chips" id="days" role="group" aria-label="期間"><button data-d="7">7日</button><button data-d="30">30日</button><button data-d="90">90日</button><button data-d="3650">すべて</button></div>
+  <div class="chips" id="kinds" role="group" aria-label="種類"></div>
+  <div class="top"><span id="cnt"></span><button id="reload">再読み込み</button><button id="csv" hidden>CSVで保存</button><a class="btn" href="./" target="_blank" rel="noopener">Lufora を開く</a></div>
+  <div class="sum" id="sum"></div>
+  <div id="out"><p>読み込み中…</p></div>
+</main>
+<script src="survey-q.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const KINDS = [['', 'すべて'], ['bug', '不具合'], ['idea', '要望'], ['thanks', '感想'], ['other', 'その他'], ['open', '未対応']];
+const KN = Object.fromEntries(KINDS);
+let rows = [], days = 30, kind = '', client = null;
+function uaWords(ua) {
+  if (!ua) return '不明';
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && /Mobile\//.test(ua)) ? 'iPad' : /Android/.test(ua) ? 'Android'
+    : /Windows/.test(ua) ? 'Windows' : /Mac OS X|Macintosh/.test(ua) ? 'Mac' : /CrOS/.test(ua) ? 'Chromebook' : /Linux/.test(ua) ? 'Linux' : 'その他';
+  const br = /Line\//i.test(ua) ? 'LINE' : /Instagram/.test(ua) ? 'Instagram' : /FBAN|FBAV/.test(ua) ? 'Facebook' : /EdgiOS|EdgA|Edg\//.test(ua) ? 'Edge'
+    : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /OPR\/|Opera/.test(ua) ? 'Opera' : /FxiOS|Firefox\//.test(ua) ? 'Firefox'
+    : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : /AppleWebKit/.test(ua) ? 'アプリ内ブラウザ' : 'その他';
+  return os + '・' + br;
+}
+const when = t => t ? new Date(t).toLocaleString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+function chipsSync() {
+  document.querySelectorAll('#days button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.d === days)));
+  $('#kinds').innerHTML = KINDS.map(([v, l]) => `<button data-k="${v}" aria-pressed="${kind === v}">${l}</button>`).join('');
+}
+async function load() {
+  $('#out').innerHTML = '<p>読み込み中…</p>'; $('#cnt').textContent = ''; $('#sum').textContent = ''; $('#csv').hidden = true;
+  if (!navigator.onLine) { $('#out').innerHTML = '<p class="warn">オフラインです。インターネットにつないでから「再読み込み」を押してください。</p>'; return; }
+  try {
+    // the same browser session as the app (Lufora にログインした管理者だけが見られます)
+    client = client || window.supabase.createClient(SUPA_SURVEY.url, SUPA_SURVEY.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'petaphoto.sb' } });
+    const { data: s } = await client.auth.getSession();
+    if (!s.session || s.session.user.is_anonymous) { $('#out').innerHTML = '<p class="warn">管理者のアカウントで Lufora にログインしてから、このページを開き直してください。<br><a href="./">Lufora を開く</a></p>'; return; }
+    const r = await client.rpc('feedback_list', { p_days: days });
+    if (r.error) throw r.error;
+    rows = r.data || []; render();
+  } catch (e) {
+    console.warn(e);
+    const k = (e.code || '') + ' ' + (e.message || '');
+    $('#out').innerHTML = `<p class="warn">${/not_admin|42501/.test(k) ? 'このアカウントにはご意見を見る権限がありません（管理者のみ）。' : /PGRST202|42883|does not exist/.test(k) ? 'ご意見用の SQL（supabase/schema_feedback.sql）がまだ実行されていません。' : '読み込めませんでした。通信状況を確かめて、もう一度お試しください。'}</p>`;
+  }
+}
+const shown = () => rows.filter(r => !kind || (kind === 'open' ? !r.done : r.kind === kind));
+function render() {
+  const L = shown(), rated = rows.filter(r => r.rating), avg = rated.length ? (rated.reduce((s, r) => s + r.rating, 0) / rated.length).toFixed(1) : '';
+  $('#cnt').innerHTML = `${days >= 3650 ? 'すべての期間' : days + '日間'}で <span class="n">${rows.length}</span> 件${kind ? `（表示中 ${L.length} 件）` : ''}`; $('#csv').hidden = !rows.length;
+  $('#sum').innerHTML = KINDS.slice(1, 5).map(([v, l]) => `<span>${l} <b>${rows.filter(r => r.kind === v).length}</b></span>`).join('') + `<span>未対応 <b>${rows.filter(r => !r.done).length}</b></span>` + (avg ? `<span>満足度の平均 <b>${avg}</b>（${rated.length}件）</span>` : '');
+  if (!L.length) { $('#out').innerHTML = '<p>この条件のご意見はありません。</p>'; return; }
+  $('#out').innerHTML = L.map(r => `<div class="e${r.done ? ' done' : ''}">
+      <div class="meta"><span class="k ${esc(r.kind)}">${esc(KN[r.kind] || r.kind)}</span><span>${esc(when(r.created_at))}</span>${r.rating ? `<span class="stars" title="満足度 ${r.rating}">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>` : ''}<span>${esc(uaWords(r.ua))}・${r.layout === 'pc' ? 'PC版' : 'スマホ版'}</span></div>
+      <p class="body">${esc(r.body)}</p>
+      ${r.email ? `<div class="meta mail">返信先: <a href="mailto:${esc(r.email)}">${esc(r.email)}</a></div>` : ''}
+      <div class="act"><button data-done="${r.id}" data-v="${!r.done}">${r.done ? '未対応に戻す' : '対応済みにする'}</button></div></div>`).join('');
+}
+$('#days').addEventListener('click', e => { const b = e.target.closest('button[data-d]'); if (!b || +b.dataset.d === days) return; days = +b.dataset.d; chipsSync(); load(); });
+$('#kinds').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; kind = b.dataset.k; chipsSync(); render(); });
+$('#out').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-done]'); if (!b || b.disabled) return;
+  b.disabled = true;
+  try {
+    const on = b.dataset.v === 'true', r = await client.rpc('feedback_done', { p_id: +b.dataset.done, p_done: on });
+    if (r.error) throw r.error;
+    const row = rows.find(x => x.id === +b.dataset.done); if (row) row.done = on; render();
+  } catch (er) { console.warn(er); b.disabled = false; alert('変更できませんでした。もう一度お試しください。'); }
+});
+$('#reload').addEventListener('click', load);
+$('#csv').addEventListener('click', () => {
+  const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const head = ['日時', '種類', '満足度', '内容', '返信先', '端末', '版', '対応済み', 'UA'].map(cell).join(',');
+  const body = rows.map(r => [when(r.created_at), KN[r.kind] || r.kind, r.rating || '', r.body, r.email, uaWords(r.ua), r.layout === 'pc' ? 'PC' : 'スマホ', r.done ? '済' : '', r.ua].map(cell).join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + head + '\r\n' + body], { type: 'text/csv' }));
+  a.download = `lufora-feedback-${days}d.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+chipsSync(); load();
+</script>
+</body>
+</html>

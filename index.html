@@ -582,6 +582,12 @@ html.desk #tour{top:auto;bottom:24px}
 #tour .tact .chip.pri{background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700}
 .tourHi{outline:3px solid var(--accent)!important;outline-offset:3px;border-radius:12px;animation:tourPulse 1.4s ease-in-out infinite}
 @keyframes tourPulse{50%{outline-color:#A9C7A9;outline-offset:6px}}
+/* ==== feedback ==== */
+#fbBody h3{margin:14px 0 6px}
+#fbBody textarea.pubin{height:auto;min-height:120px;padding:10px 12px;line-height:1.6;resize:vertical}
+#fbBody .fbmsg{min-height:1.4em;color:#B0442F;font-size:13px;margin:6px 0 0}
+#fbBody .fbdone{text-align:center;padding:18px 6px 6px}
+#fbBody .fbdone b{display:block;font-size:17px;color:var(--accent);margin-bottom:6px}
 /* ==== in-app browser bar ==== */
 #iabBar{display:flex;align-items:center;gap:8px;margin:0 8px 6px;padding:5px 5px 5px 12px;border-radius:16px;background:#FFF6E0;border:1px solid #EBD9A8;font-size:calc(12.5px*var(--u));line-height:1.4;animation:instIn .35s var(--spring)}
 #iabBar[hidden]{display:none}
@@ -1155,6 +1161,12 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   <p class="note" style="text-align:center">「いっしょにやってみる」は、押す場所を光らせて順番に案内します。使い方は「？」（スマホは ☰ の「使い方」）からいつでも見られます。</p>
 </div>
 
+<div class="sheet" id="sheetFb" aria-labelledby="fbTitle" hidden>
+  <div class="grab"></div>
+  <h2 id="fbTitle">ご意見・ご要望</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
+  <div id="fbBody"></div>
+</div>
+
 <div class="sheet" id="sheetInstall" hidden>
   <div class="grab"></div>
   <h2 id="instTitle">ホーム画面に追加</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
@@ -1253,6 +1265,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   <h3>アプリ</h3>
   <div id="uiInst"></div>
   <div class="setrow"><span class="st">使い方<small>操作のしかたとキーボードショートカット</small></span><button class="chip" data-uihelp="1">開く</button></div>
+  <div class="setrow"><span class="st">ご意見・ご要望<small>不具合の報告や「こうしてほしい」を運営者に送れます</small></span><button class="chip" data-fbopen="1">送る</button></div>
   <p class="note">この端末だけに保存されます。</p>
   <p class="note legal"><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a> ・ <a href="terms.html" target="_blank" rel="noopener">利用規約</a></p>
 </div>
@@ -6987,6 +7000,7 @@ const ACCT_ON = true, ACCT_PROVS = ['google'];   // add 'apple' once its provide
    Chrome / Edge / Android: the saved beforeinstallprompt event. iOS Safari (and iOS Chrome / Edge / Firefox, 16.4+): a steps sheet (共有 → ホーム画面に追加).
    Android without the event (Samsung, Firefox, …): menu steps. In-app browsers (LINE, Instagram, Gmail…): open in Safari / Chrome first, with リンクをコピー. */
 Object.assign(ICON, {
+  fb: I('<path d="M4.5 5.5h15a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 3.5V17.5h-1A1.5 1.5 0 0 1 3 16V7a1.5 1.5 0 0 1 1.5-1.5z"/><path d="M7.5 10h9M7.5 13.5h6"/>'),
   instApp: I('<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12 7v6.5M9.2 10.8 12 13.6l2.8-2.8M10.5 18.3h3"/>'),
   instShare: I('<path d="M8.5 9.5H7A1.5 1.5 0 0 0 5.5 11v8A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 17 9.5h-1.5"/><path d="M12 14.5V3.5M8.7 6.8 12 3.5l3.3 3.3"/>'),
   instAdd: I('<rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M12 8.5v7M8.5 12h7"/>'),
@@ -7167,6 +7181,64 @@ function tourTick() {
 }
 $('#tour').addEventListener('click', e => { const b = e.target.closest('[data-tg]'); if (!b) return; if (b.dataset.tg === 'next') tourNext(); else tourEnd(); });
 $('#sheetHelp').addEventListener('click', e => { if (e.target.closest('[data-tour]')) tourStart(); });
+/* ==== feedback ==== */
+/* ご意見・ご要望 (#sheetFb; ☰ / PC rail item feedback, 設定 › アプリ, quick search): kind + text (+ optional ★1-5 and reply e-mail)
+   → table feedback (supabase/schema_feedback.sql, insert-only; admins read it in feedback.html). Also sends UA, pc/phone and the page date.
+   The unsent draft stays in localStorage lufora.fb. One send per 30 s. privacy.html 2-(10). */
+const FB_KINDS = [['bug', '不具合'], ['idea', '要望'], ['thanks', '感想'], ['other', 'その他']];
+const FB = { kind: '', rate: 0, body: '', mail: '', busy: false, sent: false, msg: '', last: 0 };
+try { Object.assign(FB, JSON.parse(localStorage.getItem('lufora.fb') || '{}'), { busy: false, sent: false, msg: '' }); } catch (e) { }
+const fbKeep = () => { try { localStorage.setItem('lufora.fb', JSON.stringify({ kind: FB.kind, rate: FB.rate, body: FB.body, mail: FB.mail, last: FB.last })); } catch (e) { } };
+function openFeedback(kind) {
+  if (kind) FB.kind = kind; FB.sent = false; FB.msg = '';
+  fbRender(); openSheet('#sheetFb');
+}
+function fbRender() {
+  const el = $('#fbBody');
+  if (FB.sent) { el.innerHTML = `<div class="fbdone"><b>送信しました。ありがとうございます</b><p class="note">いただいた声は、すべて運営者が読んでいます。${FB.mail ? '返信が必要な内容には、メールでお返事します。' : ''}</p><div class="actions"><button class="btn" data-fb="again">もう1件送る</button></div></div>`; return; }
+  const ch = (k, v, l, on) => `<button class="chip${on ? ' on' : ''}" data-fb="${k}" data-v="${v}" aria-pressed="${!!on}">${l}</button>`;
+  el.innerHTML = `<p class="note" style="margin:0">不具合の報告や「こうしてほしい」を、運営者に直接送れます。いただいた声はすべて読んでいます。</p>
+    <h3>種類</h3><div class="wrap">${FB_KINDS.map(([v, l]) => ch('kind', v, l, FB.kind === v)).join('')}</div>
+    <h3><label for="fbText">内容</label></h3><textarea id="fbText" class="pubin" maxlength="2000" placeholder="${FB.kind === 'bug' ? '例：文字を入れると、キーボードで隠れてしまう（どの画面で、何をしたらどうなったか）' : FB.kind === 'idea' ? '例：テンプレートにお店のメニュー表をもっと増やしてほしい' : '自由に書いてください'}">${esc(FB.body)}</textarea>
+    <h3>Lufora の満足度（任意）</h3><div class="wrap">${[1, 2, 3, 4, 5].map(n => ch('rate', n, '★'.repeat(n), FB.rate === n)).join('')}</div>
+    <h3><label for="fbMail">返信先のメールアドレス（任意）</label></h3><input id="fbMail" class="pubin" type="email" inputmode="email" autocomplete="email" maxlength="200" placeholder="返事がほしいときだけ" value="${esc(FB.mail)}">
+    <p class="note">内容のほかに、ブラウザや端末の種類、スマホ版かパソコン版かを送ります。写真や作品は送りません。<a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a></p>
+    <div class="actions" style="padding:6px 0 0"><button class="btn primary" data-fb="send"${FB.busy ? ' disabled' : ''}>${FB.busy ? '送信中…' : '送信する'}</button></div>
+    <p class="fbmsg" role="status" aria-live="polite">${esc(FB.msg)}</p>`;
+}
+async function fbSend() {
+  const t = $('#fbText'), m = $('#fbMail'); if (t) FB.body = t.value; if (m) FB.mail = m.value.trim();
+  const say = msg => { FB.msg = msg; fbRender(); };
+  if (!FB.kind) return say('種類をえらんでください');
+  if (FB.body.trim().length < 2) return say('内容を書いてください');
+  if (FB.mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(FB.mail)) return say('メールアドレスの形を確かめてください（なくても送れます）');
+  if (!SUPA.url) return say('この版では送信できません');
+  if (!navigator.onLine) return say('オフラインです。電波のある所でもう一度押してください（書いた内容は残っています）');
+  if (Date.now() - FB.last < 30000) return say('続けて送るときは、少し待ってから押してください');
+  FB.busy = true; FB.msg = ''; fbRender();
+  try {
+    const lm = new Date(document.lastModified);
+    const r = await fetch(SUPA.url + '/rest/v1/feedback', { method: 'POST', headers: { apikey: SUPA.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ kind: FB.kind, body: FB.body.trim().slice(0, 2000), rating: FB.rate || null, email: FB.mail || null, ua: UA.slice(0, 300), layout: deskOn ? 'pc' : 'phone', ver: isNaN(lm) ? '' : lm.toISOString().slice(0, 16) }) });
+    if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0, 200));
+    FB.last = Date.now(); FB.body = ''; FB.rate = 0; FB.kind = ''; FB.sent = true; fbKeep();
+    toast('ご意見を送信しました。ありがとうございます');
+  } catch (e) { console.warn('feedback', e); FB.msg = '送信できませんでした。少し待ってから、もう一度押してください（書いた内容は残っています）'; }
+  finally { FB.busy = false; fbRender(); }
+}
+$('#sheetFb').addEventListener('click', e => {
+  const b = e.target.closest('[data-fb]'); if (!b) return;
+  const t = $('#fbText'), m = $('#fbMail'); if (t) FB.body = t.value; if (m) FB.mail = m.value.trim();
+  const k = b.dataset.fb;
+  if (k === 'kind') FB.kind = b.dataset.v;
+  else if (k === 'rate') FB.rate = FB.rate === +b.dataset.v ? 0 : +b.dataset.v;
+  else if (k === 'again') FB.sent = false;
+  else if (k === 'send') { fbSend(); return; }
+  FB.msg = ''; fbRender(); fbKeep();
+  const nb = $(`#fbBody [data-fb="${k}"][data-v="${b.dataset.v}"]`); if (nb) nb.focus();
+});
+$('#sheetFb').addEventListener('input', e => { if (e.target.id === 'fbText') FB.body = e.target.value; else if (e.target.id === 'fbMail') FB.mail = e.target.value.trim(); fbKeep(); });
+document.addEventListener('click', e => { if (e.target.closest('[data-fbopen]')) { closeSheets(true); openFeedback(); } });
 async function takeShared() {
   const bad = () => toast('共有された写真を読み込めませんでした');
   if (!('caches' in window)) { bad(); return true; }
@@ -7188,8 +7260,8 @@ async function takeShared() {
    インストール are reached from 設定 (the install hint bar stays). '|' = divider; on PC the lower block sits at the bottom. */
 const SIDE_ITEMS = [['search', '機能をさがす', ICON.search], ['upload', '写真', ICON.upload], ['tools', 'ツール', ICON.tools], ['template', 'テンプレート', ICON.template], ['material', '素材', ICON.stamp],
   ['filter', '補正', ICON.filter], ['cutout', '背景削除', ICON.cutout], ['gallery', 'みんなの作品', ICON.gallery], ['recent', '最近の作品', ICON.recent],
-  ['help', '使い方', ICON.help], ['account', 'アカウント', ICON.user], ['install', 'インストール', ICON.instApp], ['settings', '設定', ICON.gear]];
-const SIDE_PC = ['upload', 'template', 'material', 'tools', 'filter', 'cutout', '|', 'gallery', 'settings'], SIDE_SP = ['search', 'template', 'gallery', 'recent', 'help', '|', 'settings'];
+  ['help', '使い方', ICON.help], ['feedback', 'ご意見・ご要望', ICON.fb], ['account', 'アカウント', ICON.user], ['install', 'インストール', ICON.instApp], ['settings', '設定', ICON.gear]];
+const SIDE_PC = ['upload', 'template', 'material', 'tools', 'filter', 'cutout', '|', 'gallery', 'feedback', 'settings'], SIDE_SP = ['search', 'template', 'gallery', 'recent', 'help', 'feedback', '|', 'settings'];
 const SIDE_NAME = Object.fromEntries(SIDE_ITEMS.map(i => [i[0], i[1]]));
 let sideView = null;   // what the drawer shows: 'upload' | a SIDE_TOOLS id | null (closed)
 function renderRail() {
@@ -7290,6 +7362,7 @@ railEl.addEventListener('click', e => {
     else if (id === 'search') openCmd();
     else if (id === 'recent') { renderNB(); openSheet('#sheetNew'); setTimeout(() => { const p = $('#nbProj'); if (p && p.previousElementSibling) p.previousElementSibling.scrollIntoView({ block: 'start' }); }, 60); }
     else if (id === 'help') openSheet('#sheetHelp');
+    else if (id === 'feedback') openFeedback();
     else if (id === 'material') setTool('stamp');
     else if (SIDE_TOOLS.has(id)) setTool(id);
     return;
@@ -7298,6 +7371,7 @@ railEl.addEventListener('click', e => {
   if (sideView === id) { closeDrawer(); return; }   // tapping the open item again folds the drawer
   if (id === 'install') { instGo(); return; }
   if (id === 'gallery') { openGallery(); return; }
+  if (id === 'feedback') { openFeedback(); return; }
   if (id === 'settings') { openUISheet(); return; }
   if (id === 'account') { openAccount(); return; }
   if (SIDE_TOOLS.has(id)) { setTool(id); return; }
@@ -8483,6 +8557,7 @@ function cmdItems() {
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   if (!deskOn) add('その他のツール', 'ツール欄に入らないツール', ['more', 'tools', 'そのた', 'つーる'], openMoreSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
+  add('ご意見・ご要望', '不具合の報告・要望・感想を送る', ['feedback', 'contact', 'bug', 'いけん ようぼう ふぐあい おといあわせ かんそう れんらく'], () => openFeedback());
   add('操作ガイド', '写真→文字→保存を順番に案内', ['tour', 'guide', 'がいど', 'あんない', 'ちゅーとりある', 'はじめて'], () => tourStart());
   Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], '補正のフィルター', ['filter', id, f[0]], () => { S.colorTab = 'filter'; if (deskOn) setTool('filter'); runCmd('preset', id); }));
   Object.entries(DECO).forEach(([id, d]) => add('素材：' + d.name, 'デコ素材', ['deco', 'でこ', 'そざい', d.yomi || '', id, (DECO_CATS.find(c => c[0] === d.cat) || ['', ''])[1]], () => addDeco(id)));
