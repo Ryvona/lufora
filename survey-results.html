@@ -26,6 +26,8 @@ h2{font-size:16px;margin:24px 0 8px;color:var(--accent2)}
 .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .rows{display:grid;grid-template-columns:minmax(8em,auto) 1fr auto;gap:4px 10px;align-items:center;font-size:13.5px}
 .rows .b{height:12px;border-radius:4px;background:var(--accent)}
+.rows .b.bad{background:var(--ng)}
+.rows .nt{color:var(--muted)}
 ul.cm{margin:8px 0 0;padding-left:1.1em;font-size:13.5px;color:#4A453E}
 ul.cm li{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .warn{background:#F6E7D6;color:#7A4A22;border-radius:12px;padding:12px 14px}
@@ -44,7 +46,6 @@ ul.cm li{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 'use strict';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const COL = { ok: 'var(--accent)', ng: 'var(--ng)', na: 'var(--na)' };
 let rows = [];
 const all = SURVEY.flatMap(s => s.q);
 async function load() {
@@ -71,22 +72,17 @@ function render() {
   $('#out').innerHTML = SURVEY.map(sec => `<h2>${esc(sec.h)}</h2>` + sec.q.map(q => {
     n++;
     let body = '';
-    if (q.t === 'tri') {
-      const c = { ok: 0, ng: 0, na: 0 }; A.forEach(a => { if (c[a[q.id]] !== undefined) c[a[q.id]]++; });
-      const t = c.ok + c.ng + c.na || 1;
-      body = `<div class="bar">${SURVEY_TRI.map(([v]) => `<i style="width:${c[v] / t * 100}%;background:${COL[v]}"></i>`).join('')}</div>
-        <div class="leg">${SURVEY_TRI.map(([v, l]) => `<span><span class="sw" style="background:${COL[v]}"></span>${esc(l)} <b>${c[v]}</b></span>`).join('')}</div>`;
-      q._ng = c.ng;
-    } else if (q.t === 'one' || q.t === 'multi') {
+    if (q.t === 'one' || q.t === 'multi') {
       const c = Object.fromEntries(q.o.map(o => [o, 0])); A.forEach(a => [].concat(a[q.id] || []).forEach(v => { if (c[v] !== undefined) c[v]++; }));
+      q._ng = (q.ng || []).reduce((s, o) => s + (c[o] || 0), 0);
       const mx = Math.max(1, ...Object.values(c));
-      body = `<div class="rows">${q.o.map(o => `<span>${esc(o)}</span><span class="b" style="width:${c[o] / mx * 100}%"></span><b>${c[o]}</b>`).join('')}</div>`;
+      body = `<div class="rows">${q.o.map(o => `<span${o === '試していない' ? ' class="nt"' : ''}>${esc(o)}</span><span class="b${(q.ng || []).includes(o) ? ' bad' : ''}" style="width:${c[o] / mx * 100}%"></span><b>${c[o]}</b>`).join('')}</div>`;
     } else {
       const L = A.map(a => a[q.id]).filter(Boolean);
       body = L.length ? `<ul class="cm">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="ql"><small>回答なし</small></p>';
     }
     if (q.c) { const L = A.map((a, i) => a[q.id + '_c'] ? `${a[q.id + '_c']}（${esc(String(a.q1 || '機種不明'))}）` : '').filter(Boolean); if (L.length) body += `<ul class="cm">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
-    return `<div class="q"><p class="ql"><small>Q${n}</small>${esc(q.l)}${q._ng ? `<span class="flag">できなかった ${q._ng}</span>` : ''}</p>${body}</div>`;
+    return `<div class="q"><p class="ql"><small>Q${n}</small>${esc(q.l)}${q._ng ? `<span class="flag">問題あり ${q._ng}</span>` : ''}</p>${body}</div>`;
   }).join('')).join('');
 }
 $('#reload').addEventListener('click', load);

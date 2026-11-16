@@ -27,6 +27,7 @@ h2{font-size:17px;margin:0 0 10px;color:var(--accent2)}
 .q.miss{border-color:var(--danger)}
 .ql{font-weight:700;margin:0 0 10px;font-size:15.5px}
 .ql small{color:var(--muted);font-weight:400;margin-right:6px}
+.qd{margin:-4px 0 10px;color:var(--muted);font-size:13.5px}
 .opts{display:flex;flex-wrap:wrap;gap:8px}
 .opt{position:relative}
 .opt input{position:absolute;opacity:0;pointer-events:none}
@@ -56,8 +57,9 @@ html.embed .lead{font-size:13.5px;padding:10px 14px}
     <span class="solo">このページだけで開いています。Lufora と並べて答えるには、下のボタンから開いてください。<a class="go" href="./?a=survey">Lufora の中でアンケートに答える</a></span>
     Lufora を試しながら答えてください（10〜15分）。「しまう」でアンケートを小さくして操作し、上のバーの「開く」で戻れます。
     <ul>
-      <li>○ できた ／ × できなかった ／ △ 未確認 から選びます。</li>
-      <li>できなかったときは、コメント欄に状況を書いてください。</li>
+      <li>小さな文字は、試し方の説明です。</li>
+      <li>試していないものは「試していない」を選んでください。</li>
+      <li>うまくいかなかったときは、下の欄にどうなったかを書いてください。</li>
       <li>お名前やメールアドレスなど、個人が分かることは書かないでください。</li>
     </ul>
   </div>
@@ -68,19 +70,19 @@ html.embed .lead{font-size:13.5px;padding:10px 14px}
 'use strict';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const DRAFT = 'lufora.survey.draft';
-let n = 0;
+const DRAFT = 'lufora.survey.draft.' + SURVEY_ID;
+try { localStorage.removeItem('lufora.survey.draft'); } catch (e) { }   // the old survey's draft
+let n = 0, warned = false;
 const opt = (name, v, label, multi) => `<label class="opt"><input type="${multi ? 'checkbox' : 'radio'}" name="${name}" value="${esc(v)}"><span>${esc(label)}</span></label>`;
 function qHtml(q) {
   n++;
   let b = '';
-  if (q.t === 'tri') b = `<div class="opts" role="radiogroup">${SURVEY_TRI.map(([v, l]) => opt(q.id, v, l)).join('')}</div>`;
-  else if (q.t === 'one') b = `<div class="opts" role="radiogroup">${q.o.map(o => opt(q.id, o, o)).join('')}</div>`;
+  if (q.t === 'one') b = `<div class="opts" role="radiogroup">${q.o.map(o => opt(q.id, o, o)).join('')}</div>`;
   else if (q.t === 'multi') b = `<div class="opts">${q.o.map(o => opt(q.id, o, o, true)).join('')}</div>`;
   else if (q.t === 'text') b = `<input type="text" name="${q.id}" maxlength="120" placeholder="${esc(q.ph || '')}">`;
   else b = `<textarea name="${q.id}" maxlength="1500"></textarea>`;
-  if (q.c) b += `<div class="cm"><textarea name="${q.id}_c" maxlength="800" placeholder="コメント（できなかったときの状況など）"></textarea></div>`;
-  return `<div class="q" data-q="${q.id}"><p class="ql"><small>Q${n}</small>${esc(q.l)}</p>${b}</div>`;
+  if (q.c) b += `<div class="cm"><textarea name="${q.id}_c" maxlength="800" placeholder="うまくいかなかったときの様子（なくてもOK）"></textarea></div>`;
+  return `<div class="q" data-q="${q.id}"><p class="ql"><small>Q${n}</small>${esc(q.l)}</p>${q.d ? `<p class="qd">${esc(q.d)}</p>` : ''}${b}</div>`;
 }
 const f = $('#f');
 f.innerHTML = SURVEY.map(s => `<section><h2>${esc(s.h)}</h2>${s.q.map(qHtml).join('')}</section>`).join('')
@@ -90,7 +92,7 @@ function collect() {
   const a = {};
   for (const q of all) {
     if (q.t === 'multi') a[q.id] = [...f.querySelectorAll(`[name="${q.id}"]:checked`)].map(i => i.value);
-    else if (q.t === 'tri' || q.t === 'one') { const i = f.querySelector(`[name="${q.id}"]:checked`); a[q.id] = i ? i.value : ''; }
+    else if (q.t === 'one') { const i = f.querySelector(`[name="${q.id}"]:checked`); a[q.id] = i ? i.value : ''; }
     else a[q.id] = (f.elements[q.id].value || '').trim();
     if (q.c) a[q.id + '_c'] = (f.elements[q.id + '_c'].value || '').trim();
   }
@@ -112,9 +114,9 @@ f.addEventListener('change', e => { const q = e.target.closest('.q'); if (q) q.c
 f.addEventListener('submit', async e => {
   e.preventDefault();
   const b = $('#send'), m = $('#msg'); if (b.disabled) return;
-  const a = collect(), miss = all.filter(q => q.t === 'tri' && !a[q.id]);
+  const a = collect(), miss = all.filter(q => q.t === 'one' && !q.opt && !a[q.id]);
   document.querySelectorAll('.q.miss').forEach(x => x.classList.remove('miss'));
-  if (miss.length > 8) { miss.forEach(q => document.querySelector(`[data-q="${q.id}"]`).classList.add('miss')); m.textContent = `まだ答えていない質問が ${miss.length} 個あります（赤い枠）。分からないものは「△ 未確認」を選んでください。`; document.querySelector('.q.miss').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  if (miss.length && !warned) { warned = true; miss.forEach(q => document.querySelector(`[data-q="${q.id}"]`).classList.add('miss')); m.textContent = `まだ選んでいない質問が ${miss.length} 個あります（赤い枠）。試していないものは「試していない」を選んでください。このまま送るときは、もう一度「送信する」を押してください。`; document.querySelector('.q.miss').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
   if (!navigator.onLine) { m.textContent = 'オフラインです。電波のある所でもう一度押してください（入力は残っています）。'; return; }
   b.disabled = true; b.textContent = '送信中…'; m.textContent = '';
   try {
