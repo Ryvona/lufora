@@ -10,8 +10,8 @@
  * - A new version waits until the page posts {type:'skipWaiting'} (after its "update available" toast).
  */
 'use strict';
-const CACHE = 'petaphoto-v64';
-const RT_CACHE = 'petaphoto-rt-v64';
+const CACHE = 'petaphoto-v65';
+const RT_CACHE = 'petaphoto-rt-v65';
 const MODEL_CACHE = 'lufora-model-u2';
 const PRECACHE = ['./', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];

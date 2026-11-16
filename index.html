@@ -582,6 +582,15 @@ html.desk #tour{top:auto;bottom:24px}
 #tour .tact .chip.pri{background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700}
 .tourHi{outline:3px solid var(--accent)!important;outline-offset:3px;border-radius:12px;animation:tourPulse 1.4s ease-in-out infinite}
 @keyframes tourPulse{50%{outline-color:#A9C7A9;outline-offset:6px}}
+/* ==== in-app browser bar ==== */
+#iabBar{display:flex;align-items:center;gap:8px;margin:0 8px 6px;padding:5px 5px 5px 12px;border-radius:16px;background:#FFF6E0;border:1px solid #EBD9A8;font-size:calc(12.5px*var(--u));line-height:1.4;animation:instIn .35s var(--spring)}
+#iabBar[hidden]{display:none}
+#iabBar>svg{flex:none;width:20px;height:20px;color:#B07A1E}
+#iabBar>span{flex:1;min-width:0}
+#iabBar>span small{display:block;color:var(--muted);font-size:.92em}
+@media (max-width:370px){#iabBar>span small{display:none}#iabBar .chip{padding:0 10px}}
+#iabBar .chip{height:40px;padding:0 12px;background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700;white-space:nowrap}
+#iabBar .xbtn{position:static;flex:none;width:36px;height:36px;font-size:18px}
 /* ==== survey dock ==== */
 #svBar{display:flex;align-items:center;gap:8px;margin:0 8px 6px;padding:4px 4px 4px 12px;border-radius:16px;background:#EAF1E4;border:1px solid #C9DBB9;font-size:calc(12.5px*var(--u));line-height:1.4;animation:instIn .35s var(--spring)}
 #svBar[hidden]{display:none}
@@ -957,7 +966,7 @@ html:not(.desk) input[type=range]::-moz-range-track{height:6px;border-radius:3px
 html:not(.desk) input[type=range]::-webkit-slider-thumb{width:max(28px,calc(24px*var(--u)));height:max(28px,calc(24px*var(--u)));margin-top:calc(3px - max(14px,calc(12px*var(--u))))}
 html:not(.desk) input[type=range]::-moz-range-thumb{width:max(28px,calc(24px*var(--u)));height:max(28px,calc(24px*var(--u)))}
 html:not(.desk) #pgrab{height:30px}
-html:not(.desk) #pgrab span{width:48px}
+html:not(.desk) #pgrab span{width:56px;height:6px;background:#CBBFA8}
 html:not(.desk) #panel{padding-top:2px;padding-bottom:10px}
 html:not(.desk) .dock[data-ph="l"] #panel{max-height:calc(64vh - 12px)}
 html:not(.desk) .qbar{gap:8px}
@@ -1003,6 +1012,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   </header>
   <div id="instHint" role="region" aria-label="インストールの案内" hidden></div>
   <div id="svBar" role="region" aria-label="アンケート" hidden></div>
+  <div id="iabBar" role="region" aria-label="ブラウザで開く案内" hidden></div>
   <div id="work">
     <aside id="side" aria-label="サイドバー">
       <div class="dhead mhead"><h2 id="sideTitle">メニュー</h2><button class="xbtn" id="sideClose" aria-label="閉じる" title="閉じる">×</button></div>
@@ -3604,8 +3614,8 @@ function hitHandle(o, p) {
   if (hasTail(o)) { const q = l2d(o, tailTip(o)); if (dist(p, docToScreen(q.x, q.y)) < (touchG ? 22 : 13)) return 'tip'; }   // 吹き出し / 考え中: the ● at the tail tip
   const g = selGeom(o), [a, b, c2] = g.corners;
   // small objects: shrink the corner targets so a drag inside the object still moves it instead of resizing
-  const R = clamp(Math.min(dist(a, b), dist(b, c2)) / 3, 10, 24);
-  if (dist(p, g.rotH) < 24) return 'rot';
+  const R = clamp(Math.min(dist(a, b), dist(b, c2)) / 3, touchG ? 14 : 10, touchG ? 28 : 24);
+  if (dist(p, g.rotH) < (touchG ? 30 : 24)) return 'rot';
   for (const c of g.corners) if (dist(p, c) < R) return 'scale';
   return null;
 }
@@ -4505,7 +4515,7 @@ cv.addEventListener('pointermove', e => { const s = tapG && tapG.starts.get(e.po
 function tapGestureEnd() {
   if (!tapG || pointers.size) return;
   const g = tapG; tapG = null;
-  if (!UI.gest || g.moved || performance.now() - g.t0 > 320 || g.n < 2) return;
+  if (!UI.gest || g.moved || performance.now() - g.t0 > 420 || g.n < 2) return;
   if (g.n === 2) { undo(); toast('元に戻しました（2本指タップ）', 1200); } else if (g.n >= 3) { redo(); toast('やり直しました（3本指タップ）', 1200); }
 }
 function onUp(e) {
@@ -4568,6 +4578,11 @@ function startPinch() {
     if ((G.type === 'scale' || G.type === 'rotate') && tool === 'select') objMode = true;
   }
   const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d0 = Math.max(dist(a, b), 1), a0 = Math.atan2(b.y - a.y, b.x - a.x);
+  // phones: the first finger often lands just beside a small text; a pinch on (or near) the selected object still means that object
+  if (!objMode && touchG && tool === 'select' && (!G || G.type === 'pan' || G.type === 'none')) {
+    const o = selObj(), dm = screenToDoc(mid.x, mid.y), da = screenToDoc(a.x, a.y), db = screenToDoc(b.x, b.y), pad = 28 / view.s;
+    if (o && !o.locked && !o.hidden && [dm, da, db].some(q => hitObj(o, q.x, q.y, pad))) objMode = true;
+  }
   if (objMode) { const o = selObj(); G = { type: 'pinchObj', mid0: mid, d0, a0, x0: o.x, y0: o.y, sc0: o.sc, rot0: o.rot }; }
   else G = { type: 'pinchView', mid0: mid, d0, s0: view.s, tx0: view.tx, ty0: view.ty };
   // phones: two fingers held still ≈0.45 s = compare with the original photo until they lift (a quick 2-finger tap still undoes)
@@ -4752,7 +4767,7 @@ function startSingle(p, shift, ctrlK) {
         const h = hitHandle(o, p);
         if (h) { startHandle(o, h, p); return; }
       }
-      const hit = (o && !o.hidden && hitObj(o, d.x, d.y, 10 / view.s)) ? o : pick(d.x, d.y);
+      const hit = (o && !o.hidden && hitObj(o, d.x, d.y, (touchG ? 18 : 10) / view.s)) ? o : pick(d.x, d.y);
       const grp = hit && hit.gid && selId !== hit.id ? groupOf(hit) : null;
       if (grp && grp.length > 1) {   // a grouped object: select and drag its whole group
         selId = null; multi = grp.map(x => x.id); refreshPanel(); requestDraw();
@@ -5750,7 +5765,9 @@ function keepEditVisible() {
   const dy = bot > vBot ? Math.min(bot - vBot, Math.max(0, top - vTop)) : top - vTop;   // never push its top out of sight
   if (Math.abs(dy) > 1) { view.ty -= dy; requestDraw(); }
 }
-if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (editingId) keepEditVisible(); });
+if (window.visualViewport) ['resize', 'scroll'].forEach(t => visualViewport.addEventListener(t, () => { if (editingId) keepEditVisible(); }));
+/* iOS (above all inside LINE) reports the keyboard late or in steps: check again while it slides in */
+function keepEditSoon() { if (deskOn) return; [120, 350, 700, 1100].forEach(ms => setTimeout(() => { if (editingId) keepEditVisible(); }, ms)); }
 function startInlineEdit(o, fresh) {
   if (!o || o.locked || (o.type !== 'text' && o.type !== 'note')) return;
   if (editingId) endInlineEdit();
@@ -5762,6 +5779,7 @@ function startInlineEdit(o, fresh) {
   placeInline(); invalidate();
   ied.focus({ preventScroll: true });
   try { const n = ied.value.length; ied.setSelectionRange(n, n); } catch (e) { }
+  keepEditSoon();
 }
 function endInlineEdit() {
   if (!editingId) return;
@@ -6348,10 +6366,12 @@ function aiWarm() {
   setTimeout(step, 30);
 }
 function aiApply(adj, name) {
+  const before = { ...doc.adjust };
   doc.adjust = { ...doc.adjust, ...adj };
+  const moved = ADJ_KEYS.reduce((t, k) => t + Math.abs((+doc.adjust[k] || 0) - (+before[k] || 0)), 0);
   aiLast = { name, json: JSON.stringify(doc.adjust) };
   invalidate(); commit(); refreshPanel();
-  toast(`${name}に整えました。「調整」タブで細かく変えられます`);
+  toast(moved < 12 && name === 'AIおまかせ補正' ? 'この写真はもとから整っていたので、変化は小さめです。「押して元の写真と比べる」で違いを確かめられます' : `${name}に整えました。「調整」タブで細かく変えられます`, 4200);
 }
 const aiIsOn = name => !!aiLast && aiLast.name === name && aiLast.json === JSON.stringify(doc.adjust);
 const aiRefInput = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*', id: 'fileRef', className: 'vh', tabIndex: -1 });
@@ -6981,6 +7001,22 @@ const DM = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay']
 const standalone = () => navigator.standalone === true || DM.some(m => m.matches);
 let instEvt = null, instDone = false, instReady = false;
 /* 'prompt' | 'ios' | 'iosx' (iOS non-Safari) | 'android' (menu steps) | 'inapp' | null (installed / not possible here) */
+/* LINE / Instagram … built-in browsers: Google refuses to sign in there and iOS keyboards / storage behave differently.
+   #iabBar (once per session) offers ブラウザで開く: LINE honours ?openExternalBrowser=1, other apps get リンクをコピー. */
+const inApp = () => INAPP_RE.test(UA) || (isIOS && !/Safari\//.test(UA)), isLineApp = () => /\bLine\//i.test(UA);
+function extUrl() { const u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1'); return u.href; }
+function openExternal() {
+  if (isLineApp()) { location.href = extUrl(); return; }
+  const u = location.href.split('#')[0];
+  (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('リンクをコピーしました。Safari（Android は Chrome）のアドレス欄に貼り付けてください', 5000), () => toast('右上のメニューから「ブラウザで開く」を選んでください', 5000));
+}
+function iabSync() {
+  const el = $('#iabBar'); let off = false; try { off = sessionStorage.getItem('lufora.iab') === '1'; } catch (e) { }
+  const on = inApp() && !off && /^https?:$/.test(location.protocol);
+  if (on && el.hidden) el.innerHTML = `${ICON.warn}<span>${isLineApp() ? 'LINE' : 'アプリ'}で開いています<small>ブラウザが快適です</small></span><button class="chip" data-iab="go">${isLineApp() ? 'ブラウザで開く' : 'リンクをコピー'}</button><button class="xbtn" data-iab="x" aria-label="案内を閉じる" title="閉じる">×</button>`;
+  el.hidden = !on;
+}
+$('#iabBar').addEventListener('click', e => { const b = e.target.closest('[data-iab]'); if (!b) return; if (b.dataset.iab === 'go') openExternal(); else { try { sessionStorage.setItem('lufora.iab', '1'); } catch (er) { } $('#iabBar').hidden = true; } });
 function instKind() {
   if (instDone || standalone() || !/^https?:$/.test(location.protocol)) return null;
   if (instEvt) return 'prompt';
@@ -7045,7 +7081,8 @@ function instHintOff() { if (UI.instHint && $('#instHint').hidden) return; UI.in
 $('#instHint').addEventListener('click', e => { if (e.target.closest('#instHintX')) instHintOff(); });
 /* launch extras, run once from boot: visit count, manifest shortcuts (?a=tpl / ?a=new) and photos shared from other apps (Android share_target, ?shared=N) */
 async function appLaunch() {
-  UI.visits = Math.min(99, (UI.visits || 0) + 1); saveUI();
+  UI.visits = Math.min(99, (UI.visits || 0) + 1); saveUI(); iabSync();
+  { const u0 = new URL(location.href); if (u0.searchParams.has('openExternalBrowser')) { u0.searchParams.delete('openExternalBrowser'); try { history.replaceState(null, '', u0.pathname + u0.search + u0.hash); } catch (e) { } } }
   setTimeout(() => { instReady = true; instHintSync(); }, 3000);   // Chrome fires beforeinstallprompt a moment after load
   if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then(l => { if (l && l.length) { instDone = true; instSync(); } }).catch(() => {});
   const u = new URL(location.href), a = u.searchParams.get('a'), sh = u.searchParams.has('shared');
@@ -9618,6 +9655,7 @@ function openAccount() {
   if (SUPA.url && navigator.onLine) sb().then(() => { acctRender(); if (acct && Date.now() - syncAt > 60000) syncAll(); }).catch(() => acctRender());
 }
 const acctShown = () => { const el = $('#sheetAccount'); return !!el && !el.hidden; };
+document.addEventListener('click', e => { if (e.target.closest('#acctBody [data-iab="go"]')) openExternal(); });
 function acctRender() {
   const ui = $('#uiAcct');
   if (ui) ui.innerHTML = SUPA.url && ACCT_ON ? `<button class="acctrow" data-acct="open">${ICON.user}<span><b>${acct ? esc(acct.name || acct.email || 'ログイン中') : 'ログインしていません'}</b><small>${acct ? 'ほかの端末と同期しています' : 'ログインすると、ほかの端末と作品や素材を共有できます'}</small></span><span aria-hidden="true">›</span></button>` : '';
@@ -9630,7 +9668,8 @@ function acctRender() {
       ? `<div class="acctsent"><b>メールを送りました</b><p>${esc(acctSent)} に届いたリンクを、この端末で開いてください。この画面は閉じて大丈夫です。</p><p class="note">届かないときは、迷惑メールフォルダも確かめてください。</p><button class="btn" data-acct="again">別のアドレスにする</button></div>`
       : `<p class="note">ログインすると、ほかの端末と次のものを共有できます。ログインしなくても、これまで通り使えます。</p>
         <ul class="acctlist"><li>みんなの作品の投稿</li><li>マイ素材</li><li>作業中の作品</li><li>設定</li></ul>
-        <div class="acctbtns">${ACCT_PROVS.map(pv => `<button class="btn acctp" data-acct="${pv}"${dis}>${PROV_NAMES[pv]} で続ける</button>`).join('')}</div>
+        ${inApp() ? `<div class="hint" style="margin:8px 0">${isLineApp() ? 'LINE' : 'アプリ'}の中のブラウザでは、Google のログインが使えません（Google の決まりです）。Safari（Android は Chrome）で開いてからログインしてください。<div class="actions" style="padding:8px 0 0;justify-content:flex-start"><button class="btn primary" data-iab="go">${isLineApp() ? 'ブラウザで開く' : 'リンクをコピー'}</button></div></div>` : ''}
+        <div class="acctbtns">${ACCT_PROVS.map(pv => `<button class="btn acctp" data-acct="${pv}"${dis || (inApp() ? ' disabled' : '')}>${PROV_NAMES[pv]} で続ける</button>`).join('')}</div>
         <div class="acctor"><span>またはメールで</span></div>
         <form class="acctmail" id="acctMail"><input type="email" name="em" placeholder="メールアドレス" autocomplete="email" inputmode="email" aria-label="メールアドレス" required><button class="btn primary" type="submit"${dis}>${acctBusy ? '送信中…' : 'ログインリンクを送る'}</button></form>
         <p class="note">この端末でこれまでに投稿した作品は、そのままアカウントに引き継がれます。${navigator.onLine ? '' : '<br>いまはオフラインです。'}</p>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <script>
 /* Opened on its own (not inside the app): go to Lufora, which opens this survey in a panel over the app. ?solo=1 stays here. */
-(function () { var q = new URLSearchParams(location.search); if (q.has('embed')) document.documentElement.className = 'embed'; else if (!q.has('solo')) location.replace('./?a=survey'); })();
+(function () { var q = new URLSearchParams(location.search), line = /\bLine\//i.test(navigator.userAgent); if (q.has('embed')) document.documentElement.className = 'embed'; else if (!q.has('solo')) location.replace('./?a=survey' + (line ? '&openExternalBrowser=1' : '')); })();   /* LINE: open in Safari / Chrome, where the keyboard and sign-in work */
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lufora 実機テストアンケート</title>

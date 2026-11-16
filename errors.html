@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>不具合の報告</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#F4EFE4;--chrome:#FBF8F1;--fg:#2A2724;--muted:#7A746A;--line:#E2DACB;--accent:#5E8C5F;--accent2:#4F7A50;--ng:#C0503A;--na:#B9B2A4}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+main{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:21px;margin:4px 0 4px}
+.lead{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 16px}
+.top .n{font-weight:700;color:var(--accent2)}
+button,.btn{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;color:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.e{background:var(--chrome);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px}
+.msg{font-weight:700;margin:0 0 6px;overflow-wrap:anywhere;white-space:pre-wrap}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);align-items:center}
+.meta b{color:var(--fg);font-variant-numeric:tabular-nums}
+.cnt{display:inline-flex;align-items:center;min-width:2.4em;justify-content:center;padding:1px 10px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.cnt.hi{background:var(--ng)}
+.loc{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--fg);overflow-wrap:anywhere}
+details{margin:8px 0 0}
+summary{cursor:pointer;font-size:13px;color:var(--accent2)}
+pre{margin:6px 0 0;padding:10px;background:#fff;border:1px solid var(--line);border-radius:10px;font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto}
+.ua{font-size:12px;color:var(--muted);margin:6px 0 0;overflow-wrap:anywhere}
+.warn{background:#F6E7D6;color:#7A4A22;border-radius:12px;padding:12px 14px}
+</style>
+</head>
+<body>
+<main>
+  <h1>不具合の報告</h1>
+  <p class="lead">アプリで起きたエラーを、同じ内容ごとにまとめて多い順に表示します（管理者のみ）。</p>
+  <div class="chips" id="days" role="group" aria-label="期間"><button data-d="1">1日</button><button data-d="7">7日</button><button data-d="30">30日</button><button data-d="90">90日</button></div>
+  <div class="top"><span id="cnt"></span><button id="reload">再読み込み</button><button id="csv" hidden>CSVで保存</button><a class="btn" href="./" target="_blank" rel="noopener">Lufora を開く</a></div>
+  <div id="out"><p>読み込み中…</p></div>
+</main>
+<script src="survey-q.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let rows = [], days = 7, client = null;
+// "https://ryvona.github.io/lufora/index.html?x#y" -> "index.html"
+const fileOf = u => { if (!u) return ''; const s = String(u).split(/[?#]/)[0]; return s.slice(s.lastIndexOf('/') + 1) || s; };
+// a plain-words guess of device and browser from the user agent
+function uaWords(ua) {
+  if (!ua) return '不明';
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && /Mobile\//.test(ua)) ? 'iPad' : /Android/.test(ua) ? 'Android'
+    : /Windows/.test(ua) ? 'Windows' : /Mac OS X|Macintosh/.test(ua) ? 'Mac' : /CrOS/.test(ua) ? 'Chromebook' : /Linux/.test(ua) ? 'Linux' : 'その他';
+  const br = /Line\//i.test(ua) ? 'LINE' : /Instagram/.test(ua) ? 'Instagram' : /FBAN|FBAV/.test(ua) ? 'Facebook' : /EdgiOS|EdgA|Edg\//.test(ua) ? 'Edge'
+    : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /OPR\/|Opera/.test(ua) ? 'Opera' : /FxiOS|Firefox\//.test(ua) ? 'Firefox'
+    : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : /AppleWebKit/.test(ua) ? 'アプリ内ブラウザ' : 'その他';
+  return os + '・' + br;
+}
+const when = t => t ? new Date(t).toLocaleString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+function setDays(d) { days = d; document.querySelectorAll('#days button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.d === d))); }
+async function load() {
+  $('#out').innerHTML = '<p>読み込み中…</p>'; $('#cnt').textContent = ''; $('#csv').hidden = true;
+  if (!navigator.onLine) { $('#out').innerHTML = '<p class="warn">オフラインです。インターネットにつないでから「再読み込み」を押してください。</p>'; return; }
+  try {
+    // the same browser session as the app (Lufora にログインした管理者だけが見られます)
+    client = client || window.supabase.createClient(SUPA_SURVEY.url, SUPA_SURVEY.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'petaphoto.sb' } });
+    const { data: s } = await client.auth.getSession();
+    if (!s.session || s.session.user.is_anonymous) { $('#out').innerHTML = '<p class="warn">管理者のアカウントで Lufora にログインしてから、このページを開き直してください。<br><a href="./">Lufora を開く</a></p>'; return; }
+    const r = await client.rpc('client_errors_recent', { p_days: days });
+    if (r.error) throw r.error;
+    rows = r.data || []; render();
+  } catch (e) {
+    console.warn(e);
+    const k = (e.code || '') + ' ' + (e.message || '');
+    $('#out').innerHTML = `<p class="warn">${/not_admin|42501/.test(k) ? 'このアカウントには不具合の報告を見る権限がありません（管理者のみ）。' : /PGRST202|42883|does not exist/.test(k) ? '報告用の SQL（supabase/schema_client_errors.sql）がまだ実行されていません。' : '読み込めませんでした。通信状況を確かめて、もう一度お試しください。'}</p>`;
+  }
+}
+function render() {
+  const total = rows.reduce((s, r) => s + Number(r.n || 0), 0);
+  $('#cnt').innerHTML = `${days}日間で <span class="n">${total}</span> 件（${rows.length} 種類）`; $('#csv').hidden = !rows.length;
+  if (!rows.length) { $('#out').innerHTML = '<p>この期間のエラーはありません。</p>'; return; }
+  $('#out').innerHTML = rows.map(r => {
+    const n = Number(r.n || 0), loc = r.src ? fileOf(r.src) + (r.line ? ':' + r.line : '') : '';
+    return `<div class="e"><p class="msg">${esc(r.msg)}</p>
+      <div class="meta"><span class="cnt${n >= 10 ? ' hi' : ''}" title="件数">${n}件</span>${loc ? `<span class="loc" title="${esc(r.src)}">${esc(loc)}</span>` : ''}<span>最後: <b>${esc(when(r.last_at))}</b></span><span>${esc(uaWords(r.sample_ua))}</span></div>
+      ${r.sample_stack ? `<details><summary>スタック（最新の1件）</summary><pre>${esc(r.sample_stack)}</pre></details>` : ''}
+      ${r.sample_ua ? `<p class="ua">${esc(r.sample_ua)}</p>` : ''}</div>`;
+  }).join('');
+}
+$('#days').addEventListener('click', e => { const b = e.target.closest('button[data-d]'); if (!b || +b.dataset.d === days) return; setDays(+b.dataset.d); load(); });
+$('#reload').addEventListener('click', load);
+$('#csv').addEventListener('click', () => {
+  const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const head = ['件数', 'メッセージ', 'ファイル', '行', '最後', '端末', 'スタック', 'UA'].map(cell).join(',');
+  const body = rows.map(r => [r.n, r.msg, r.src, r.line, when(r.last_at), uaWords(r.sample_ua), r.sample_stack, r.sample_ua].map(cell).join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + head + '\r\n' + body], { type: 'text/csv' }));
+  a.download = `lufora-errors-${days}d.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+setDays(7); load();
+</script>
+</body>
+</html>
