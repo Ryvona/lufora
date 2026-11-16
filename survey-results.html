@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>アンケート集計</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#F4EFE4;--chrome:#FBF8F1;--fg:#2A2724;--muted:#7A746A;--line:#E2DACB;--accent:#5E8C5F;--accent2:#4F7A50;--ng:#C0503A;--na:#B9B2A4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+main{max-width:900px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:21px;margin:4px 0 4px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 16px}
+.top .n{font-weight:700;color:var(--accent2)}
+button,.btn{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;color:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+h2{font-size:16px;margin:24px 0 8px;color:var(--accent2)}
+.q{background:var(--chrome);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px}
+.ql{font-weight:700;margin:0 0 8px}
+.ql small{color:var(--muted);font-weight:400;margin-right:6px}
+.bar{display:flex;height:22px;border-radius:6px;overflow:hidden;background:#EEE8DC;margin:2px 0 6px}
+.bar i{display:block;height:100%}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13.5px}
+.leg b{font-variant-numeric:tabular-nums}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.rows{display:grid;grid-template-columns:minmax(8em,auto) 1fr auto;gap:4px 10px;align-items:center;font-size:13.5px}
+.rows .b{height:12px;border-radius:4px;background:var(--accent)}
+ul.cm{margin:8px 0 0;padding-left:1.1em;font-size:13.5px;color:#4A453E}
+ul.cm li{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.warn{background:#F6E7D6;color:#7A4A22;border-radius:12px;padding:12px 14px}
+.flag{color:var(--ng);font-weight:700;font-size:12.5px;margin-left:6px}
+</style>
+</head>
+<body>
+<main>
+  <h1>実機テストアンケート 集計</h1>
+  <div class="top"><span id="cnt"></span><button id="reload">再読み込み</button><button id="csv" hidden>CSVで保存</button><a class="btn" href="survey.html" target="_blank" rel="noopener">アンケートを開く</a></div>
+  <div id="out"><p>読み込み中…</p></div>
+</main>
+<script src="survey-q.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const COL = { ok: 'var(--accent)', ng: 'var(--ng)', na: 'var(--na)' };
+let rows = [];
+const all = SURVEY.flatMap(s => s.q);
+async function load() {
+  $('#out').innerHTML = '<p>読み込み中…</p>';
+  try {
+    // the same browser session as the app (Lufora にログインした管理者だけが見られます)
+    const c = window.supabase.createClient(SUPA_SURVEY.url, SUPA_SURVEY.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'petaphoto.sb' } });
+    const { data: s } = await c.auth.getSession();
+    if (!s.session || s.session.user.is_anonymous) { $('#out').innerHTML = '<p class="warn">管理者のアカウントで Lufora にログインしてから、このページを開き直してください。<br><a href="./">Lufora を開く</a></p>'; return; }
+    const r = await c.rpc('survey_results', { p_survey: SURVEY_ID });
+    if (r.error) throw r.error;
+    rows = r.data || []; render();
+  } catch (e) {
+    console.warn(e);
+    const k = (e.code || '') + ' ' + (e.message || '');
+    $('#out').innerHTML = `<p class="warn">${/not_admin|42501/.test(k) ? 'このアカウントには集計を見る権限がありません（管理者のみ）。' : /PGRST202|42883|does not exist/.test(k) ? '集計用の SQL（supabase/schema_survey.sql）がまだ実行されていません。' : '読み込めませんでした。通信状況を確かめて、もう一度お試しください。'}</p>`;
+  }
+}
+function render() {
+  const N = rows.length, A = rows.map(r => r.answers || {});
+  $('#cnt').innerHTML = `回答 <span class="n">${N}</span> 件`; $('#csv').hidden = !N;
+  if (!N) { $('#out').innerHTML = '<p>まだ回答がありません。</p>'; return; }
+  let n = 0;
+  $('#out').innerHTML = SURVEY.map(sec => `<h2>${esc(sec.h)}</h2>` + sec.q.map(q => {
+    n++;
+    let body = '';
+    if (q.t === 'tri') {
+      const c = { ok: 0, ng: 0, na: 0 }; A.forEach(a => { if (c[a[q.id]] !== undefined) c[a[q.id]]++; });
+      const t = c.ok + c.ng + c.na || 1;
+      body = `<div class="bar">${SURVEY_TRI.map(([v]) => `<i style="width:${c[v] / t * 100}%;background:${COL[v]}"></i>`).join('')}</div>
+        <div class="leg">${SURVEY_TRI.map(([v, l]) => `<span><span class="sw" style="background:${COL[v]}"></span>${esc(l)} <b>${c[v]}</b></span>`).join('')}</div>`;
+      q._ng = c.ng;
+    } else if (q.t === 'one' || q.t === 'multi') {
+      const c = Object.fromEntries(q.o.map(o => [o, 0])); A.forEach(a => [].concat(a[q.id] || []).forEach(v => { if (c[v] !== undefined) c[v]++; }));
+      const mx = Math.max(1, ...Object.values(c));
+      body = `<div class="rows">${q.o.map(o => `<span>${esc(o)}</span><span class="b" style="width:${c[o] / mx * 100}%"></span><b>${c[o]}</b>`).join('')}</div>`;
+    } else {
+      const L = A.map(a => a[q.id]).filter(Boolean);
+      body = L.length ? `<ul class="cm">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="ql"><small>回答なし</small></p>';
+    }
+    if (q.c) { const L = A.map((a, i) => a[q.id + '_c'] ? `${a[q.id + '_c']}（${esc(String(a.q1 || '機種不明'))}）` : '').filter(Boolean); if (L.length) body += `<ul class="cm">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
+    return `<div class="q"><p class="ql"><small>Q${n}</small>${esc(q.l)}${q._ng ? `<span class="flag">できなかった ${q._ng}</span>` : ''}</p>${body}</div>`;
+  }).join('')).join('');
+}
+$('#reload').addEventListener('click', load);
+$('#csv').addEventListener('click', () => {
+  const keys = all.flatMap(q => q.c ? [q.id, q.id + '_c'] : [q.id]);
+  const cell = v => '"' + String(Array.isArray(v) ? v.join(' / ') : v == null ? '' : v).replace(/"/g, '""') + '"';
+  const head = ['日時', ...keys, '端末情報'].map(cell).join(',');
+  const body = rows.map(r => [new Date(r.created_at).toLocaleString('ja-JP'), ...keys.map(k => (r.answers || {})[k]), r.ua].map(cell).join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + head + '\r\n' + body], { type: 'text/csv' }));
+  a.download = 'lufora-survey.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+load();
+</script>
+</body>
+</html>

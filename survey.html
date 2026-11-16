@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lufora 実機テストアンケート</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--bg:#F4EFE4;--chrome:#FBF8F1;--fg:#2A2724;--muted:#7A746A;--line:#E2DACB;--accent:#5E8C5F;--accent2:#4F7A50;--danger:#C0503A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:20px 16px calc(40px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+header img{width:40px;height:40px;border-radius:10px}
+h1{font-size:21px;margin:0;line-height:1.35}
+.lead{background:var(--chrome);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0 0 18px;font-size:14.5px}
+.lead a{color:var(--accent2);font-weight:700;word-break:break-all}
+.lead ul{margin:6px 0 0;padding-left:1.2em}
+section{margin:22px 0 8px}
+h2{font-size:17px;margin:0 0 10px;color:var(--accent2)}
+.q{background:var(--chrome);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0 0 12px}
+.q.miss{border-color:var(--danger)}
+.ql{font-weight:700;margin:0 0 10px;font-size:15.5px}
+.ql small{color:var(--muted);font-weight:400;margin-right:6px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt span{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:15px;cursor:pointer;user-select:none}
+.opt input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.opt input:focus-visible+span{outline:3px solid #A9C7A9;outline-offset:2px}
+input[type=text],textarea{width:100%;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;color:inherit}
+textarea{min-height:92px;resize:vertical}
+.cm{margin-top:10px}
+.cm textarea{min-height:60px}
+.send{display:block;width:100%;min-height:56px;margin:22px 0 8px;border:0;border-radius:16px;background:linear-gradient(135deg,#7FA77F,#4F7A50);color:#fff;font:700 18px/1 inherit;cursor:pointer;box-shadow:0 6px 18px rgba(79,122,80,.3)}
+.send:disabled{opacity:.6}
+.msg{min-height:1.6em;font-size:14px;color:var(--danger);text-align:center}
+.done{text-align:center;padding:40px 10px}
+.done h2{font-size:22px;color:var(--accent2)}
+.note{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<main id="app">
+  <header><img src="icons/icon-192.png" alt=""><h1>Lufora スマホ実機テスト<br>アンケート</h1></header>
+  <div class="lead">
+    スマホで <a id="appLink" href="./" target="_blank" rel="noopener">https://ryvona.github.io/lufora/</a> を開いて試しながら、答えてください（10〜15分）。
+    <ul>
+      <li>○ できた ／ × できなかった ／ △ 未確認 から選びます。</li>
+      <li>できなかったときは、コメント欄に状況を書いてください。</li>
+      <li>お名前やメールアドレスなど、個人が分かることは書かないでください。</li>
+    </ul>
+  </div>
+  <form id="f" novalidate></form>
+</main>
+<script src="survey-q.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const DRAFT = 'lufora.survey.draft';
+let n = 0;
+const opt = (name, v, label, multi) => `<label class="opt"><input type="${multi ? 'checkbox' : 'radio'}" name="${name}" value="${esc(v)}"><span>${esc(label)}</span></label>`;
+function qHtml(q) {
+  n++;
+  let b = '';
+  if (q.t === 'tri') b = `<div class="opts" role="radiogroup">${SURVEY_TRI.map(([v, l]) => opt(q.id, v, l)).join('')}</div>`;
+  else if (q.t === 'one') b = `<div class="opts" role="radiogroup">${q.o.map(o => opt(q.id, o, o)).join('')}</div>`;
+  else if (q.t === 'multi') b = `<div class="opts">${q.o.map(o => opt(q.id, o, o, true)).join('')}</div>`;
+  else if (q.t === 'text') b = `<input type="text" name="${q.id}" maxlength="120" placeholder="${esc(q.ph || '')}">`;
+  else b = `<textarea name="${q.id}" maxlength="1500"></textarea>`;
+  if (q.c) b += `<div class="cm"><textarea name="${q.id}_c" maxlength="800" placeholder="コメント（できなかったときの状況など）"></textarea></div>`;
+  return `<div class="q" data-q="${q.id}"><p class="ql"><small>Q${n}</small>${esc(q.l)}</p>${b}</div>`;
+}
+const f = $('#f');
+f.innerHTML = SURVEY.map(s => `<section><h2>${esc(s.h)}</h2>${s.q.map(qHtml).join('')}</section>`).join('')
+  + `<button class="send" id="send" type="submit">送信する</button><p class="msg" id="msg" aria-live="polite"></p><p class="note">送った内容は、Lufora の改善だけに使います。</p>`;
+const all = SURVEY.flatMap(s => s.q);
+function collect() {
+  const a = {};
+  for (const q of all) {
+    if (q.t === 'multi') a[q.id] = [...f.querySelectorAll(`[name="${q.id}"]:checked`)].map(i => i.value);
+    else if (q.t === 'tri' || q.t === 'one') { const i = f.querySelector(`[name="${q.id}"]:checked`); a[q.id] = i ? i.value : ''; }
+    else a[q.id] = (f.elements[q.id].value || '').trim();
+    if (q.c) a[q.id + '_c'] = (f.elements[q.id + '_c'].value || '').trim();
+  }
+  return a;
+}
+function restore(a) {
+  for (const [k, v] of Object.entries(a || {})) {
+    if (Array.isArray(v)) v.forEach(x => { const i = f.querySelector(`[name="${k}"][value="${CSS.escape(x)}"]`); if (i) i.checked = true; });
+    else { const i = f.querySelector(`[name="${k}"][value="${CSS.escape(v)}"]`); if (i && (i.type === 'radio')) i.checked = true; else if (f.elements[k] && f.elements[k].tagName) f.elements[k].value = v; }
+  }
+}
+try { restore(JSON.parse(localStorage.getItem(DRAFT) || 'null')); } catch (e) { }
+f.addEventListener('input', () => { try { localStorage.setItem(DRAFT, JSON.stringify(collect())); } catch (e) { } });
+f.addEventListener('change', e => { const q = e.target.closest('.q'); if (q) q.classList.remove('miss'); });
+f.addEventListener('submit', async e => {
+  e.preventDefault();
+  const b = $('#send'), m = $('#msg'); if (b.disabled) return;
+  const a = collect(), miss = all.filter(q => q.t === 'tri' && !a[q.id]);
+  document.querySelectorAll('.q.miss').forEach(x => x.classList.remove('miss'));
+  if (miss.length > 8) { miss.forEach(q => document.querySelector(`[data-q="${q.id}"]`).classList.add('miss')); m.textContent = `まだ答えていない質問が ${miss.length} 個あります（赤い枠）。分からないものは「△ 未確認」を選んでください。`; document.querySelector('.q.miss').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  if (!navigator.onLine) { m.textContent = 'オフラインです。電波のある所でもう一度押してください（入力は残っています）。'; return; }
+  b.disabled = true; b.textContent = '送信中…'; m.textContent = '';
+  try {
+    const r = await fetch(SUPA_SURVEY.url + '/rest/v1/survey_responses', { method: 'POST',
+      headers: { apikey: SUPA_SURVEY.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ survey: SURVEY_ID, answers: a, ua: navigator.userAgent.slice(0, 400) }) });
+    if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0, 200));
+    try { localStorage.removeItem(DRAFT); } catch (e) { }
+    $('#app').innerHTML = '<div class="done"><h2>送信しました</h2><p>ご協力ありがとうございました！<br>いただいた声をもとに、Lufora をもっと使いやすくします。</p><p><a href="./">Lufora を開く</a></p></div>';
+    scrollTo(0, 0);
+  } catch (err) {
+    console.warn(err); m.textContent = '送信できませんでした。少し待ってからもう一度押してください（入力は残っています）。';
+  } finally { b.disabled = false; if (document.body.contains(b)) b.textContent = '送信する'; }
+});
+</script>
+</body>
+</html>
