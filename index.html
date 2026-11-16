@@ -293,6 +293,10 @@ html.desk #sheetGallery .gdimg{max-height:62vh}
 html[data-ui="m"]{--u:1}
 html[data-ui="l"]{--u:1.1}
 html[data-ui="xl"]{--u:1.22}
+/* phones: everything one step larger than on PC (2026-11-17: the owner found the phone UI too small) */
+html:not(.desk)[data-ui="m"]{--u:1.1}
+html:not(.desk)[data-ui="l"]{--u:1.2}
+html:not(.desk)[data-ui="xl"]{--u:1.32}
 .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 6px*var(--u));padding-bottom:calc(6px*var(--u))}
 .tbtn{height:calc(40px*var(--u));min-width:calc(40px*var(--u));padding:0 calc(10px*var(--u));font-size:calc(14px*var(--u))}
 .tbtn.primary{padding:0 calc(14px*var(--u))}
@@ -884,7 +888,9 @@ html:not(.desk) .lyr{gap:4px}
 html:not(.desk) .lyr .lbtn:disabled{opacity:.2}
 /* ==== operation redesign (2026-11) ==== phone toolbar = 8 tools + その他 without scrolling; 補正 tabs; one 詳細 fold; rail groups */
 html:not(.desk):not(.tab) .dock .tools{gap:0;padding-left:2px;padding-right:2px}
-html:not(.desk):not(.tab) .dock .tools .tool{flex:1 1 0;width:auto;min-width:40px;padding:0;font-size:min(calc(10.5px*var(--u)),2.75vw);letter-spacing:0}
+html:not(.desk):not(.tab) .dock .tools .tool{flex:1 1 0;width:auto;min-width:40px;padding:0;font-size:clamp(11px,3.1vw,13px);letter-spacing:0;font-weight:600}
+html:not(.desk):not(.tab) .dock .tools .tool svg{width:27px;height:27px}
+html:not(.desk):not(.tab) .dock .tools .tool span{white-space:normal;line-height:1.1;text-align:center;word-break:keep-all}
 html:not(.desk) #btnHelp{display:none}
 .moregrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:6px 0 4px}
 .moregrid .tool{width:auto;height:auto;min-height:calc(72px*var(--u));border:1px solid var(--line);background:rgba(255,255,255,.6);color:var(--fg)}
@@ -905,7 +911,7 @@ html:not(.desk) .pcb{grid-template-columns:repeat(3,minmax(0,1fr))}
 #sheetUI #uiSave .wrap{grid-template-columns:repeat(auto-fit,minmax(calc(120px*var(--u)),1fr))}
 #sheetUI #uiSave .wrap .chip{height:auto;min-height:calc(34px*var(--u));white-space:normal}
 html:not(.desk) .legend:has(>span:nth-child(4):last-child){grid-template-columns:repeat(4,minmax(0,1fr))}
-html:not(.desk):not(.tab) .dock .tools .tool span.tl{font-size:.8em}
+html:not(.desk):not(.tab) .dock .tools .tool span.tl{display:block;font-size:.92em;width:2.2em;max-width:2.2em;margin:0 auto;white-space:normal;word-break:break-all;line-height:1.05}
 </style>
 
 <div id="app">
@@ -6769,7 +6775,7 @@ function syncToolLit() {
 /* the toolbar: PC column = every visible tool (minus DESK_HIDE) + 並び替え; phones / tablets = the first BAR_MAX + その他 */
 const barIds = () => UI.order.filter(id => !UI.hidden.includes(id) && !(deskOn && DESK_HIDE.has(id)));
 const moreIds = () => deskOn ? [] : [...barIds().slice(BAR_MAX), ...UI.order.filter(id => UI.hidden.includes(id))];
-const toolBtn = (id, lit, cls = '') => `<button class="tool${cls}${lit === id ? ' on' : ''}"${lit === id ? ' aria-current="true"' : ''} data-tool="${id}"${TOOL_KEYS[id] ? ` title="${TOOL_MAP[id][1]}（${TOOL_KEYS[id]}）" aria-keyshortcuts="${TOOL_KEYS[id]}"` : ''}>${ICON[id]}<span${TOOL_MAP[id][1].length > 4 ? ' class="tl"' : ''}>${TOOL_MAP[id][1]}</span></button>`;
+const toolBtn = (id, lit, cls = '') => `<button class="tool${cls}${lit === id ? ' on' : ''}"${lit === id ? ' aria-current="true"' : ''} data-tool="${id}"${TOOL_KEYS[id] ? ` title="${TOOL_MAP[id][1]}（${TOOL_KEYS[id]}）" aria-keyshortcuts="${TOOL_KEYS[id]}"` : ''}>${ICON[id]}<span${TOOL_MAP[id][1].length >= 4 ? ' class="tl"' : ''}>${TOOL_MAP[id][1]}</span></button>`;
 function renderTools() {
   const lit = litTool(), ids = barIds();
   toolsEl.innerHTML = (deskOn ? ids : ids.slice(0, BAR_MAX)).map(id => toolBtn(id, lit)).join('')
@@ -10261,12 +10267,23 @@ const AI_WORKS_DEF = [
       { t: 'text', x: .5, y: .925, text: '帰り道は、すこし遠回りして。', font: 'Shippori Mincho', size: .03, color: '#34406A' }
     ] }) }
 ];
-let aiWorkCache = null, aiWorkP = null;
+let aiWorkCache = null, aiWorkP = null, aiWorkDay = '';
+/* 今日のAI作例: the pool is shuffled with a seed from today's date in Japan and AI_DAY_N of them are shown.
+   Everyone sees the same set on the same day; it changes at midnight JST. */
+const AI_DAY_N = 12;
+const aiDayKey = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+function aiPickDay(list, key = aiDayKey()) {
+  let h = 2166136261; for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rnd = () => { h = (h + 0x6D2B79F5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const a = list.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, AI_DAY_N);
+}
 /* pre-rendered files first (aiworks/index.json + <id>.webp / <id>-t.webp, written by tools/render-aiworks.mjs from the code below): no drawing.
    Only when the list can't be read (file://, offline without cache) are the works drawn here as before. */
 function aiWorks() {
+  const day = aiDayKey(); if (day !== aiWorkDay) { aiWorkDay = day; aiWorkCache = aiWorkP = null; }   // a new day: a new set
   if (aiWorkCache) return Promise.resolve(aiWorkCache);
-  return aiWorkP || (aiWorkP = aiWorksFiles().catch(() => aiWorksDraw()).then(r => (aiWorkCache = r)));
+  return aiWorkP || (aiWorkP = aiWorksFiles().catch(() => aiWorksDraw(undefined, aiPickDay(AI_WORKS_DEF))).then(r => (aiWorkCache = r)));
 }
 async function aiWorksFiles() {
   if (!/^https?:$/.test(location.protocol)) throw new Error('no http');
@@ -10274,14 +10291,14 @@ async function aiWorksFiles() {
   const L = (await r.json()).filter(x => x && /^[a-z0-9-]+$/.test(x.id) && x.recipe && typeof x.recipe === 'object');
   if (!L.length) throw new Error('aiworks empty');
   const ext = x => x.ext === 'jpg' ? 'jpg' : 'webp';
-  return L.map(x => ({ id: 'ai-' + x.id, title: String(x.title || ''), tags: Array.isArray(x.tags) ? x.tags.map(String) : [], visibility: 'public', createdAt: 0, w: +x.w || 0, h: +x.h || 0,
+  return aiPickDay(L).map(x => ({ id: 'ai-' + x.id, title: String(x.title || ''), tags: Array.isArray(x.tags) ? x.tags.map(String) : [], visibility: 'public', createdAt: 0, w: +x.w || 0, h: +x.h || 0,
     thumb: `aiworks/${x.id}-t.${ext(x)}`, full: `aiworks/${x.id}.${ext(x)}`, recipe: x.recipe, author: { name: 'Lufora AI' }, mine: false, sample: true, ai: true }));
 }
 /* fonts first (at most ~6 s), so the titles are drawn in their own typefaces; then one work per task so the UI stays responsive.
    enc(canvas, 'thumb'|'full') → image URL (JPEG data URLs by default; the generator passes a WebP encoder) */
-function aiWorksDraw(enc) {
+function aiWorksDraw(enc, defs = AI_WORKS_DEF) {
   return (async () => {
-    const fams = [...new Set(AI_WORKS_DEF.flatMap(w => w.fonts))];
+    const fams = [...new Set(defs.flatMap(w => w.fonts))];
     fams.forEach(f => familyCSS(f));
     // the Google Fonts stylesheets arrive first, then the faces: poll until every family can draw (or ~6 s passed)
     const ready = f => document.fonts.check(`700 40px "${f}"`, 'あAa') && [...document.fonts].some(ff => ff.family.replace(/"/g, '') === f && ff.status === 'loaded');
@@ -10291,12 +10308,12 @@ function aiWorksDraw(enc) {
     }
     layoutMemo.clear();
     const S = aiScenes(), out = [];
-    for (const w of AI_WORKS_DEF) { try { const m = w.make(S); await aiFontsFor(m.specs); out.push(aiWorkOne(w, S, m, enc)); } catch (e) { console.warn('ai work', w.id, e); } await new Promise(r => setTimeout(r, 0)); }
+    for (const w of defs) { try { const m = w.make(S); await aiFontsFor(m.specs); out.push(aiWorkOne(w, S, m, enc)); } catch (e) { console.warn('ai work', w.id, e); } await new Promise(r => setTimeout(r, 0)); }
     return out;
   })();
 }
 const aiScenes = () => { const m = new Map(); return { scene(n, W, H, o = {}) { const k = n + W + 'x' + H + JSON.stringify(o); if (!m.has(k)) m.set(k, n === 'lake' ? AIS.forest(W, H, o) : n === 'bokeh' ? AIS.flowers(W, H, o) : AIS[n](W, H, o)); return m.get(k); } }; };
-function aiWorksNow() { const S = aiScenes(); return (aiWorkCache = AI_WORKS_DEF.map(w => aiWorkOne(w, S))); }
+function aiWorksNow() { const S = aiScenes(); aiWorkDay = aiDayKey(); return (aiWorkCache = aiPickDay(AI_WORKS_DEF).map(w => aiWorkOne(w, S))); }
 /* CJK web fonts arrive in unicode-range slices: load the slices this work's texts need (≤ 3 s) before the one-shot render */
 function aiFontsFor(specs) {
   const L = specs.filter(s => s.font && s.text).map(s => document.fonts.load(`${s.bold === false ? 400 : 700} 40px "${s.font}"`, s.text).catch(() => { }));
