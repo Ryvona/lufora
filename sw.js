@@ -1,5 +1,7 @@
 /* PetaPhoto service worker.
- * - Precaches the app shell (index.html, u2netp.js, manifest, icons) into CACHE.
+ * - Precaches the app shell (index.html, manifest, icons) into CACHE.
+ * - u2netp.js (the 6 MB 標準 AI model) is NOT precached: it is fetched on first AI use and kept cache-first in MODEL_CACHE,
+ *   whose name does not start with 'petaphoto-', so deploys never make people download it again. Rename the file if the model ever changes.
  * - Same-origin navigations: network-first (revalidated), refreshing the cached index.html; offline falls back to it.
  * - Other same-origin GETs: cache-first, network fallback (and cached on success).
  * - aiworks/ (pre-rendered AI作例, ~2 MB): stale-while-revalidate in RT_CACHE, so they show at once and refresh after a deploy.
@@ -8,9 +10,10 @@
  * - A new version waits until the page posts {type:'skipWaiting'} (after its "update available" toast).
  */
 'use strict';
-const CACHE = 'petaphoto-v63';
-const RT_CACHE = 'petaphoto-rt-v63';
-const PRECACHE = ['./', 'index.html', 'u2netp.js', 'manifest.webmanifest',
+const CACHE = 'petaphoto-v64';
+const RT_CACHE = 'petaphoto-rt-v64';
+const MODEL_CACHE = 'lufora-model-u2';
+const PRECACHE = ['./', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 const RT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
 
@@ -47,8 +50,8 @@ async function networkFirstNav(req) {
   }
 }
 
-async function cacheFirst(req) {
-  const c = await caches.open(CACHE);
+async function cacheFirst(req, name = CACHE) {
+  const c = await caches.open(name);
   const hit = await c.match(req);
   if (hit) return hit;
   const res = await fetch(req);
@@ -104,7 +107,7 @@ self.addEventListener('fetch', e => {
 
   let p = null;
   if (url.origin === self.location.origin) {
-    p = req.mode === 'navigate' ? networkFirstNav(req) : url.pathname.includes('/aiworks/') ? staleWhileRevalidate(e) : cacheFirst(req);
+    p = req.mode === 'navigate' ? networkFirstNav(req) : url.pathname.includes('/aiworks/') ? staleWhileRevalidate(e) : url.pathname.endsWith('/u2netp.js') ? cacheFirst(req, MODEL_CACHE) : cacheFirst(req);
   } else if (RT_HOSTS.includes(url.hostname)) {
     p = staleWhileRevalidate(e);
   } else {

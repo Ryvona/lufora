@@ -569,6 +569,19 @@ html:not(.desk)[data-hand="left"] .topbar{flex-direction:row-reverse}
 #instHint .chip{height:calc(32px*var(--u));padding:0 12px;background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700}
 #instHint .xbtn{position:static;flex:none;width:30px;height:30px;font-size:18px}
 @keyframes instIn{from{opacity:0;transform:translateY(-6px)}}
+/* ==== guided tour ==== */
+#tour{position:fixed;z-index:22;left:50%;top:calc(env(safe-area-inset-top,0px) + 60px);transform:translateX(-50%);width:min(calc(100% - 24px),420px);background:var(--chrome);border:1px solid #C9DBB9;border-radius:18px;box-shadow:0 10px 30px -8px rgba(60,70,50,.35);padding:12px 12px 10px 16px;animation:instIn .35s var(--spring)}
+#tour[hidden]{display:none}
+html.desk #tour{top:auto;bottom:24px}
+#tour .tsn{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.04em}
+#tour .tsn i{display:inline-block;width:18px;height:4px;border-radius:2px;background:var(--line);margin-left:4px;vertical-align:middle}
+#tour .tsn i.on{background:var(--accent)}
+#tour p{margin:2px 0 8px;font-size:calc(14.5px*var(--u));line-height:1.55}
+#tour .tact{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+#tour .tact .chip{height:max(40px,calc(34px*var(--u)))}
+#tour .tact .chip.pri{background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700}
+.tourHi{outline:3px solid var(--accent)!important;outline-offset:3px;border-radius:12px;animation:tourPulse 1.4s ease-in-out infinite}
+@keyframes tourPulse{50%{outline-color:#A9C7A9;outline-offset:6px}}
 /* ==== survey dock ==== */
 #svBar{display:flex;align-items:center;gap:8px;margin:0 8px 6px;padding:4px 4px 4px 12px;border-radius:16px;background:#EAF1E4;border:1px solid #C9DBB9;font-size:calc(12.5px*var(--u));line-height:1.4;animation:instIn .35s var(--spring)}
 #svBar[hidden]{display:none}
@@ -1021,6 +1034,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
 <div class="backdrop" id="backdrop" hidden></div>
 <!-- the toast lives outside #app so it shows above sheets and the backdrop -->
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="tour" role="region" aria-label="操作ガイド" aria-live="polite" hidden></div>
 <div id="svPanel" role="dialog" aria-label="アンケート" hidden><div class="svh"><span>アンケート</span><button class="chip svTall" data-sv="tall">大きく</button><button class="chip" data-sv="hide">しまう</button></div></div>
 
 <div class="sheet" id="sheetNew" hidden>
@@ -1053,6 +1067,9 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   <h3>画質・サイズ</h3>
   <div class="wrap" id="exQ"></div>
   <div class="wrap" id="exSize" style="margin-top:8px"></div>
+  <h3>SNS向けの形</h3>
+  <div class="wrap" id="exSns"></div>
+  <div class="wrap" id="exFill" style="margin-top:8px"></div>
   <div class="setrow pubsw"><span class="st">みんなの作品にも公開する<small id="pubSwSub">オフなら、画像を保存するだけです。どこにも公開されません。</small></span><button class="tg" role="switch" aria-checked="false" aria-label="みんなの作品にも公開する" id="pubSw"></button></div>
   <div id="pubForm" hidden>
     <div class="wrap" id="pubVis"></div>
@@ -1070,6 +1087,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
 <div class="sheet" id="sheetHelp" hidden>
   <div class="grab"></div>
   <h2>使い方</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button>
+  <div class="actions" style="padding:0 0 10px;justify-content:flex-start"><button class="btn" data-tour="1">操作ガイドをはじめる（写真→文字→保存）</button></div>
   <!-- PC and phone each get their own short guide (only the matching one is shown) -->
   <div class="help-pc">
     <div class="hcards">
@@ -1122,8 +1140,9 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
     <li><span class="wn">2</span><span class="wi" data-ic="spark"></span><b>デコる</b><small>文字・素材・テンプレート</small></li>
     <li><span class="wn">3</span><span class="wi" data-ic="save"></span><b>保存する</b><small>上の「保存」ボタン</small></li>
   </ol>
-  <div class="actions" style="padding:14px 0 0"><button class="btn" data-wl="tpl">テンプレートを見る</button><button class="btn primary" data-wl="open">写真をえらぶ</button></div>
-  <p class="note" style="text-align:center">いまはサンプル写真で試せます。使い方は「？」（スマホは ☰ の「使い方」）からいつでも。</p>
+  <div class="actions" style="padding:14px 0 0"><button class="btn primary" data-wl="tour">いっしょにやってみる（1分）</button></div>
+  <div class="actions" style="padding:8px 0 0"><button class="btn" data-wl="tpl">テンプレートを見る</button><button class="btn" data-wl="open">写真をえらぶ</button></div>
+  <p class="note" style="text-align:center">「いっしょにやってみる」は、押す場所を光らせて順番に案内します。使い方は「？」（スマホは ☰ の「使い方」）からいつでも見られます。</p>
 </div>
 
 <div class="sheet" id="sheetInstall" hidden>
@@ -1253,6 +1272,30 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
 <input type="file" id="fileLib" accept="image/*" multiple class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileFont" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" class="vh" tabindex="-1" aria-hidden="true">
 
+<script>
+/* ==== error reports ==== */
+/* Its own small script before the main one, so it also catches a main-script failure at load.
+   Sends only what went wrong (message, file:line, stack, browser, layout, page date) to Supabase table client_errors
+   (supabase/schema_client_errors.sql): no photos, text, user ids. At most 5 different errors per page load; only over https; never under
+   navigator.webdriver; off when 設定 › データ 「不具合を自動で知らせる」 is off (petaphoto.ui errRep === false). privacy.html 2-(9). */
+(() => {
+  const EP = 'https://isdnvasoyxnnudvreimu.supabase.co', KEY = 'sb_publishable_ovSzcndKplriLJfsTG_S1w_ko8LB6SG';   // keep in step with SUPA
+  const seen = new Set(), cut = (v, n) => String(v == null ? '' : v).slice(0, n);
+  const off = () => { try { return JSON.parse(localStorage.getItem('petaphoto.ui') || '{}').errRep === false; } catch (e) { return false; } };
+  const clean = t => cut(t, 4000).replace(/(https?:\/\/[^\s)]+?)[?#][^\s):]*/g, '$1').replace(/blob:[^\s)]+/g, 'blob:').replace(/data:[^\s)]{20,}/g, 'data:…');
+  function send(msg, src, line, stack) {
+    if (location.protocol !== 'https:' || navigator.webdriver || off() || seen.size >= 5) return;
+    msg = clean(msg).trim(); if (!msg || /ResizeObserver loop|^Script error\.?$/i.test(msg)) return;
+    stack = clean(stack); if (/(chrome|moz|safari)-extension:/.test(stack + src)) return;   // browser add-ons, not us
+    const k = msg + '|' + src + '|' + line; if (seen.has(k)) return; seen.add(k);
+    const lm = new Date(document.lastModified), body = { msg: cut(msg, 500), src: cut(clean(src), 300), line: line | 0 || null, stack: cut(stack, 2000), ua: cut(navigator.userAgent, 300),
+      ver: isNaN(lm) ? '' : lm.toISOString().slice(0, 16), layout: document.documentElement.classList.contains('desk') ? 'pc' : 'phone' };
+    setTimeout(() => { try { fetch(EP + '/rest/v1/client_errors', { method: 'POST', keepalive: true, headers: { apikey: KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body) }).catch(() => {}); } catch (e) { } }, 1500);
+  }
+  addEventListener('error', e => { if (e.error || e.message) send(e.message || (e.error && e.error.message), e.filename, e.lineno, e.error && e.error.stack); });
+  addEventListener('unhandledrejection', e => { const r = e.reason; if (r && (r.name === 'AbortError' || r.name === 'NotAllowedError')) return; send('(promise) ' + (r && r.message || r), '', 0, r && r.stack); });
+})();
+</script>
 <script>
 'use strict';
 /* ============================================================
@@ -6793,7 +6836,7 @@ function loadUI() {
   if (!['resume', 'new'].includes(u.boot)) u.boot = 'resume';
   if (!['new', 'likes'].includes(u.galSort)) u.galSort = 'new';
   u.calm = !!u.calm; u.tcol = u.tcol !== false;
-  u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.seen = !!u.seen; u.visits = Math.min(99, +u.visits | 0); u.instHint = !!u.instHint;
+  u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.errRep = u.errRep !== false; u.seen = !!u.seen; u.visits = Math.min(99, +u.visits | 0); u.instHint = !!u.instHint;
   u.legendN = Math.min(99, +u.legendN | 0);
   return u;
 }
@@ -7052,6 +7095,41 @@ addEventListener('message', e => {
   else if (e.data.prog) { svN = e.data.prog; svBarSync(); }
 });
 svBarSync();
+/* ==== guided tour ==== */
+/* 操作ガイド (welcome sheet いっしょにやってみる, 使い方, quick search): #tour bubble + .tourHi ring on the button to press.
+   Steps finish by themselves when the thing really happened (polled every 400 ms): a new photo (doc replaced) or このまま続ける,
+   a finished non-empty text object, the 保存 sheet open. Nothing blocks the app. */
+const TOUR = [
+  { hi: () => $('#btnNew'), t: '左上の「開く」を押して、写真をえらびましょう。いまのサンプル写真で試すなら「このまま続ける」を押してください。', skip: 'このまま続ける' },
+  { hi: () => toolsEl.querySelector('[data-tool="text"]') || toolsEl.querySelector('[data-tmore]'), t: () => (toolsEl.querySelector('[data-tool="text"]') ? '下の「文字」を押して' : '「その他」→「文字」を押して') + '、好きな言葉を入れてみましょう。打ち終わったら、写真の外をタップします。' },
+  { hi: () => $('#btnSave'), t: '右上の「保存」を押しましょう。' }
+];
+let tourI = -1, tourT = 0, tourDoc = null, tourTx = 0;
+const tourTexts = () => doc ? doc.objects.filter(o => o.type === 'text' && String(o.text || '').trim() && o.id !== editingId).length : 0;
+function tourStart() {
+  closeSheets(); if (!deskOn && sideMob) closeMobSide();
+  tourI = 0; tourDoc = doc; tourShow(); clearInterval(tourT); tourT = setInterval(tourTick, 400);
+}
+function tourEnd() { tourI = -1; clearInterval(tourT); $('#tour').hidden = true; document.querySelectorAll('.tourHi').forEach(x => x.classList.remove('tourHi')); }
+function tourShow() {
+  const st = TOUR[tourI], n = TOUR.length;
+  if (tourI === 1) tourTx = tourTexts();
+  $('#tour').innerHTML = `<div class="tsn">ステップ ${tourI + 1} / ${n}${TOUR.map((_, i) => `<i${i <= tourI ? ' class="on"' : ''}></i>`).join('')}</div><p>${esc(typeof st.t === 'function' ? st.t() : st.t)}</p>`
+    + `<div class="tact"><button class="chip" data-tg="end">ガイドを終える</button>${st.skip ? `<button class="chip pri" data-tg="next">${esc(st.skip)}</button>` : ''}</div>`;
+  $('#tour').hidden = false; tourTick();
+}
+function tourNext() { tourI++; if (tourI >= TOUR.length) tourEnd(); else tourShow(); }
+function tourTick() {
+  if (tourI < 0) return;
+  const st = TOUR[tourI], el = st.hi && st.hi();
+  document.querySelectorAll('.tourHi').forEach(x => { if (x !== el) x.classList.remove('tourHi'); });
+  if (el && !el.classList.contains('tourHi')) el.classList.add('tourHi');
+  if (tourI === 0 && doc && doc !== tourDoc) tourNext();
+  else if (tourI === 1 && tourTexts() > tourTx) tourNext();
+  else if (tourI === 2 && !$('#sheetSave').hidden) { tourEnd(); toast('できました。「保存する」を押せば完成です。文字はドラッグで動かしたり、素材やテンプレートで飾ったりもできます', 6000); }
+}
+$('#tour').addEventListener('click', e => { const b = e.target.closest('[data-tg]'); if (!b) return; if (b.dataset.tg === 'next') tourNext(); else tourEnd(); });
+$('#sheetHelp').addEventListener('click', e => { if (e.target.closest('[data-tour]')) tourStart(); });
 async function takeShared() {
   const bad = () => toast('共有された写真を読み込めませんでした');
   if (!('caches' in window)) { bad(); return true; }
@@ -8368,6 +8446,7 @@ function cmdItems() {
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   if (!deskOn) add('その他のツール', 'ツール欄に入らないツール', ['more', 'tools', 'そのた', 'つーる'], openMoreSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
+  add('操作ガイド', '写真→文字→保存を順番に案内', ['tour', 'guide', 'がいど', 'あんない', 'ちゅーとりある', 'はじめて'], () => tourStart());
   Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], '補正のフィルター', ['filter', id, f[0]], () => { S.colorTab = 'filter'; if (deskOn) setTool('filter'); runCmd('preset', id); }));
   Object.entries(DECO).forEach(([id, d]) => add('素材：' + d.name, 'デコ素材', ['deco', 'でこ', 'そざい', d.yomi || '', id, (DECO_CATS.find(c => c[0] === d.cat) || ['', ''])[1]], () => addDeco(id)));
   DATE_FMTS.forEach((f, i) => add('日付：' + f[0], '今日の日付を入れる', ['date', 'ひづけ', 'きょう'], () => addDateStamp(i)));
@@ -8847,6 +8926,7 @@ function renderUISheet() {
     + (UI.exFmt === 'jpeg' ? `<div class="setlab">画質の初期値</div>` + opt('exQ', [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']]) : '')
     + `<div class="setlab">起動したとき</div>` + opt('boot', [['resume', '前回の続きから'], ['new', '「開く・新規作成」を出す']]);
   $('#uiLib').innerHTML = setRow('libAuto', '写真をマイ素材に自動で残す', '開いた・重ねた写真をこの端末に保存', UI.libAuto)
+    + setRow('errRep', '不具合を自動で知らせる', 'エラーが起きたとき、その内容だけを運営者に送ります。写真や文字は送りません', UI.errRep)
     + `<div class="setlab">背景削除のAIモデル（ふだん使うもの）</div>` + opt('aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]))
     + (UI.aiModel === 'rmbg' ? hint('RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。') : '');
   $('#uiFx').innerHTML = setRow('fx', 'タップのきらめき', reduceMo.matches ? '端末の「視差効果を減らす」がオンのため表示されません' : '押すと小さな粒がはじけます', UI.fx)
@@ -9018,17 +9098,48 @@ $('#sheetNew').addEventListener('click', e => {
   }
 });
 
-const EX = { fmt: 'jpeg', q: 0.95, scale: 1 };
+const EX = { fmt: 'jpeg', q: 0.95, scale: 1, sns: '', fill: 'blur' };
+/* SNS向けの形: the whole picture is fitted inside W×H (nothing is cut off) and the rest is filled (ぼかし = a blurred, slightly darkened cover-fit copy) */
+const EX_SNS = [['', '元の比率'], ['sq', '正方形 1:1', 1080, 1080, 'Instagram 投稿'], ['ig', '縦長 4:5', 1080, 1350, 'Instagram 投稿'], ['st', 'ストーリー 9:16', 1080, 1920, 'ストーリー・リール'], ['x', '横長 16:9', 1600, 900, 'X・YouTube']];
+const exSnsOf = () => EX_SNS.find(x => x[0] === EX.sns && x[2]);
+function exSnsCanvas(W, H, k = 1) {
+  W = Math.round(W * k); H = Math.round(H * k);
+  const src = document.createElement('canvas'), sc = Math.min(W / doc.w, H / doc.h);
+  renderDoc(src, sc, { cache: false });
+  const out = document.createElement('canvas'); out.width = W; out.height = H; const x = out.getContext('2d');
+  if (EX.fill === 'blur') {
+    // blur: shrink to ~1/40, then enlarge in 2× steps with smoothing (soft like a Gaussian; works in every browser, unlike ctx.filter on older Safari)
+    const cs = Math.max(W / src.width, H / src.height), D = 40;
+    let t = document.createElement('canvas'), tw = Math.max(2, Math.round(W / D)), th = Math.max(2, Math.round(H / D));
+    t.width = tw; t.height = th; let tx = t.getContext('2d'); tx.fillStyle = '#888'; tx.fillRect(0, 0, tw, th);
+    tx.imageSmoothingQuality = 'high'; const dw = src.width * cs / D, dh = src.height * cs / D; tx.drawImage(src, (tw - dw) / 2, (th - dh) / 2, dw, dh);
+    while (tw * 2 < W) { const u = document.createElement('canvas'); u.width = tw * 2; u.height = th * 2; const ux = u.getContext('2d'); ux.imageSmoothingQuality = 'high'; ux.drawImage(t, 0, 0, u.width, u.height); t.width = t.height = 1; t = u; tw *= 2; th *= 2; }
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(t, 0, 0, W, H);
+    x.fillStyle = 'rgba(0,0,0,.18)'; x.fillRect(0, 0, W, H); t.width = t.height = 1;
+  } else { x.fillStyle = EX.fill === 'black' ? '#000' : '#fff'; x.fillRect(0, 0, W, H); }
+  x.drawImage(src, Math.round((W - src.width) / 2), Math.round((H - src.height) / 2)); src.width = src.height = 1;
+  return out;
+}
+function exPreview() {
+  const th = $('#exThumb'), sn = exSnsOf();
+  if (!sn) { renderDoc(th, Math.min(1, 640 / Math.max(doc.w, doc.h)), { cache: false }); return; }
+  const c = exSnsCanvas(sn[2], sn[3], 640 / Math.max(sn[2], sn[3])); th.width = c.width; th.height = c.height; th.getContext('2d').drawImage(c, 0, 0); c.width = c.height = 1;
+}
 const exFromUI = () => { EX.fmt = UI.exFmt; EX.q = UI.exQ; };   // 設定 › 保存の初期値 (changes in the 保存 sheet last until the next settings change)
 function renderEX() {
   $('#exFmt').innerHTML = [['jpeg', 'JPEG（写真向け・軽い）'], ['png', 'PNG（劣化なし）']].map(([v, l]) => `<button class="chip${EX.fmt === v ? ' on' : ''}" data-exf="${v}">${l}</button>`).join('');
   $('#exQ').innerHTML = EX.fmt === 'jpeg' ? [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']].map(([v, l]) => `<button class="chip${EX.q === v ? ' on' : ''}" data-exq="${v}">${l}</button>`).join('') : '';
+  const sn = exSnsOf();
+  $('#exSns').innerHTML = EX_SNS.map(([v, l, w, h, use]) => `<button class="chip${EX.sns === v ? ' on' : ''}" data-exn="${v}" aria-pressed="${EX.sns === v}"${use ? ` title="${use}向け ${w}×${h}"` : ''}>${l}${w ? `<span style="opacity:.6;font-size:11px;margin-left:6px">${w}×${h}</span>` : ''}</button>`).join('');
+  $('#exFill').innerHTML = sn ? `<span class="note" style="margin:0 6px 0 0;align-self:center">余白</span>` + [['blur', 'ぼかし'], ['white', '白'], ['black', '黒']].map(([v, l]) => `<button class="chip${EX.fill === v ? ' on' : ''}" data-exb="${v}" aria-pressed="${EX.fill === v}">${l}</button>`).join('') : '';
+  $('#exFill').hidden = !sn; $('#exSize').hidden = !!sn;
   $('#exSize').innerHTML = [[1, '原寸'], [0.5, '1/2']].map(([v, l]) => `<button class="chip${EX.scale === v ? ' on' : ''}" data-exs="${v}">${l}<span style="opacity:.6;font-size:11px;margin-left:6px">${Math.round(doc.w * v)}×${Math.round(doc.h * v)}</span></button>`).join('');
 }
 $('#sheetSave').addEventListener('click', e => {
-  const f = e.target.closest('[data-exf]'), q = e.target.closest('[data-exq]'), s = e.target.closest('[data-exs]');
-  if (f) EX.fmt = f.dataset.exf; if (q) EX.q = +q.dataset.exq; if (s) EX.scale = +s.dataset.exs;
-  if (f || q || s) renderEX();
+  const f = e.target.closest('[data-exf]'), q = e.target.closest('[data-exq]'), s = e.target.closest('[data-exs]'), n = e.target.closest('[data-exn]'), b = e.target.closest('[data-exb]');
+  if (f) EX.fmt = f.dataset.exf; if (q) EX.q = +q.dataset.exq; if (s) EX.scale = +s.dataset.exs; if (n) EX.sns = n.dataset.exn; if (b) EX.fill = b.dataset.exb;
+  if (f || q || s || n || b) renderEX();
+  if (n || b) { $('#exImg').hidden = true; $('#exMsg').hidden = true; $('#exThumb').hidden = false; exPreview(); }   // a new shape: show the new preview, not the last saved image
 });
 function openSave() {
   if (!doc) return;
@@ -9036,8 +9147,7 @@ function openSave() {
   selId = null; multi = []; refreshPanel(); requestDraw();
   renderEX();
   $('#exImg').hidden = true; $('#exMsg').hidden = true;
-  const th = $('#exThumb'); th.hidden = false;
-  renderDoc(th, Math.min(1, 640 / Math.max(doc.w, doc.h)), { cache: false });
+  $('#exThumb').hidden = false; exPreview();
   openSheet('#sheetSave');
 }
 let exUrl = null;
@@ -9076,11 +9186,12 @@ $('#exGo').addEventListener('click', async () => {
   }
 });
 async function exportImage() {
-  const c = document.createElement('canvas');
+  let c = document.createElement('canvas');
   try {
     try { await document.fonts.ready; } catch (e) { }
-    const sc = Math.min(EX.scale, Math.sqrt(EX_MAX_PX / (doc.w * doc.h)));
-    renderDoc(c, sc, { cache: false, flatten: EX.fmt === 'jpeg' ? '#FFFFFF' : null });
+    const sn = exSnsOf();
+    if (sn) c = exSnsCanvas(sn[2], sn[3]);
+    else renderDoc(c, Math.min(EX.scale, Math.sqrt(EX_MAX_PX / (doc.w * doc.h))), { cache: false, flatten: EX.fmt === 'jpeg' ? '#FFFFFF' : null });
     const type = EX.fmt === 'png' ? 'image/png' : 'image/jpeg';
     const blob = await toBlob(c, type, EX.q);
     c.width = c.height = 1;
@@ -9177,7 +9288,7 @@ const sbDown = async (c, bucket, path) => sbOk(await c.storage.from(bucket).down
    Signed-in users sync settings (user_settings), マイ素材 (library_items + private bucket library: <uid>/<id>.<ext>, <uid>/<id>-t.<jpg|png>)
    and one cloud draft (cloud_drafts + bucket drafts: <uid>/<bitmapId>.<jpg|png>). Server side: supabase/schema_account.sql,
    setup steps for the owner: supabase/DEPLOY-account.md. RLS only lets non-anonymous users touch the sync tables. */
-const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto', 'grid', 'calm', 'lp', 'exFmt', 'exQ', 'boot', 'galSort'];
+const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto', 'grid', 'calm', 'lp', 'exFmt', 'exQ', 'boot', 'galSort', 'errRep'];
 const acctLocal = (() => { let v = null; try { v = JSON.parse(localStorage.getItem(ACCT_KEY)); } catch (e) { } v = v && typeof v === 'object' ? v : {}; v.at = v.at && typeof v.at === 'object' ? v.at : {}; if (!v.dev) v.dev = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); return v; })();
 function acctSave() { try { localStorage.setItem(ACCT_KEY, JSON.stringify(acctLocal)); } catch (e) { } }
 let acct = null, acctBusy = false, acctSent = '', syncState = '', syncAt = 0, cloudInfo = null, acctWired = false;
@@ -11055,7 +11166,8 @@ document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closes
 $('#sheetWelcome').addEventListener('click', e => {
   const b = e.target.closest('[data-wl]'); if (!b) return;
   closeSheets();
-  if (b.dataset.wl === 'open') $('#fileOpen').click();
+  if (b.dataset.wl === 'tour') tourStart();
+  else if (b.dataset.wl === 'open') $('#fileOpen').click();
   else if (b.dataset.wl === 'tpl') deskOn ? openInDrawer('template') : openTplSheet();
 });
 </script>
