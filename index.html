@@ -569,6 +569,25 @@ html:not(.desk)[data-hand="left"] .topbar{flex-direction:row-reverse}
 #instHint .chip{height:calc(32px*var(--u));padding:0 12px;background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700}
 #instHint .xbtn{position:static;flex:none;width:30px;height:30px;font-size:18px}
 @keyframes instIn{from{opacity:0;transform:translateY(-6px)}}
+/* ==== survey dock ==== */
+#svBar{display:flex;align-items:center;gap:8px;margin:0 8px 6px;padding:4px 4px 4px 12px;border-radius:16px;background:#EAF1E4;border:1px solid #C9DBB9;font-size:calc(12.5px*var(--u));line-height:1.4;animation:instIn .35s var(--spring)}
+#svBar[hidden]{display:none}
+#svBar>svg{flex:none;width:20px;height:20px;color:var(--accent)}
+#svBar>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#svBar>span small{color:var(--muted);margin-left:6px}
+#svBar .chip{height:calc(32px*var(--u));padding:0 14px;background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:700}
+#svBar .xbtn{position:static;flex:none;width:30px;height:30px;font-size:18px}
+#svPanel{position:fixed;z-index:20;left:0;right:0;bottom:0;height:min(62vh,620px);display:flex;flex-direction:column;background:var(--chrome);border-top:1px solid var(--line);border-radius:20px 20px 0 0;box-shadow:0 -12px 34px -12px rgba(60,70,50,.3);overflow:hidden;animation:svUp .3s var(--spring)}
+#svPanel[hidden]{display:none}
+#svPanel.tall{height:calc(100% - env(safe-area-inset-top,0px) - 56px)}
+#svPanel .svh{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 16px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
+#svPanel .svh span{flex:1}
+#svPanel .svh .chip{height:34px;padding:0 12px}
+#svPanel iframe{flex:1;width:100%;border:0;background:var(--bg)}
+html.desk #svPanel{left:auto;right:12px;top:64px;bottom:12px;width:min(420px,40vw);height:auto;border:1px solid var(--line);border-radius:18px;animation:svIn .3s var(--spring)}
+html.desk #svPanel .svTall{display:none}
+@keyframes svUp{from{transform:translateY(40px);opacity:0}}
+@keyframes svIn{from{transform:translateX(30px);opacity:0}}
 #sheetInstall .wsteps .wi{display:flex;height:34px;align-items:center}
 #sheetInstall .wsteps .wi svg{width:30px;height:30px;color:var(--accent)}
 #sheetInstall .wsteps b{font-size:12.5px;letter-spacing:-.02em}
@@ -926,6 +945,7 @@ html:not(.desk):not(.tab) .dock .tools .tool span.tl{display:block;font-size:.92
     <button class="tbtn primary" id="btnSave">保存</button>
   </header>
   <div id="instHint" role="region" aria-label="インストールの案内" hidden></div>
+  <div id="svBar" role="region" aria-label="アンケート" hidden></div>
   <div id="work">
     <aside id="side" aria-label="サイドバー">
       <div class="dhead mhead"><h2 id="sideTitle">メニュー</h2><button class="xbtn" id="sideClose" aria-label="閉じる" title="閉じる">×</button></div>
@@ -957,6 +977,7 @@ html:not(.desk):not(.tab) .dock .tools .tool span.tl{display:block;font-size:.92
 <div class="backdrop" id="backdrop" hidden></div>
 <!-- the toast lives outside #app so it shows above sheets and the backdrop -->
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="svPanel" role="dialog" aria-label="アンケート" hidden><div class="svh"><span>アンケート</span><button class="chip svTall" data-sv="tall">大きく</button><button class="chip" data-sv="hide">しまう</button></div></div>
 
 <div class="sheet" id="sheetNew" hidden>
   <div class="grab"></div>
@@ -6946,8 +6967,46 @@ async function appLaunch() {
   if (sh) return takeShared();
   if (a === 'tpl') { deskOn ? openInDrawer('template') : openTplSheet(); return true; }
   if (a === 'new') { renderNB(); openSheet('#sheetNew'); return true; }
+  if (a === 'survey') { svStart(); return true; }
   return false;
 }
+/* ==== survey dock ==== */
+/* survey.html sends people to ./?a=survey; the survey then lives in #svPanel (an iframe of survey.html?embed=1) over the app,
+   folds into the slim #svBar, and stays across reloads until it is sent or closed (localStorage lufora.survey.on). Answers stay in the survey page's own draft. */
+const SV_KEY = 'lufora.survey.on';
+let svN = '';
+const svOn = () => { try { return !!localStorage.getItem(SV_KEY); } catch (e) { return false; } };
+function svStart() { try { localStorage.setItem(SV_KEY, '' + Date.now()); } catch (e) { } svOpen(true); }
+function svBarSync() {
+  const el = $('#svBar'), on = svOn(), open = !$('#svPanel').hidden;
+  el.hidden = !on; if (!on) return;
+  el.innerHTML = `${ICON.note}<span>アンケート${svN ? `<small>${esc(svN)}</small>` : ''}</span><button class="chip" data-sv="toggle">${open ? 'しまう' : '開く'}</button><button class="xbtn" data-sv="end" aria-label="アンケートを終える" title="アンケートを終える">×</button>`;
+}
+function svOpen(show) {
+  const pn = $('#svPanel');
+  if (show && !pn.querySelector('iframe')) pn.insertAdjacentHTML('beforeend', '<iframe src="survey.html?embed=1" title="アンケート"></iframe>');
+  pn.hidden = !show; svBarSync();
+  if (show && !deskOn && phNow !== 's') setPH('s');   // phones: fold the tool panel so the photo stays visible above the sheet
+}
+function svEnd(sent) {
+  try { localStorage.removeItem(SV_KEY); } catch (e) { }
+  const pn = $('#svPanel'); pn.hidden = true; pn.classList.remove('tall'); const f = pn.querySelector('iframe'); if (f) f.remove(); svN = ''; svBarSync();
+  toast(sent ? 'アンケートを送信しました。ありがとうございました' : 'アンケートを閉じました（入力した内容は残っています）');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-sv]'); if (!b) return;
+  const v = b.dataset.sv;
+  if (v === 'toggle') svOpen($('#svPanel').hidden);
+  else if (v === 'hide') svOpen(false);
+  else if (v === 'tall') { const pn = $('#svPanel'); pn.classList.toggle('tall'); b.textContent = pn.classList.contains('tall') ? '小さく' : '大きく'; }
+  else if (v === 'end') svEnd(false);
+});
+addEventListener('message', e => {
+  if (e.origin !== location.origin || !e.data || e.data.lufora !== 'survey') return;
+  if (e.data.done) svEnd(true);
+  else if (e.data.prog) { svN = e.data.prog; svBarSync(); }
+});
+svBarSync();
 async function takeShared() {
   const bad = () => toast('共有された写真を読み込めませんでした');
   if (!('caches' in window)) { bad(); return true; }

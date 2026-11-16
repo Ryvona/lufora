@@ -2,6 +2,10 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<script>
+/* Opened on its own (not inside the app): go to Lufora, which opens this survey in a panel over the app. ?solo=1 stays here. */
+(function () { var q = new URLSearchParams(location.search); if (q.has('embed')) document.documentElement.className = 'embed'; else if (!q.has('solo')) location.replace('./?a=survey'); })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lufora 実機テストアンケート</title>
 <meta name="robots" content="noindex">
@@ -39,13 +43,18 @@ textarea{min-height:92px;resize:vertical}
 .done{text-align:center;padding:40px 10px}
 .done h2{font-size:22px;color:var(--accent2)}
 .note{color:var(--muted);font-size:13px}
+.go{display:flex;align-items:center;justify-content:center;min-height:52px;margin:12px 0 4px;border-radius:14px;background:var(--accent);color:#fff!important;font-weight:700;text-decoration:none;font-size:16px}
+html.embed header,html.embed .solo{display:none}
+html.embed main{padding-top:12px}
+html.embed .lead{font-size:13.5px;padding:10px 14px}
 </style>
 </head>
 <body>
 <main id="app">
   <header><img src="icons/icon-192.png" alt=""><h1>Lufora スマホ実機テスト<br>アンケート</h1></header>
   <div class="lead">
-    スマホで <a id="appLink" href="./" target="_blank" rel="noopener">https://ryvona.github.io/lufora/</a> を開いて試しながら、答えてください（10〜15分）。
+    <span class="solo">このページだけで開いています。Lufora と並べて答えるには、下のボタンから開いてください。<a class="go" href="./?a=survey">Lufora の中でアンケートに答える</a></span>
+    Lufora を試しながら答えてください（10〜15分）。「しまう」でアンケートを小さくして操作し、上のバーの「開く」で戻れます。
     <ul>
       <li>○ できた ／ × できなかった ／ △ 未確認 から選びます。</li>
       <li>できなかったときは、コメント欄に状況を書いてください。</li>
@@ -94,7 +103,11 @@ function restore(a) {
   }
 }
 try { restore(JSON.parse(localStorage.getItem(DRAFT) || 'null')); } catch (e) { }
-f.addEventListener('input', () => { try { localStorage.setItem(DRAFT, JSON.stringify(collect())); } catch (e) { } });
+const EMBED = document.documentElement.classList.contains('embed');
+const toApp = m => { if (EMBED && parent !== window) try { parent.postMessage(Object.assign({ lufora: 'survey' }, m), location.origin); } catch (e) { } };
+function prog() { const a = collect(), qs = all.filter(q => q.t === 'tri' || q.t === 'one'); toApp({ prog: qs.filter(q => a[q.id]).length + ' / ' + qs.length + ' 問' }); }
+prog();
+f.addEventListener('input', () => { try { localStorage.setItem(DRAFT, JSON.stringify(collect())); } catch (e) { } prog(); });
 f.addEventListener('change', e => { const q = e.target.closest('.q'); if (q) q.classList.remove('miss'); });
 f.addEventListener('submit', async e => {
   e.preventDefault();
@@ -110,8 +123,9 @@ f.addEventListener('submit', async e => {
       body: JSON.stringify({ survey: SURVEY_ID, answers: a, ua: navigator.userAgent.slice(0, 400) }) });
     if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0, 200));
     try { localStorage.removeItem(DRAFT); } catch (e) { }
-    $('#app').innerHTML = '<div class="done"><h2>送信しました</h2><p>ご協力ありがとうございました！<br>いただいた声をもとに、Lufora をもっと使いやすくします。</p><p><a href="./">Lufora を開く</a></p></div>';
+    $('#app').innerHTML = '<div class="done"><h2>送信しました</h2><p>ご協力ありがとうございました！<br>いただいた声をもとに、Lufora をもっと使いやすくします。</p>' + (EMBED ? '' : '<p><a href="./">Lufora を開く</a></p>') + '</div>';
     scrollTo(0, 0);
+    if (EMBED) setTimeout(() => toApp({ done: true }), 1800);
   } catch (err) {
     console.warn(err); m.textContent = '送信できませんでした。少し待ってからもう一度押してください（入力は残っています）。';
   } finally { b.disabled = false; if (document.body.contains(b)) b.textContent = '送信する'; }
