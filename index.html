@@ -1230,11 +1230,11 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
 
 <div class="sheet" id="sheetOrder" hidden>
   <div class="grab"></div>
-  <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:4px 0 6px">編集ツールの並び替え</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
-  <p class="note" style="margin:0 0 10px">左の ≡ をドラッグ、または ↑↓ で並べ替え。右のスイッチで表示・非表示を切り替えます（「選択」は常に表示）。</p>
+  <div style="display:flex;align-items:center;gap:10px"><h2 id="ordTitle" style="flex:1;margin:4px 0 6px">編集ツールの並び替え</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
+  <p class="note" id="ordNote" style="margin:0 0 10px">左の ≡ をドラッグ、または ↑↓ で並べ替え。右のスイッチで表示・非表示を切り替えます（「選択」は常に表示）。</p>
   <div class="ordlist" id="uiOrder"></div>
   <div class="actions" style="padding:12px 0 0"><button class="btn" id="uiReset">初期の並びに戻す</button></div>
-  <p class="note">この端末だけに保存されます。ツール欄に入るのは上から8個までで、9個目からと非表示のツールは「その他」から使えます。</p>
+  <p class="note" id="ordFoot">この端末だけに保存されます。ツール欄に入るのは上から8個までで、9個目からと非表示のツールは「その他」から使えます。</p>
   <div class="actions" style="padding:4px 0 0;justify-content:flex-start"><button class="chip" id="ordToUI">‹ 設定へ</button></div>
 </div>
 
@@ -1242,6 +1242,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 id="moreTitle" style="flex:1;margin:4px 0 6px">その他のツール</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
   <div class="moregrid" id="moreGrid"></div>
+  <p class="note" style="margin:8px 0 0">よく使うツールだけを下のツール欄に並べられます。「ツール欄を編集」で、使わないツールをこの「その他」へ移すと、残りのボタンが大きくなって押しやすくなります。</p>
 </div>
 
 <canvas id="fx" aria-hidden="true"></canvas>
@@ -4998,8 +4999,8 @@ function cutTapAt(d) {
    rmbg  briaai RMBG-1.4 quantized (~44 MB, 1024²), NON-COMMERCIAL licence only. */
 const ORT_BASE = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.3/dist/', HF = 'https://huggingface.co/';
 const AI_MODELS = {
-  u2: { name: '標準', note: '内蔵・商用可' },
-  biref: { name: '高精度', note: '約115MB・商用可', url: HF + 'onnx-community/BiRefNet_lite-ONNX/resolve/main/onnx/model_fp16.onnx', key: 'model:biref-lite-fp16' },
+  u2: { name: '標準', note: 'おすすめ・内蔵・商用可' },
+  biref: { name: '高精度', note: '約115MB・髪の毛など細かい所向き', url: HF + 'onnx-community/BiRefNet_lite-ONNX/resolve/main/onnx/model_fp16.onnx', key: 'model:biref-lite-fp16' },
   rmbg: { name: '高精度RMBG', note: '約44MB・非商用のみ', url: HF + 'briaai/RMBG-1.4/resolve/main/onnx/model_quantized.onnx', key: 'model:rmbg14' }
 };
 let ortP = null, segP = null;
@@ -6683,7 +6684,7 @@ function refreshPanel() {
       h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで背景削除'}</button>`;
       let dt = row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
       if (S.cut.model === 'rmbg') dt += hint(ICON.warn + 'RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。');
-      else if (S.cut.model === 'biref') dt += hint('高精度（BiRefNet・MITライセンス）は初回に約115MBをダウンロードします。Wi-Fiでの利用がおすすめです。');
+      else if (S.cut.model === 'biref') dt += hint('高精度（BiRefNet・MITライセンス・商用可）は初回に約115MBをダウンロードします。Wi-Fiでの利用がおすすめです。写真によっては「標準」のほうがきれいに消えるので、うまくいかないときは「標準」も試してください。');
       h += row('手動', chips('s', 'cut.mode', [['tap', IW('drop', '色で消す')], ['erase', IW('eraser', '消す')], ['restore', IW('restore', '戻す')]], S.cut.mode));
       if (S.cut.mode === 'tap') h += slider('s:cut.tol', '許容範囲', 0, 100, S.cut.tol) + row('範囲', chips('s', 'cut.contig', [[true, 'つながった部分'], [false, '同じ色すべて']], S.cut.contig));
       else h += slider('s:cut.size', 'ブラシ', 3, 150, S.cut.size);
@@ -6852,7 +6853,7 @@ function renderTools() {
 function openMoreSheet() {
   const lit = litTool();
   $('#moreGrid').innerHTML = moreIds().map(id => toolBtn(id, lit, UI.hidden.includes(id) ? ' off' : '')).join('')
-    + `<button class="tool" data-tedit="1">${ICON.sort}<span>並び替え</span></button>`;
+    + `<button class="tool" data-tedit="1">${ICON.sort}<span>ツール欄を編集</span></button>`;
   openSheet('#sheetMore');
 }
 $('#moreGrid').addEventListener('click', e => {
@@ -8841,7 +8842,7 @@ function renderUISheet() {
   $('#uiOps').innerHTML = `<div class="setlab">吸着（ピタッと整列）</div>` + opt('snap', [['off', 'オフ'], ['weak', '弱い'], ['normal', 'ふつう'], ['strong', '強い']])
     + `<div class="setlab">長押しの長さ（メニューが出るまで）</div>` + opt('lp', [['short', '短め'], ['normal', 'ふつう'], ['long', '長め']])
     + (deskOn ? '' : setRow('gest', '2本指タップで元に戻す', '3本指タップでやり直し', UI.gest))
-    + `<div class="setrow"><span class="st">ツールの並び替え<small>${deskOn ? '編集ツールの順番と表示・非表示' : 'ツール欄の順番・表示（9個目からは「その他」）'}</small></span><button class="chip" data-uiorder="1">並び替え ›</button></div>`;
+    + `<div class="setrow"><span class="st">${deskOn ? 'ツールの並び替え' : 'ツール欄の編集'}<small>${deskOn ? '編集ツールの順番と表示・非表示' : '下のツール欄に出すツールと順番（外したツールは「その他」へ）'}</small></span><button class="chip" data-uiorder="1">${deskOn ? '並び替え' : '編集'} ›</button></div>`;
   $('#uiSave').innerHTML = `<div class="setlab">保存形式の初期値</div>` + opt('exFmt', [['jpeg', 'JPEG（軽い）'], ['png', 'PNG（劣化なし）']])
     + (UI.exFmt === 'jpeg' ? `<div class="setlab">画質の初期値</div>` + opt('exQ', [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']]) : '')
     + `<div class="setlab">起動したとき</div>` + opt('boot', [['resume', '前回の続きから'], ['new', '「開く・新規作成」を出す']]);
@@ -8852,12 +8853,17 @@ function renderUISheet() {
     + (navigator.vibrate ? setRow('haptic', '振動フィードバック', '押すと軽く振動（対応端末のみ）', UI.haptic) : '');
 }
 function renderOrder() {
-  const ids = ordIds(), n = ids.length;
+  const ids = ordIds(), n = ids.length, bar = Math.min(BAR_MAX, ids.filter(id => !UI.hidden.includes(id)).length);
+  $('#ordTitle').textContent = deskOn ? '編集ツールの並び替え' : 'ツール欄の編集';
+  if (!deskOn) {
+    $('#ordNote').textContent = 'スイッチをオフにしたツールは、下のツール欄から外れて「その他」に入ります（いつでも使えます）。ツール欄を減らすと、残りのボタンが大きくなります。≡ をドラッグ、または ↑↓ で順番を変えられます。';
+    $('#ordFoot').textContent = `いまツール欄に出ているのは ${bar} 個です（最大 8 個、9個目からは「その他」）。この端末だけに保存されます。`;
+  }
   $('#uiOrder').innerHTML = ids.map((id, i) => {
     const off = UI.hidden.includes(id), nm = TOOL_MAP[id][1];
     return `<div class="ordrow${off ? ' off' : ''}" data-id="${id}"><span class="hdl" aria-hidden="true">${ICON.grip}</span><span class="ic">${ICON[id]}</span><span class="nm">${nm}</span>`
       + `<button class="ordbtn" data-mv="-1" aria-label="${nm}を上へ"${i ? '' : ' disabled'}>↑</button><button class="ordbtn" data-mv="1" aria-label="${nm}を下へ"${i < n - 1 ? '' : ' disabled'}>↓</button>`
-      + (id === 'select' ? '<span class="tglock">常に表示</span></div>' : `<button class="tg" role="switch" data-vis="1" aria-checked="${!off}" aria-label="${nm}を表示"></button></div>`);
+      + (id === 'select' ? '<span class="tglock">常に表示</span></div>' : `<button class="tg" role="switch" data-vis="1" aria-checked="${!off}" aria-label="${nm}を${deskOn ? '表示' : 'ツール欄に出す'}"></button></div>`);
   }).join('');
 }
 $('#sheetUI').addEventListener('click', e => {
@@ -8899,6 +8905,7 @@ $('#sheetOrder').addEventListener('click', e => {
     UI.hidden = off ? [...UI.hidden, id] : UI.hidden.filter(x => x !== id);
     v.setAttribute('aria-checked', String(!off)); row.classList.toggle('off', off);
     if (off && tool === id) setTool('select');
+    if (!deskOn) { const f = document.activeElement === v; renderOrder(); if (f) $(`#uiOrder [data-id="${id}"] .tg`).focus(); }   // keeps the 「いま n 個」 line current
   } else if (e.target.closest('#uiReset')) {
     UI.order = UI_DEF.order.slice(); UI.hidden = UI.hidden.filter(x => !ordIds().includes(x)); renderOrder(); toast('ツールを初期の並びに戻しました');
   } else return;
