@@ -972,6 +972,9 @@ html:not(.desk) .tnm small{font-size:11.5px}
 html:not(.desk) .fontbtn small{font-size:12px}
 html:not(.desk):not(.tab) .dock .tools{padding-left:0;padding-right:0}
 html:not(.desk):not(.tab) .dock .tools .tool{min-width:0}
+html:not(.desk) .galtabs button{height:44px}
+html:not(.desk) .gcard .gheart{height:40px;min-width:48px;border-radius:20px;top:4px;right:4px}
+html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
 </style>
 
 <div id="app">
@@ -10850,6 +10853,8 @@ function renderPub() {
       : 'リンクを知っている人だけが見られる設定です（リンク共有はサーバー接続後に使えます）。今はこの端末の「自分の投稿」に保存されます。';
 }
 $('#sheetSave').addEventListener('click', e => { const p = e.target.closest('[data-pv]'); if (p) { PUB.vis = PUB.pick = p.dataset.pv; renderPub(); } });
+/* phones: the words of a switch row toggle it too, so the small switch is not the only target */
+document.addEventListener('click', e => { if (deskOn) return; const st = e.target.closest('.setrow > .st'); if (!st || e.target.closest('a, button, input')) return; const tg = st.parentElement.querySelector(':scope > .tg'); if (tg) tg.click(); });
 $('#pubSw').addEventListener('click', () => { PUB.vis = PUB.vis === 'private' ? PUB.pick : 'private'; renderPub(); if (PUB.vis !== 'private') setTimeout(() => { const t = $('#pubTitle'); if (t && t.offsetParent && deskOn) t.focus(); }, 60); });
 $('#btnSave').addEventListener('click', () => { if (!doc) return; $('#pubNick').value = UI.nick || ''; renderPub(); $('#pubDone').hidden = true; });
 const pubWhoHtml = () => acct && acctName ? `<b>@${esc(acctName)}</b> として公開されます。` : acct ? 'ユーザーネームを決めると、その名前で公開されます。' : '<b>ゲスト</b>として公開されます。ログインすると、ユーザーネームで公開できます。';
