@@ -213,9 +213,13 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
 .galgrid{columns:2;column-gap:10px;margin-top:10px}
 .adbox{margin:14px 0 0;padding:6px 0 0;border-top:1px solid var(--line);min-height:110px;overflow:hidden}
 .adbox .adlbl{display:block;font-size:11px;color:var(--muted);margin:0 0 4px}
-.gcard.gad{padding:8px;border-style:dashed;margin-top:0;min-height:180px}
+.gcard.gad{padding:8px;border-style:dashed;margin-top:0;min-height:180px;column-span:all;text-align:center}
+.gcard.gad .adlbl{text-align:left}
+#exAd .adbox,#sideAd .adbox{text-align:center}
+#exAd .adlbl,#sideAd .adlbl{text-align:left}
+html:not(.desk) #side.mob.hasad{width:min(94vw,320px)}
 #sideAd{display:none}
-html:not(.desk) #side.mob #sideAd{display:block;margin:auto 12px 10px;flex:0 0 auto}
+html:not(.desk) #side.mob #sideAd{display:block;margin:auto 8px 8px;flex:0 0 auto}
 html:not(.desk) #side.mob #sideAd:empty{display:none}
 .gcard{position:relative;display:block;width:100%;break-inside:avoid;margin:0 0 10px;border-radius:14px;overflow:hidden;background:var(--chrome2);border:1px solid var(--line);text-align:left;transition:transform .14s ease}
 .gcard:has(.gopen:active){transform:scale(.97)}
@@ -9432,26 +9436,47 @@ async function exportImage() {
   } finally { c.width = c.height = 1; }
 }
 
-/* ==== ads ==== (Google AdSense; off until ADS.client is set. Japan only (time zone), https only, never under webdriver / offline.
-   Slots: 'gal' = a card after every 8th みんなの作品 card (public tab), 'save' = under the 保存 sheet after a save, 'menu' = bottom of the phone ☰ menu.
-   Never on the editing screen. ads.txt at the domain root must list ADS.client. */
-const ADS = { client: '', slots: { gal: '', save: '', menu: '' } };   // client 'ca-pub-…', slots = ad unit ids
+/* ==== ads ==== (忍者AdMax by default, Google AdSense also supported; off until slot ids are set. Japan only (time zone), https only,
+   never under webdriver / offline. Slots: 'gal' = a full-width card after every 8th みんなの作品 card (public tab; one id per position,
+   the list of ids is used in order and positions past the end get no ad), 'save' = under the 保存 sheet after a save, 'menu' = bottom
+   of the phone ☰ menu (only when the screen is tall enough). Never on the editing screen. AdMax frames are 300×250 (ADS.w/h). */
+const ADS = { net: 'admax', client: '', w: 300, h: 250, slots: { gal: [], save: '', menu: '' } };   // admax: ad ids from the 忍者AdMax dashboard; adsense: client 'ca-pub-…' + ad unit ids
 const adsJP = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Tokyo'; } catch (e) { return false; } };
-const adsOn = k => !!(ADS.client && ADS.slots[k]) && location.protocol === 'https:' && !navigator.webdriver && navigator.onLine && adsJP();
+const adId = (k, i = 0) => { const v = ADS.slots[k]; return Array.isArray(v) ? v[i] || '' : i ? '' : v || ''; };
+const adsOn = (k, i) => !!adId(k, i) && (ADS.net === 'admax' || !!ADS.client) && location.protocol === 'https:' && !navigator.webdriver && navigator.onLine && adsJP();
 let adsP = null;
 const adsLoad = () => adsP || (adsP = new Promise((res, rej) => { const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous';
   s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(ADS.client); s.onload = res; s.onerror = () => { adsP = null; rej(); }; document.head.appendChild(s); }));
-const adHtml = (k, cls = '') => adsOn(k) ? `<div class="adbox ${cls}" data-ad="${k}"><span class="adlbl">広告</span><ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.client)}" data-ad-slot="${esc(ADS.slots[k])}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>` : '';
-/* ask AdSense to fill the empty <ins> under root once they have a width (hidden sheets have none: retried a few times) */
-function adFill(root, n = 0) {
-  if (!root || !ADS.client) return;
-  const ins = [...root.querySelectorAll('ins.adsbygoogle')].filter(i => !i._q && !i.hasAttribute('data-adsbygoogle-status'));
-  if (!ins.length) return;
-  const ready = ins.filter(i => i.offsetWidth > 0);
-  if (ready.length) adsLoad().then(() => ready.forEach(i => { if (i._q) return; i._q = 1; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { } })).catch(() => { });
-  if (ready.length < ins.length && n < 6) setTimeout(() => adFill(root, n + 1), 400);
+const adHtml = (k, cls = '', i = 0) => {
+  if (!adsOn(k, i)) return '';
+  const id = esc(adId(k, i)), box = b => `<div class="adbox ${cls}" data-ad="${k}"><span class="adlbl">広告</span>${b}</div>`;
+  return ADS.net === 'admax' ? box(`<div class="admax-ads" data-admax-id="${id}" style="display:inline-block;width:${ADS.w}px;height:${ADS.h}px"></div>`)
+    : box(`<ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.client)}" data-ad-slot="${id}" data-ad-format="auto" data-full-width-responsive="true"></ins>`);
+};
+/* AdMax: queue the new frames and re-run its loader (t.js reads window.admaxads; a fresh script tag per fill is how it works in pages that add ads later) */
+function admaxRun(ids) {
+  const q = window.admaxads = window.admaxads || [];
+  ids.forEach(id => { const j = q.findIndex(x => x.admax_id === id); if (j >= 0) q.splice(j, 1); q.push({ admax_id: id, type: 'banner' }); });
+  document.querySelectorAll('script[data-admax]').forEach(x => x.remove()); window.__admax_tag__ = undefined;
+  const s = document.createElement('script'); s.src = 'https://adm.shinobi.jp/st/t.js'; s.async = true; s.charset = 'utf-8'; s.dataset.admax = '1'; document.body.appendChild(s);
 }
-function adMenu() { const b = $('#sideAd'); if (!b || deskOn) return; if (!b.firstChild) b.innerHTML = adHtml('menu'); setTimeout(() => adFill(b), 300); }
+/* fill the empty ad frames under root once they have a width (hidden sheets have none: retried a few times) */
+function adFill(root, n = 0) {
+  if (!root) return;
+  const els = [...root.querySelectorAll('.admax-ads, ins.adsbygoogle')].filter(i => !i._q && !i.hasAttribute('data-adsbygoogle-status'));
+  if (!els.length) return;
+  const ready = els.filter(i => i.offsetWidth > 0); ready.forEach(i => i._q = 1);
+  if (ready.length) {
+    if (ADS.net === 'admax') admaxRun(ready.map(i => i.dataset.admaxId));
+    else adsLoad().then(() => ready.forEach(() => { try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { } })).catch(() => ready.forEach(i => i._q = 0));
+  }
+  if (ready.length < els.length && n < 6) setTimeout(() => adFill(root, n + 1), 400);
+}
+function adMenu() {
+  const b = $('#sideAd'); if (!b || deskOn) return;
+  if (!b.firstChild && innerHeight >= 720) b.innerHTML = adHtml('menu');
+  sideEl.classList.toggle('hasad', !!b.firstChild); setTimeout(() => adFill(b), 300);
+}
 
 /* ============================================================
    ==== gallery ====  (published works + editing "recipes")
@@ -11021,7 +11046,7 @@ async function renderGal() {
   $('#galTags').innerHTML = tags.length ? [`<button class="chip${!GV.tag ? ' on' : ''}" data-gtag="">すべて</button>`, ...tags.map(t => `<button class="chip${GV.tag === t ? ' on' : ''}" data-gtag="${esc(t)}">#${esc(t)}</button>`)].join('') : '';
   const list = GV.tag ? items.filter(it => (it.tags || []).includes(GV.tag)) : items;
   const note = !Gallery.online ? `<p class="note" style="margin:0 0 4px">${tab === 'mine' ? '投稿はこの端末に保存されています。サーバー接続後に他の人にも表示されます。' : '今はサーバー未接続のため、あなたの「公開」作品とサンプルを表示しています。'}</p>` : '';
-  $('#galGrid').innerHTML = note + (list.length ? '<div class="galgrid">' + list.map((it, i) => galCard(it) + (tab === 'public' && i % 8 === 7 && i < list.length - 1 ? adHtml('gal', 'gcard gad') : '')).join('') + '</div>'
+  $('#galGrid').innerHTML = note + (list.length ? '<div class="galgrid">' + list.map((it, i) => galCard(it) + (tab === 'public' && i % 8 === 7 && i < list.length - 1 ? adHtml('gal', 'gcard gad', (i - 7) / 8) : '')).join('') + '</div>'
     : tab === 'mine' ? `<div class="gempty"><b>${ICON.photo}</b>まだ投稿はありません。<br>上の「公開する」から、今の作品を投稿できます。</div>`
       : tab === 'liked' ? `<div class="gempty"><b>${I('<path d="M12 20C5 15 3 11.5 3 8.6 3 6 5 4 7.5 4c2 0 3.6 1.2 4.5 3 .9-1.8 2.5-3 4.5-3C19 4 21 6 21 8.6c0 2.9-2 6.4-9 11.4z"/>')}</b>まだハートした作品はありません。<br>気に入った作品のハートをタップすると、ここに並びます。</div>`
       : `<div class="gempty"><b>${ICON.sprout}</b>まだ作品がありません。<br>あなたの作品を最初に公開してみませんか？</div>`);
