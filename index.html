@@ -211,6 +211,12 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
 .galtabs button{flex:1;height:38px;border-radius:10px;font-size:14px;color:var(--muted)}
 .galtabs button.on{background:var(--grad);color:var(--accent-ink);font-weight:700}
 .galgrid{columns:2;column-gap:10px;margin-top:10px}
+.adbox{margin:14px 0 0;padding:6px 0 0;border-top:1px solid var(--line);min-height:110px;overflow:hidden}
+.adbox .adlbl{display:block;font-size:11px;color:var(--muted);margin:0 0 4px}
+.gcard.gad{padding:8px;border-style:dashed;margin-top:0;min-height:180px}
+#sideAd{display:none}
+html:not(.desk) #side.mob #sideAd{display:block;margin:auto 12px 10px;flex:0 0 auto}
+html:not(.desk) #side.mob #sideAd:empty{display:none}
 .gcard{position:relative;display:block;width:100%;break-inside:avoid;margin:0 0 10px;border-radius:14px;overflow:hidden;background:var(--chrome2);border:1px solid var(--line);text-align:left;transition:transform .14s ease}
 .gcard:has(.gopen:active){transform:scale(.97)}
 .gcard .gopen{display:block;width:100%;text-align:left}
@@ -1023,6 +1029,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
     <aside id="side" aria-label="サイドバー">
       <div class="dhead mhead"><h2 id="sideTitle">メニュー</h2><button class="xbtn" id="sideClose" aria-label="閉じる" title="閉じる">×</button></div>
       <nav id="rail" aria-label="メニュー"></nav>
+      <div id="sideAd"></div>
       <section id="drawer" hidden aria-labelledby="drawerTitle">
         <div class="dhead"><h2 id="drawerTitle"></h2><button class="xbtn" id="drawerClose" aria-label="閉じる" title="閉じる">×</button></div>
         <div id="sidePanel"></div>
@@ -1098,6 +1105,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   </div>
   <div class="pubdone" id="pubDone" hidden><span id="pubDoneMsg"></span><button class="chip" data-gal="mine">見る</button></div>
   <div class="actions" style="padding:16px 0 0"><button class="btn" id="exCopy" hidden>画像をコピー</button><button class="btn primary" id="exGo">保存する</button></div>
+  <div id="exAd"></div>
 </div>
 
 <div class="sheet" id="sheetHelp" hidden>
@@ -1309,7 +1317,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   function send(msg, src, line, stack) {
     if (location.protocol !== 'https:' || navigator.webdriver || off() || seen.size >= 5) return;
     msg = clean(msg).trim(); if (!msg || /ResizeObserver loop|^Script error\.?$/i.test(msg)) return;
-    stack = clean(stack); if (/(chrome|moz|safari)-extension:/.test(stack + src)) return;   // browser add-ons, not us
+    stack = clean(stack); if (/(chrome|moz|safari)-extension:/.test(stack + src) || /googlesyndication|doubleclick|googleads|adtrafficquality|fundingchoices/.test(stack + src)) return;   // add-ons and ad scripts, not us   // browser add-ons, not us
     const k = msg + '|' + src + '|' + line; if (seen.has(k)) return; seen.add(k);
     const lm = new Date(document.lastModified), body = { msg: cut(msg, 500), src: cut(clean(src), 300), line: line | 0 || null, stack: cut(stack, 2000), ua: cut(navigator.userAgent, 300),
       ver: isNaN(lm) ? '' : lm.toISOString().slice(0, 16), layout: document.documentElement.classList.contains('desk') ? 'pc' : 'phone' };
@@ -7307,6 +7315,7 @@ function openMobSide() {
   sideEl.classList.add('mob'); sideEl.setAttribute('role', 'dialog'); sideEl.setAttribute('aria-modal', 'true'); sideEl.setAttribute('aria-labelledby', 'sideTitle');
   $('#sideScrim').hidden = false; $('#btnSide').setAttribute('aria-expanded', 'true');
   const f = railEl.querySelector('.ritem'); if (f) f.focus({ preventScroll: true });
+  adMenu();
 }
 function closeMobSide(noFocus) {
   if (!sideMob) return;
@@ -9351,6 +9360,7 @@ function openSave() {
   renderEX();
   $('#exImg').hidden = true; $('#exMsg').hidden = true;
   $('#exThumb').hidden = false; exPreview();
+  $('#exAd').innerHTML = '';
   openSheet('#sheetSave');
 }
 let exUrl = null;
@@ -9382,7 +9392,7 @@ $('#exGo').addEventListener('click', async () => {
   const btn = $('#exGo'); if (btn.disabled) return;
   btn.disabled = true; btn.textContent = '作成中…';
   let ok = false;
-  try { ok = await exportImage(); }
+  try { ok = await exportImage(); if (ok && !$('#exAd').firstChild) { $('#exAd').innerHTML = adHtml('save'); adFill($('#exAd')); } }
   finally {
     if (ok && PUB.vis !== 'private') { btn.textContent = '公開中…'; await runPublish(); }
     btn.disabled = false; btn.textContent = exGoLabel();
@@ -9421,6 +9431,27 @@ async function exportImage() {
     return false;
   } finally { c.width = c.height = 1; }
 }
+
+/* ==== ads ==== (Google AdSense; off until ADS.client is set. Japan only (time zone), https only, never under webdriver / offline.
+   Slots: 'gal' = a card after every 8th みんなの作品 card (public tab), 'save' = under the 保存 sheet after a save, 'menu' = bottom of the phone ☰ menu.
+   Never on the editing screen. ads.txt at the domain root must list ADS.client. */
+const ADS = { client: '', slots: { gal: '', save: '', menu: '' } };   // client 'ca-pub-…', slots = ad unit ids
+const adsJP = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Tokyo'; } catch (e) { return false; } };
+const adsOn = k => !!(ADS.client && ADS.slots[k]) && location.protocol === 'https:' && !navigator.webdriver && navigator.onLine && adsJP();
+let adsP = null;
+const adsLoad = () => adsP || (adsP = new Promise((res, rej) => { const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(ADS.client); s.onload = res; s.onerror = () => { adsP = null; rej(); }; document.head.appendChild(s); }));
+const adHtml = (k, cls = '') => adsOn(k) ? `<div class="adbox ${cls}" data-ad="${k}"><span class="adlbl">広告</span><ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.client)}" data-ad-slot="${esc(ADS.slots[k])}" data-ad-format="auto" data-full-width-responsive="true"></ins></div>` : '';
+/* ask AdSense to fill the empty <ins> under root once they have a width (hidden sheets have none: retried a few times) */
+function adFill(root, n = 0) {
+  if (!root || !ADS.client) return;
+  const ins = [...root.querySelectorAll('ins.adsbygoogle')].filter(i => !i._q && !i.hasAttribute('data-adsbygoogle-status'));
+  if (!ins.length) return;
+  const ready = ins.filter(i => i.offsetWidth > 0);
+  if (ready.length) adsLoad().then(() => ready.forEach(i => { if (i._q) return; i._q = 1; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { } })).catch(() => { });
+  if (ready.length < ins.length && n < 6) setTimeout(() => adFill(root, n + 1), 400);
+}
+function adMenu() { const b = $('#sideAd'); if (!b || deskOn) return; if (!b.firstChild) b.innerHTML = adHtml('menu'); setTimeout(() => adFill(b), 300); }
 
 /* ============================================================
    ==== gallery ====  (published works + editing "recipes")
@@ -10990,10 +11021,11 @@ async function renderGal() {
   $('#galTags').innerHTML = tags.length ? [`<button class="chip${!GV.tag ? ' on' : ''}" data-gtag="">すべて</button>`, ...tags.map(t => `<button class="chip${GV.tag === t ? ' on' : ''}" data-gtag="${esc(t)}">#${esc(t)}</button>`)].join('') : '';
   const list = GV.tag ? items.filter(it => (it.tags || []).includes(GV.tag)) : items;
   const note = !Gallery.online ? `<p class="note" style="margin:0 0 4px">${tab === 'mine' ? '投稿はこの端末に保存されています。サーバー接続後に他の人にも表示されます。' : '今はサーバー未接続のため、あなたの「公開」作品とサンプルを表示しています。'}</p>` : '';
-  $('#galGrid').innerHTML = note + (list.length ? '<div class="galgrid">' + list.map(galCard).join('') + '</div>'
+  $('#galGrid').innerHTML = note + (list.length ? '<div class="galgrid">' + list.map((it, i) => galCard(it) + (tab === 'public' && i % 8 === 7 && i < list.length - 1 ? adHtml('gal', 'gcard gad') : '')).join('') + '</div>'
     : tab === 'mine' ? `<div class="gempty"><b>${ICON.photo}</b>まだ投稿はありません。<br>上の「公開する」から、今の作品を投稿できます。</div>`
       : tab === 'liked' ? `<div class="gempty"><b>${I('<path d="M12 20C5 15 3 11.5 3 8.6 3 6 5 4 7.5 4c2 0 3.6 1.2 4.5 3 .9-1.8 2.5-3 4.5-3C19 4 21 6 21 8.6c0 2.9-2 6.4-9 11.4z"/>')}</b>まだハートした作品はありません。<br>気に入った作品のハートをタップすると、ここに並びます。</div>`
       : `<div class="gempty"><b>${ICON.sprout}</b>まだ作品がありません。<br>あなたの作品を最初に公開してみませんか？</div>`);
+  adFill($('#galGrid'));
 }
 function renderGalDetail(it) {
   GV.cur = it; GV.delArm = false; GV.repCode = ''; GV.view = 'detail';
