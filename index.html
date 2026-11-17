@@ -3619,6 +3619,7 @@ function hitObj(o, px, py, tol) {
   return lx >= b.x - t && lx <= b.x + b.w + t && ly >= b.y - t && ly <= b.y + b.h + t;
 }
 function pick(px, py) {
+  if (!doc) return null;
   const tol = 10 / view.s;
   for (let i = doc.objects.length - 1; i >= 0; i--) if (!doc.objects[i].hidden && hitObj(doc.objects[i], px, py, tol)) return doc.objects[i];
   return null;
@@ -4583,7 +4584,7 @@ function onUp(e) {
 const panTo = p => { view.tx = G.tx0 + p.x - G.p0.x; view.ty = G.ty0 + p.y - G.p0.y; cv.classList.add('pan'); requestDraw(); };
 /* PC: cursor shows what a drag will do */
 cv.addEventListener('pointermove', e => {
-  if (!deskOn || e.pointerType !== 'mouse' || pointers.size) return;
+  if (!deskOn || e.pointerType !== 'mouse' || pointers.size || !doc) return;   // !doc: the mouse moves over the stage before boot has a document
   const p = pt(e), d = screenToDoc(p.x, p.y), o = tool === 'select' || tool === 'shape' ? selObj() : null;
   const ms = tool === 'select' ? multiObjs() : [], b = ms.length ? multiBox(ms) : null, hov = tool === 'select' ? pick(d.x, d.y) : null;
   const hh = o && !o.locked && !o.hidden && (tool === 'select' || o.type === 'shape') ? hitHandle(o, p) : null;   // resize / rotate handles get their own cursors
