@@ -154,6 +154,8 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
   background:var(--grad);color:var(--accent-ink);font-weight:800;font-size:15px;box-shadow:var(--glow);position:relative;overflow:hidden}
 .aibtn:disabled{opacity:.6}
 .aibtn.busy{opacity:.9;font-size:13.5px}
+.aistopw{display:flex;justify-content:center;margin:0 14px 6px}
+.aistopw .chip{min-width:120px;justify-content:center}
 /* light sweep while the AI works */
 .aibtn.busy::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);
   transform:translateX(-100%);animation:sweep 1.5s ease-in-out infinite}
@@ -203,6 +205,10 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:3px solid var(
 .help{padding-left:18px;margin:0}
 
 /* ==== gallery / publish ==== */
+.pubdone.err{color:var(--danger)}
+.tagsug{margin-top:6px}
+.tagsug .chip{flex:0 0 auto}
+.gtags .mtag{height:30px;font-size:12px;padding:0 10px}
 .pubin{display:block;width:100%;box-sizing:border-box;height:44px;margin-top:8px;font-size:15px;color:var(--fg);background:var(--chrome2);border:1px solid var(--line);border-radius:12px;padding:0 12px;font-family:var(--ui);-webkit-user-select:text;user-select:text}
 .pubin:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(94,140,95,.15)}
 .pubdone{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(94,140,95,.08);border:1px solid rgba(94,140,95,.3);font-size:12.5px;line-height:1.6}
@@ -1102,6 +1108,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
     <div class="wrap" id="pubVis"></div>
     <input id="pubTitle" class="pubin" maxlength="40" placeholder="タイトル（例：夕焼けエモ）" autocomplete="off">
     <input id="pubTags" class="pubin" maxlength="60" placeholder="タグ（スペース区切り　例：エモ 夕焼け）" autocomplete="off">
+    <div class="fcats tagsug" id="pubSug" aria-label="タグの候補（タップで追加）"></div>
     <input id="pubNick" class="pubin" maxlength="20" hidden tabindex="-1" aria-hidden="true">
     <p class="note" id="pubWho"></p>
     <p class="note" id="pubNote"></p>
@@ -1432,6 +1439,7 @@ function noteIco(shape, color) {
     const o = { shape, w: 46, h: shape === 'ribbon' || shape === 'label' || shape === 'tag' ? 30 : 46 };
     g.fillStyle = color; g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = 2;
     const rule = notePath(g, o); g.fill(rule); g.stroke();
+    if (shape === 'sticker') { stkFlap(g, o.w, o.h); g.fillStyle = '#FFFFFF'; g.fill(); g.stroke(); }
     u = c.toDataURL(); if (noteIcoCache.size > 240) noteIcoCache.clear(); noteIcoCache.set(key, u);
   }
   return u;
@@ -3265,9 +3273,9 @@ const S = {
   shape: { kind: 'line', color: '#FF3B30', width: 8, ls: 'solid', bend: 0.3, cs: 'none', ce: 'arrow', oc: '#FF3B30', fc: 'none', fa: 100, wa: 16, wl: 90 },
   mosaic: { shape: 'brush', mode: 'pixel', str: 40, size: 45 },
   text: { color: '#FFFFFF', font: 'Noto Sans JP', bold: true, italic: false, underline: false, outline: '#111111', bg: 'none', align: 'center', vert: false, shadow: false, sizeR: 0.075 },
-  note: { color: '#FFE66D', shape: 'square', deco: 'tape', pattern: 'plain', tcolor: '#2A2724', stroke: 'none', font: 'Klee One', ratio: 'square', tail: 'bl' },
+  note: { color: '#FFE66D', shape: 'square', deco: 'tape', pattern: 'plain', tcolor: '#2A2724', stroke: 'none', sw: 6, font: 'Klee One', ratio: 'square', tail: 'bl' },
   num: { color: '#FF3B30' },
-  image: { border: 'none', shadow: true, rad: 0 },
+  image: { border: 'none', shadow: true, rad: 0, bw: 7 },
   filterCat: 'all', fontCat: 'all', marq: false, colorTab: 'ai',
   cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true }
 };
@@ -3618,11 +3626,17 @@ function hitObj(o, px, py, tol) {
   const b = localBox(o);
   return lx >= b.x - t && lx <= b.x + b.w + t && ly >= b.y - t && ly <= b.y + b.h + t;
 }
-function pick(px, py) {
+function pick(px, py, exact) {
   if (!doc) return null;
-  const tol = 10 / view.s;
-  for (let i = doc.objects.length - 1; i >= 0; i--) if (!doc.objects[i].hidden && hitObj(doc.objects[i], px, py, tol)) return doc.objects[i];
-  return null;
+  // a point right on an object beats the 10 px pad of a neighbour above it; among pad-only hits the nearest wins;
+  // a full-photo frame sticker only wins where nothing else is (exact = no pad at all)
+  const tol = 10 / view.s; let frame = null, near = null, nd = Infinity;
+  for (let i = doc.objects.length - 1; i >= 0; i--) {
+    const o = doc.objects[i]; if (o.hidden) continue;
+    if (hitObj(o, px, py, 0)) { if (!(o.type === 'deco' && DECO[o.kind] && DECO[o.kind].full)) return o; frame = frame || o; continue; }
+    if (!exact) for (let k = 1; k <= 4; k++) if (k * tol / 4 < nd && hitObj(o, px, py, k * tol / 4)) { nd = k * tol / 4; near = o; break; }
+  }
+  return near || frame;
 }
 function objCornersDoc(o) {
   const b = localBox(o), c = Math.cos(o.rot), s = Math.sin(o.rot), k = o.sc;
@@ -3842,7 +3856,7 @@ function drawSlot(ctx, o, k) {
     const f = `700 ${fs}px ${famStack('Noto Sans JP')}`; ensureFont(f, lb, 'Noto Sans JP'); ctx.font = f; ctx.fillText(lb, 0, 0);
   }
   ctx.restore();
-  if (o.border && o.border !== 'none') { ctx.save(); ctx.lineWidth = m * 0.05; ctx.strokeStyle = o.border; rrect(ctx, x, y, w, h, r); ctx.stroke(); ctx.restore(); }
+  if (o.border && o.border !== 'none') { ctx.save(); ctx.lineWidth = m * (o.bw || 10) * 0.005; ctx.strokeStyle = o.border; rrect(ctx, x, y, w, h, r); ctx.stroke(); ctx.restore(); }
 }
 function drawImageObj(ctx, o, k) {
   if (o.slot) return drawSlot(ctx, o, k);
@@ -3858,7 +3872,7 @@ function drawImageObj(ctx, o, k) {
     if (!framed) return;
   }
   ctx.save(); rrect(ctx, x, y, w, h, r); ctx.clip(); ctx.drawImage(bm.canvas, x, y, w, h);
-  if (o.border && o.border !== 'none') { ctx.lineWidth = Math.min(w, h) * 0.07; ctx.strokeStyle = o.border; ctx.stroke(); }
+  if (o.border && o.border !== 'none') { ctx.lineWidth = Math.min(w, h) * (o.bw || 7) * 0.01; ctx.strokeStyle = o.border; ctx.stroke(); }   // clipped: half of it shows
   ctx.restore();
 }
 function drawText(ctx, o, k) {
@@ -3966,7 +3980,7 @@ function notePath(ctx, o) {
       ctx.moveTo(x + w + r, 0); ctx.arc(x + w, 0, r, 0, Math.PI * 2, true);
       return 'evenodd';
     }
-    case 'sticker': ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2); return 'nonzero';
+    case 'sticker': ctx.ellipse(0, 0, w / 2, h / 2, 0, Math.PI / 4 + 0.5, Math.PI * 2.25 - 0.5); ctx.closePath(); return 'nonzero';   // lower-right edge peeled back (stkFlap)
     case 'think': {   // thought bubble: cloud-ish oval + two trailing dots toward o.tail
       const t = o.tail || 'bl', dot = (cx, cy, r) => { ctx.moveTo(cx + r, cy); ctx.arc(cx, cy, r, 0, Math.PI * 2); };
       if (o.tx != null) {   // free tail: the oval fills the box; 2–5 shrinking dots run from its edge to the tip (the last one sits on the tip)
@@ -4000,6 +4014,13 @@ function notePath(ctx, o) {
       return 'nonzero';
   }
 }
+/* 丸シール: the peeled-back flap (the sticker's white backing) over the cut-off lower-right edge; returns the fold midpoint and flap tip */
+function stkFlap(ctx, w, h) {
+  const a = Math.PI / 4, d = 0.5, x1 = w / 2 * Math.cos(a - d), y1 = h / 2 * Math.sin(a - d), x2 = w / 2 * Math.cos(a + d), y2 = h / 2 * Math.sin(a + d);
+  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, fx = 2 * mx - w / 2 * Math.cos(a), fy = 2 * my - h / 2 * Math.sin(a);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.quadraticCurveTo(2 * fx - mx, 2 * fy - my, x2, y2); ctx.closePath();
+  return [mx, my, fx, fy];
+}
 function drawNote(ctx, o, k) {
   const w = o.w, h = o.h, x = -w / 2, y = -h / 2, m = Math.min(w, h), shape = o.shape || 'square';
   ctx.save();
@@ -4023,13 +4044,16 @@ function drawNote(ctx, o, k) {
   }
   ctx.restore();
   if (shape === 'tag') { ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = m * 0.012; ctx.beginPath(); ctx.arc(x + w * 0.16, 0, m * 0.05, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
-  if (shape === 'sticker') {   // white die-cut border + a soft highlight, like a round sticker
-    ctx.save(); ctx.lineWidth = m * 0.07; ctx.strokeStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(0, 0, w / 2 - m * 0.035, h / 2 - m * 0.035, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.globalAlpha *= 0.35; ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(-w * 0.16, -h * 0.2, w * 0.16, h * 0.08, -0.5, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  if (shape === 'sticker') {   // peeled corner + a soft highlight; no built-in outline (枠線 / 枠線の太さ control it like the other shapes)
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = m * 0.04 * k; ctx.shadowOffsetX = ctx.shadowOffsetY = -m * 0.012 * k;
+    const [mx, my, fx, fy] = stkFlap(ctx, w, h), gr = ctx.createLinearGradient(mx, my, fx, fy);
+    gr.addColorStop(0, '#FFFFFF'); gr.addColorStop(1, '#E2DDD3'); ctx.fillStyle = gr; ctx.fill(); ctx.restore();
+    if (o.stroke && o.stroke !== 'none') { ctx.save(); stkFlap(ctx, w, h); ctx.lineWidth = Math.max(1, m * (o.sw || 6) * 0.005); ctx.strokeStyle = o.stroke; ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore(); }
+    ctx.save(); ctx.globalAlpha *= 0.35; ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(-w * 0.16, -h * 0.2, w * 0.16, h * 0.08, -0.5, 0, Math.PI * 2); ctx.fill(); ctx.restore();
   }
   if (shape === 'label') { ctx.save(); ctx.setLineDash([m * 0.05, m * 0.04]); ctx.lineWidth = m * 0.015; ctx.strokeStyle = 'rgba(0,0,0,.22)'; rrect(ctx, x + m * 0.07, y + m * 0.07, w - m * 0.14, h - m * 0.14, m * 0.05); ctx.stroke(); ctx.restore(); }
   if (o.stroke && o.stroke !== 'none') {   // 枠線の色
-    ctx.save(); notePath(ctx, o); ctx.lineWidth = Math.max(1, m * 0.03); ctx.strokeStyle = o.stroke; ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore();
+    ctx.save(); notePath(ctx, o); ctx.lineWidth = Math.max(1, m * (o.sw || 6) * 0.005); ctx.strokeStyle = o.stroke; ctx.lineJoin = 'round'; ctx.stroke(); ctx.restore();
   }
   // tape / pin on top
   const deco = o.deco || 'tape', topY = shape === 'heart' ? y + h * 0.12 : shape === 'cloud' ? y + h * 0.14 : y;
@@ -4611,6 +4635,14 @@ cv.addEventListener('wheel', e => {
 }, { passive: false });
 document.addEventListener('gesturestart', e => e.preventDefault());
 
+/* phones: is a two-finger gesture meant for object o? either finger or their midpoint inside its on-screen box,
+   grown by a margin that scales with its size (28–90 px), so fingers placed on both sides of a small text still count */
+function pinchNear(o, pts) {
+  if (!o || o.locked || o.hidden) return false;
+  const c = selGeom(o).corners, xs = c.map(q => q.x), ys = c.map(q => q.y), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const g = clamp(Math.max(x1 - x0, y1 - y0) * 0.35, 28, 90);
+  return pts.some(q => q.x >= x0 - g && q.x <= x1 + g && q.y >= y0 - g && q.y <= y1 + g);
+}
 function startPinch() {
   const [a, b] = [...pointers.values()];
   let objMode = false;
@@ -4619,14 +4651,22 @@ function startPinch() {
     if (G.type === 'cutbrush') invalidate();   // drop the live-brush preview so the filter re-applies
     if ((G.type === 'erase' && G.changed) || G.type === 'cutbrush' || ((G.type === 'gmove' || G.type === 'lend' || G.type === 'tip') && G.moved)) commit();
     if (G.type === 'marq') requestDraw();
-    if (G.type === 'move' && tool === 'select') { const o = selObj(); if (o && !o.locked && o.id === G.id) objMode = true; }
+    if (G.type === 'move' && tool === 'select' && touchG && G.prev && performance.now() - G.t0 < 600) {
+      // the first finger landed on another object, but the pinch is around the one that was selected: go back to it
+      const po = doc.objects.find(x => x.id === G.prev), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      if (po && pinchNear(po, [a, b, mid])) {
+        const h = doc.objects.find(x => x.id === G.id); if (h && G.moved) { h.x = G.x0; h.y = G.y0; invalidate(); }
+        selId = po.id; refreshPanel(); objMode = true;
+      }
+    }
+    if (!objMode && G.type === 'move' && tool === 'select') { const o = selObj(); if (o && !o.locked && o.id === G.id) objMode = true; }
     if ((G.type === 'scale' || G.type === 'rotate') && tool === 'select') objMode = true;
   }
   const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d0 = Math.max(dist(a, b), 1), a0 = Math.atan2(b.y - a.y, b.x - a.x);
   // phones: the first finger often lands just beside a small text; a pinch on (or near) the selected object still means that object
   if (!objMode && touchG && tool === 'select' && (!G || G.type === 'pan' || G.type === 'none')) {
     const o = selObj(), dm = screenToDoc(mid.x, mid.y), da = screenToDoc(a.x, a.y), db = screenToDoc(b.x, b.y), pad = 28 / view.s;
-    if (o && !o.locked && !o.hidden && [dm, da, db].some(q => hitObj(o, q.x, q.y, pad))) objMode = true;
+    if (o && !o.locked && !o.hidden && ([dm, da, db].some(q => hitObj(o, q.x, q.y, pad)) || pinchNear(o, [a, b, mid]))) objMode = true;
   }
   if (objMode) { const o = selObj(); G = { type: 'pinchObj', mid0: mid, d0, a0, x0: o.x, y0: o.y, sc0: o.sc, rot0: o.rot }; }
   else G = { type: 'pinchView', mid0: mid, d0, s0: view.s, tx0: view.tx, ty0: view.ty };
@@ -4812,7 +4852,10 @@ function startSingle(p, shift, ctrlK) {
         const h = hitHandle(o, p);
         if (h) { startHandle(o, h, p); return; }
       }
-      const hit = (o && !o.hidden && hitObj(o, d.x, d.y, (touchG ? 18 : 10) / view.s)) ? o : pick(d.x, d.y);
+      // the selected object keeps a wider pad, but not over another object that is right under the finger
+      const sOk = o && !o.hidden, ex = pick(d.x, d.y, true);
+      const hit = sOk && hitObj(o, d.x, d.y, 0) ? o : ex && !(sOk && ex.type === 'deco' && DECO[ex.kind] && DECO[ex.kind].full) ? ex
+        : sOk && hitObj(o, d.x, d.y, (touchG ? 18 : 10) / view.s) ? o : pick(d.x, d.y);
       const grp = hit && hit.gid && selId !== hit.id ? groupOf(hit) : null;
       if (grp && grp.length > 1) {   // a grouped object: select and drag its whole group
         selId = null; multi = grp.map(x => x.id); refreshPanel(); requestDraw();
@@ -4820,8 +4863,9 @@ function startSingle(p, shift, ctrlK) {
         return;
       }
       if (hit) {
+        const prev = selId !== hit.id ? selId : null;   // a second finger soon after may mean "pinch the one that was selected" (startPinch)
         if (selId !== hit.id) { selId = hit.id; refreshPanel(); requestDraw(); }
-        G = { type: 'move', id: hit.id, p0: p, x0: hit.x, y0: hit.y, moved: false, tx0: view.tx, ty0: view.ty };
+        G = { type: 'move', id: hit.id, p0: p, x0: hit.x, y0: hit.y, moved: false, tx0: view.tx, ty0: view.ty, prev, t0: performance.now() };
       } else if (S.marq || shift) G = { type: 'marq', p0: p, p1: p, moved: false };
       else G = { type: 'pan', p0: p, tx0: view.tx, ty0: view.ty, moved: false };
       return;
@@ -5164,12 +5208,14 @@ function getModel(id) {
 }
 /* after a failed run: free the session's WASM memory and let the next attempt start fresh */
 async function releaseModel(id) {
+  const w = wSess[id]; delete wSess[id];
+  if (w) w.then(() => aiW && aiWCall({ t: 'free', id })).catch(() => { });
   const p = modelP[id]; modelP[id] = null;
   try { const s = await p; if (s && s.release) await s.release(); } catch (e) { }
 }
 async function clearModelCaches() {
   if (aiBusy) { toast('AIの処理が終わってから削除してください'); return false; }
-  for (const id in modelP) await releaseModel(id);
+  for (const id of new Set([...Object.keys(modelP), ...Object.keys(wSess)])) await releaseModel(id);
   try {
     const keys = await idbOp('readonly', st => st.getAllKeys());
     for (const k of keys || []) if (String(k).startsWith('model:')) await dropModelCache(k);
@@ -5193,6 +5239,85 @@ function getSeg() {
   }
   return segP;
 }
+/* ==== AI worker ==== ORT inference runs in a blob Web Worker so the page keeps responding (taps, scrolling, 中止).
+   The worker importScripts the same pinned ort.wasm.min.js; u2netp.js is read inside the worker too (http only).
+   If the worker cannot start, the old main-thread path (getSeg / getModel) is used. */
+const AIW_SRC = `'use strict';let H2F=null;${toHalf}
+${fromHalf}
+const SS={};
+onmessage=async e=>{const m=e.data;try{
+if(m.t==='init'){importScripts(m.base+'ort.wasm.min.js');ort.env.wasm.wasmPaths=m.base;ort.env.wasm.numThreads=1;postMessage({q:m.q,ok:1});return;}
+if(m.t==='load'){let bin=m.bin;if(!bin){self.window=self;importScripts(m.url);let s=atob(self.__U2NETP);self.__U2NETP=null;bin=new Uint8Array(s.length);for(let i=0;i<s.length;i++)bin[i]=s.charCodeAt(i);s=null;}
+const s=await ort.InferenceSession.create(bin,{executionProviders:['wasm'],graphOptimizationLevel:'all'});SS[m.id]=s;postMessage({q:m.q,ok:1});return;}
+if(m.t==='run'){const s=SS[m.id];if(!s)throw new Error('no session');const inp=s.inputNames[0],half=()=>s.run({[inp]:new ort.Tensor('float16',toHalf(m.f),m.dims)});let o;
+if(s.__half)o=await half();else{try{o=await s.run({[inp]:new ort.Tensor('float32',m.f,m.dims)});}catch(x){if(!m.sig)throw x;o=await half();s.__half=true;}}
+const t=o[s.outputNames[0]],d=t.type==='float16'?fromHalf(t.data):new Float32Array(t.data);postMessage({q:m.q,ok:1,d},[d.buffer]);return;}
+if(m.t==='free'){const s=SS[m.id];delete SS[m.id];if(s&&s.release)await s.release();postMessage({q:m.q,ok:1});}
+}catch(x){postMessage({q:m.q,err:String(x&&x.message||x)});}};`;
+let aiW = null, aiWq = 0, aiWok = null, aiNoW = false, aiStop = false, aiTick = null;
+const aiWP = new Map(), wSess = {};
+const aiWCall = (m, tr) => new Promise((res, rej) => { if (!aiW) return rej(new Error(aiStop ? 'cancel' : 'worker gone')); m.q = ++aiWq; aiWP.set(m.q, [res, rej]); aiW.postMessage(m, tr || []); });
+function aiWKill(err) {
+  if (aiW) aiW.terminate(); aiW = null; aiWok = null;
+  for (const k in wSess) delete wSess[k];
+  for (const [, p] of aiWP) p[1](err); aiWP.clear();
+}
+function aiWorker() {
+  if (!aiWok) {
+    aiWok = (async () => {
+      if (!window.Worker || !window.Blob) throw new Error('no worker');
+      const u = URL.createObjectURL(new Blob([AIW_SRC], { type: 'text/javascript' }));
+      aiW = new Worker(u);
+      aiW.onmessage = e => { const m = e.data, p = aiWP.get(m.q); if (!p) return; aiWP.delete(m.q); m.err ? p[1](new Error(m.err)) : p[0](m); };
+      aiW.onerror = e => { e.preventDefault(); aiWKill(new Error('worker: ' + (e.message || 'error'))); };
+      try { await aiWCall({ t: 'init', base: ORT_BASE }); } finally { URL.revokeObjectURL(u); }
+      return aiW;
+    })();
+    aiWok.catch(e => { aiWKill(e); });
+  }
+  return aiWok;
+}
+function u2Bytes() {   // main-thread decode of the bundled model (file:// fallback for the worker)
+  return (async () => {
+    if (!window.__U2NETP) await loadScript('u2netp.js');
+    let s = atob(window.__U2NETP); window.__U2NETP = null;
+    const b = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+    s = null; return b;
+  })();
+}
+function getWModel(id) {
+  if (!wSess[id]) {
+    const p = wSess[id] = (async () => {
+      await aiWorker();
+      if (id === 'u2') {
+        try { if (!/^https?:/.test(location.protocol)) throw new Error('local'); await aiWCall({ t: 'load', id, url: new URL('u2netp.js', location.href).href }); }
+        catch (e) { if (!aiW) throw e; const b = await u2Bytes(); await aiWCall({ t: 'load', id, bin: b }, [b.buffer]); }
+      } else {
+        const m = AI_MODELS[id], b = await fetchModel(m.url, m.key);
+        setAiMsg('AIを起動中…');
+        try { await aiWCall({ t: 'load', id, bin: b }, [b.buffer]); }
+        catch (e) { if (aiW) dropModelCache(m.key); throw e; }   // a cached model that won't load is evicted
+      }
+      return { w: true, id };
+    })();
+    p.catch(() => { if (wSess[id] === p) delete wSess[id]; });
+  }
+  return wSess[id];
+}
+/* session for model id: in the worker when possible, else on the main thread */
+async function aiSess(id) {
+  if (!aiNoW) {
+    try { await aiWorker(); } catch (e) { if (aiStop) throw e; console.warn('AI worker unavailable, using the main thread', e); aiNoW = true; }
+    if (!aiNoW) return getWModel(id);
+  }
+  return id === 'u2' ? getSeg() : getModel(id);
+}
+function aiCancel() {
+  if (!aiBusy || aiStop) return;
+  aiStop = true; aiTick = null; setAiMsg('中止しています…');
+  aiWKill(new Error('cancel'));   // the worker (and its loaded models) is dropped; the next run starts a fresh one
+}
+function aiRunMsg(m) { aiTick = { m, t0: performance.now() }; setAiMsg(m); }
 /* per-model input normalisation (RGBA bytes -> planar NCHW floats) and mask curve (normalised 0..1 -> alpha 0..1) */
 const SEG = {
   rmbg: { N: 1024, norm(d, f, P) { for (let p = 0; p < P; p++) for (let k = 0; k < 3; k++) f[k * P + p] = d[p * 4 + k] / 255 - 0.5; },
@@ -5228,10 +5353,11 @@ function fromHalf(h) {
 async function segMask(sess, m0, src) {
   const N = m0.N, P = N * N, c = mk(N, N), g = c.getContext('2d', { willReadFrequently: true });
   g.fillStyle = '#fff'; g.fillRect(0, 0, N, N); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, N, N);
-  const f = new Float32Array(3 * P), inp = sess.inputNames[0], dims = [1, 3, N, N];
+  const f = new Float32Array(3 * P), inp = sess.w ? '' : sess.inputNames[0], dims = [1, 3, N, N];
   m0.norm(g.getImageData(0, 0, N, N).data, f, P);
-  let out;
-  if (sess.__half) out = await sess.run({ [inp]: new ort.Tensor('float16', toHalf(f), dims) });
+  let out, m;
+  if (sess.w) m = (await aiWCall({ t: 'run', id: sess.id, f, dims, sig: !!m0.sig }, [f.buffer])).d;
+  else if (sess.__half) out = await sess.run({ [inp]: new ort.Tensor('float16', toHalf(f), dims) });
   else {
     try { out = await sess.run({ [inp]: new ort.Tensor('float32', f, dims) }); }
     catch (e) {   // fp16 graph that wants float16 input: retry once in half precision and remember it
@@ -5239,7 +5365,7 @@ async function segMask(sess, m0, src) {
       out = await sess.run({ [inp]: new ort.Tensor('float16', toHalf(f), dims) }); sess.__half = true;
     }
   }
-  const t = out[sess.outputNames[0]], m = t.type === 'float16' ? fromHalf(t.data) : t.data;
+  if (!m) { const t = out[sess.outputNames[0]]; m = t.type === 'float16' ? fromHalf(t.data) : t.data; }
   let lo = Infinity, hi = -Infinity;
   if (!m0.sig) for (let i = 0; i < P; i++) { if (m[i] < lo) lo = m[i]; if (m[i] > hi) hi = m[i]; }
   const nrm = m0.sig ? v => 1 / (1 + Math.exp(-v)) : v => (v - lo) / (hi - lo || 1);
@@ -5254,22 +5380,30 @@ async function runAI() {
   // remember what we started on: the download + inference can take a while, and the user may undo, open or crop meanwhile
   const t = cutTarget(), doc0 = doc, id0 = tgtId(t), src = bitmaps.get(id0).canvas;
   const want = AI_MODELS[S.cut.model] ? S.cut.model : 'u2';
-  aiBusy = true; aiMsg = 'AIを準備中…'; refreshPanel();
+  aiBusy = true; aiStop = false; aiTick = null; aiMsg = 'AIを準備中…'; refreshPanel();
+  const tick = setInterval(() => { if (aiTick && aiBusy && !aiStop) setAiMsg(aiTick.m + '  ' + ((performance.now() - aiTick.t0) / 1000 | 0) + '秒'); }, 1000);
   let fellBack = false;
   try {
     let mask = null;
     if (want !== 'u2') {
       try {
-        const sess = await getModel(want);
-        setAiMsg('背景を消しています…（数秒〜数十秒かかります）'); await nap();
+        const sess = await aiSess(want);
+        aiRunMsg('背景を消しています…（数秒〜数十秒）'); await nap();
         mask = await segMask(sess, SEG[want], src);
-      } catch (e) { console.warn(want + ' unavailable, falling back to U2-Net-p', e); releaseModel(want); fellBack = true; }
+      } catch (e) { if (aiStop) throw e; console.warn(want + ' unavailable, falling back to U2-Net-p', e); releaseModel(want); fellBack = true; }
     }
     if (!mask) {
       setAiMsg(fellBack ? '標準AIに切り替えて背景を消しています…' : '背景を消しています…');
-      const sess = await getSeg(); await nap();
-      mask = await segMask(sess, SEG.u2, src);
+      const sess = await aiSess('u2'); if (aiStop) throw new Error('cancel');
+      aiRunMsg(fellBack ? '標準AIで背景を消しています…' : '背景を消しています…'); await nap();
+      try { mask = await segMask(sess, SEG.u2, src); }
+      catch (e) {   // the worker failed mid-run (memory etc.): one last try on the main thread
+        if (aiStop || !sess.w) throw e;
+        console.warn('AI worker run failed, retrying on the main thread', e); aiWKill(e); aiNoW = true;
+        mask = await segMask(await getSeg(), SEG.u2, src);
+      }
     }
+    if (aiStop) throw new Error('cancel');
     if (doc !== doc0 || !bitmaps.has(id0) || tgtId(cutTarget()) !== id0) { toast('編集内容が変わったため、AI背景削除を中止しました', 3200); return; }
     const c = forkTarget(t), g = c.getContext('2d');
     g.save(); g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
@@ -5277,10 +5411,11 @@ async function runAI() {
     bmpRev++; invalidate(); commit();
     toast(fellBack ? '高精度AIを使えなかったため、標準AIで背景を削除しました' : '背景を削除しました。消しすぎた所は「ブラシで戻す」で直せます', 3600);
   } catch (err) {
+    if (aiStop) { toast('AI背景削除を中止しました'); return; }
     console.warn(err);
     toast(!navigator.onLine ? 'オフラインのためAIを準備できませんでした。一度通信できる所で使うと、次からはオフラインでも使えます'
       : 'この端末ではAI背景削除を使えませんでした。「色で消す」やブラシで消してください', 4200);
-  } finally { aiBusy = false; refreshPanel(); }
+  } finally { clearInterval(tick); aiBusy = false; aiStop = false; aiTick = null; refreshPanel(); }
 }
 
 /* ============================================================
@@ -5304,7 +5439,7 @@ function addText(text = '') {
 }
 function addNote(text = '') {
   const c = viewCenter(), j = jitter(), s = MIN() * 0.32, n = S.note, r = NOTE_RATIOS[n.ratio] || NOTE_RATIOS.square;
-  pushObj({ ...baseObj('note', c.x + j.x, c.y + j.y), rot: -0.04, text, color: n.color, shape: n.shape, deco: n.deco, pattern: n.pattern, tcolor: n.tcolor, stroke: n.stroke, font: n.font, tail: n.tail, w: s * r[0], h: s * r[1] }, true);
+  pushObj({ ...baseObj('note', c.x + j.x, c.y + j.y), rot: -0.04, text, color: n.color, shape: n.shape, deco: n.deco, pattern: n.pattern, tcolor: n.tcolor, stroke: n.stroke, sw: n.sw, font: n.font, tail: n.tail, w: s * r[0], h: s * r[1] }, true);
   startInlineEdit(selObj(), true);
 }
 function nextNum() { return doc.objects.filter(o => o.type === 'stamp' && o.kind === 'num').reduce((m, o) => Math.max(m, o.n), 0) + 1; }
@@ -5518,7 +5653,7 @@ function matHtml(search) {
   return h + (items.length ? `<div class="matgrid">${items.map(matButton).join('')}</div>` : hint(matCat === 'recent' ? 'まだありません。素材を使うとここに並びます。' : ''));
 }
 let matQ = '';
-function renderMaterial() { sidePanel.innerHTML = matHtml(true); }
+function renderMaterial() { const rs = rowsSnap(sidePanel); sidePanel.innerHTML = matHtml(true); rowsBack(sidePanel, rs); }
 /* after a 素材 action: refresh the open panel and, on PC, the 素材 drawer too */
 function refreshMat() { refreshPanel(); if (sideView === 'material') renderMaterial(); }
 /* search typing: replace everything except the search box itself (rebuilding the input would break IME composition and the caret) */
@@ -5652,7 +5787,7 @@ async function addPhoto(file, fromLib) {
     const box = MIN() * 0.5, a = canvas.width / canvas.height;
     const w = a >= 1 ? box : box * a, h = a >= 1 ? box / a : box;
     const c = viewCenter();
-    pushObj({ ...baseObj('image', c.x, c.y), bmp: id, w, h, border: S.image.border, rad: S.image.rad, shadow: S.image.shadow });
+    pushObj({ ...baseObj('image', c.x, c.y), bmp: id, w, h, border: S.image.border, bw: S.image.bw, rad: S.image.rad, shadow: S.image.shadow });
     if (!fromLib) libSave(canvas, alpha, true);
     toast('写真を貼り付けました。角の●で大きさを変えられます');
   } catch (err) { toast(imgErr(file)); }
@@ -6100,6 +6235,7 @@ function runCmd(k, v, final) {
     } break;
     case 'cutThis': if (o && o.type === 'image' && !o.slot) { S.cut.target = o.id; setTool('cutout'); } break;
     case 'ai': runAI(); break;
+    case 'aiStop': aiCancel(); break;
     // the colour picker fires 'input' continuously (final === false): preview only; commit + rebuild the panel on the final change
     case 'bg': doc.bg = v || null; invalidate(); if (final !== false) { commit(); refreshPanel(); } break;
     case 'aiModel': if (AI_MODELS[v]) { S.cut.model = UI.aiModel = v; saveUI(); refreshPanel(); } break;
@@ -6168,7 +6304,7 @@ function doAct(a, k, v, final) {
     // the 付箋 shape pictures follow the fill colour without a rebuild
     if (o.type === 'shape' && /^(color|cs|ce|ls|oc|fc)$/.test(k)) syncShapeIcos(shapeBase(o));
     if (o.type === 'note' && k === 'color') panelEl().querySelectorAll('button[data-k="shape"] .nico').forEach(im => { try { im.src = noteIco(JSON.parse(im.closest('button').dataset.v), v); } catch (e) { } });
-    if (final) { commit(); if (REBUILD_O.has(k) || ((k === 'oc' || k === 'fc') && (was === 'none') !== (v === 'none')) || !syncOChips(k, v)) refreshPanel(); }
+    if (final) { commit(); if (REBUILD_O.has(k) || ((k === 'oc' || k === 'fc') && (was === 'none') !== (v === 'none')) || ((k === 'border' || k === 'stroke') && (!was || was === 'none') !== (!v || v === 'none')) || !syncOChips(k, v)) refreshPanel(); }
   }
 }
 /* 図形 tool: a panel change also restyles the shape that was just drawn (it stays selected); another family waits for the next drawing */
@@ -6499,6 +6635,7 @@ function objPanel(o) {
       h += `<div class="cgrp">` + row('塗り', swatches('o', 'color', o.color, NOTE_COLORS))
         + row('枠線', noneSw('stroke', o.stroke) + swatches('o', 'stroke', o.stroke || 'none', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#5E8C5F', '#FF8FB1']))
         + row('文字', swatches('o', 'tcolor', o.tcolor || '#2A2724', ['#2A2724', '#FFFFFF', '#E8392F', '#2563EB', '#1F8A4C', '#8B5CF6'])) + `</div>`;
+      if (o.stroke && o.stroke !== 'none') h += slider('o:sw', '枠線の太さ', 1, 30, o.sw || 6);
       dt += row('柄', chips('o', 'pattern', [['plain', '無地'], ['lines', '罫線'], ['grid', '方眼'], ['dots', 'ドット']], o.pattern || (o.shape === 'torn' ? 'lines' : 'plain')));
       dt += row('飾り', chips('o', 'deco', [['tape', 'テープ'], ['pin', 'ピン'], ['none', 'なし']], o.deco || 'tape'));
       dt += row('縦横', ratioBtns(o));
@@ -6511,6 +6648,7 @@ function objPanel(o) {
         h += hint('枠をダブルクリック（ダブルタップ）するか、写真ファイルを枠にドロップしても入れられます。');
       } else dt += row('素材', cmdBtn('libSave', IW('keep', 'マイ素材に保存')));
       { const fr = row('枠', noneSw('border', o.border) + swatches('o', 'border', o.border, ['#FFFFFF', '#111111', '#F4EFE4', '#5E8C5F', '#FFB3C7']))   // a slot keeps them in 詳細
+      + (o.border && o.border !== 'none' ? slider('o:bw', '枠の太さ', 1, 30, o.bw || (o.slot ? 10 : 7)) : '')
       + row('影', `<button class="chip ichip tog${o.shadow ? ' on' : ''}" aria-pressed="${!!o.shadow}" data-act="o" data-k="shadow" data-v="${!o.shadow}" title="影">${ICON.shadow}<span class="vh">影</span></button>`)
       + slider('o:rad', '角丸', 0, 100, o.rad); if (o.slot) dt += fr; else h += fr; }
       break;
@@ -6801,6 +6939,7 @@ function refreshPanel() {
       const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
       if (imgs.length) h += row('対象', chips('s', 'cut.target', [['base', '元の写真'], ...imgs.map((o, i) => [o.id, '貼った写真' + (i + 1)])], S.cut.target));
       h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで背景削除'}</button>`;
+      if (aiBusy) h += `<div class="aistopw"><button class="chip" data-act="cmd" data-k="aiStop"${aiStop ? ' disabled' : ''}>中止</button></div>` + hint('処理中も、写真の拡大・移動やほかの画面の操作はできます。');
       let dt = row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
       if (S.cut.model === 'rmbg') dt += hint(ICON.warn + 'RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。');
       else if (S.cut.model === 'biref') dt += hint('高精度（BiRefNet・MITライセンス・商用可）は初回に約115MBをダウンロードします。Wi-Fiでの利用がおすすめです。写真によっては「標準」のほうがきれいに消えるので、うまくいかないときは「標準」も試してください。');
@@ -6824,9 +6963,10 @@ function refreshPanel() {
   // phone: only switching to another tool (ペン, 図形…) opens the folded panel; selecting things or tapping the canvas leaves it as the user set it
   if (!deskOn && phNow === 's' && tool !== panelTool && tool !== 'select') setPH(phPrev);
   panelTool = tool;
+  const rs = key === panelKey ? rowsSnap(tgt) : null;   // same context: keep the chip rows' sideways scroll
   if (tgt !== panel) panel.innerHTML = '';
   tgt.innerHTML = h;
-  tgt.scrollTop = st;
+  tgt.scrollTop = st; rowsBack(tgt, rs);
   // soft fade-in only when the panel switches context (tool / selected object), not on in-place refreshes
   if (key !== panelKey) { panelKey = key; closeObjMenu(); tgt.classList.remove('enter'); void tgt.offsetWidth; tgt.classList.add('enter'); }
 }
@@ -6864,6 +7004,8 @@ function onSlider(t, final) {
     o[k] = v;
     if (o.type === 'mosaic' && k === 'str') S.mosaic.str = raw;
     if (o.type === 'image' && k === 'rad') S.image.rad = raw;
+    if (o.type === 'image' && k === 'bw' && !o.slot) S.image.bw = raw;
+    if (o.type === 'note' && k === 'sw') S.note.sw = raw;
     if (k === 'width' && o.type === 'stroke') S.pen.width = Math.max(1, Math.round(o.mode === 'hl' ? raw / 2.5 : raw));
     if (k === 'width' && o.type === 'shape') S.shape.width = raw;
     if (k === 'bend' && o.type === 'shape') S.shape.bend = v;
@@ -7060,7 +7202,7 @@ let instEvt = null, instDone = false, instReady = false;
 /* 'prompt' | 'ios' | 'iosx' (iOS non-Safari) | 'android' (menu steps) | 'inapp' | null (installed / not possible here) */
 /* LINE / Instagram … built-in browsers: Google refuses to sign in there and iOS keyboards / storage behave differently.
    #iabBar (once per session) offers ブラウザで開く: LINE honours ?openExternalBrowser=1, other apps get リンクをコピー. */
-const inApp = () => INAPP_RE.test(UA) || (isIOS && !/Safari\//.test(UA)), isLineApp = () => /\bLine\//i.test(UA);
+const inApp = () => !standalone() && (INAPP_RE.test(UA) || (isIOS && !/Safari\//.test(UA))), isLineApp = () => /\bLine\//i.test(UA);
 function extUrl() { const u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1'); return u.href; }
 function openExternal() {
   if (isLineApp()) { location.href = extUrl(); return; }
@@ -8264,6 +8406,7 @@ function tplObj(s) {
 function tplBuild(t) { const base = nextNum() - 1; return t.items().map(s => tplObj(s.t === 'num' ? { ...s, n: s.n + base } : s)).filter(Boolean); }
 function applyTemplate(id, sure) {
   const t = TEMPLATES.find(x => x.id === id); if (!t || !doc) return;
+  if (t.canvas ? sure : true) queueMicrotask(() => { tagTpl = { d: doc, c: t.cat }; });   // a tag suggestion (テンプレートの種類)
   if (t.canvas) {   // collage: starts a new canvas, so confirm first (the old work is replaced; its draft goes with it)
     if (!sure) { toastAct(`「${t.name}」は新しいキャンバスで作ります。今の作品は置き換わります（先に保存がおすすめ）`, '作る', () => applyTemplate(id, true)); return; }
     newBlankDoc(t.canvas[0], t.canvas[1], t.bg, t.bgPat);
@@ -8305,9 +8448,11 @@ function renderTemplates(host) {
   if (host) tplHost = host;
   const list = TEMPLATES.filter(t => tplCat === 'all' || t.cat === tplCat);
   TEMPLATES.forEach(t => t.items().forEach(s => { if (s.font) familyCSS(s.font); }));
+  const rs = rowsSnap(tplHost);
   tplHost.innerHTML = `<div class="tplwrap">${hint(`${deskOn ? 'クリック' : 'タップ'}で大きく確かめて、「追加」で反映されます。「新しいキャンバス」のものは今の作品と入れ替わります。`)}`
     + `<div class="tplcats">${TPL_CATS.map(([k, l]) => `<button class="chip${tplCat === k ? ' on' : ''}" data-tplc="${k}" aria-pressed="${tplCat === k}">${l}</button>`).join('')}</div>`
     + `<div class="tplgrid">${list.map(t => `<button class="tpl" data-tpl="${t.id}"><span class="tim" data-tim="${t.id}" style="aspect-ratio:${t.canvas ? t.canvas[0] + '/' + t.canvas[1] : doc.w + '/' + doc.h}"></span><span class="tnm">${esc(t.name)}${t.canvas ? '<small>新しいキャンバス</small>' : ''}</span></button>`).join('')}</div></div>`;
+  rowsBack(tplHost, rs);
   fillTplThumbs();
   if (!tplFontPass) { tplFontPass = true; setTimeout(() => { if (tplOpen()) { tplThumbs.clear(); renderTemplates(); } }, 1800); }   // redo once the template fonts have loaded
 }
@@ -8319,6 +8464,28 @@ function fadeEdge(el) {
   const more = el.scrollWidth - el.clientWidth > 2;
   el.classList.toggle('hfl', more && el.scrollLeft > 2);
   el.classList.toggle('hfr', more && el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+}
+/* a rebuild keeps every sideways row where the user left it (matched by class + row label + order)
+   and scrolls a chip that just lit up into view, so tapping a category never jumps back to the first chip */
+function rowKeys(host) {
+  const n = {};
+  return [...host.querySelectorAll(HSCROLL)].filter(el => el !== toolsEl).map(el => {
+    const r = el.closest('.row'), l = r && r.querySelector('.rl'), k = el.classList[0] + '|' + (l ? l.textContent : '');
+    n[k] = (n[k] || 0) + 1; return [k + '|' + n[k], el];
+  });
+}
+const rowLit = el => { const b = el.querySelector('.on,[aria-pressed="true"]'); return b ? [b, b.dataset.v ?? b.dataset.tplc ?? b.textContent] : [null, '']; };
+function rowsSnap(host) { const m = new Map(); if (host) for (const [k, el] of rowKeys(host)) m.set(k, [el.scrollLeft, rowLit(el)[1]]); return m; }
+function rowsBack(host, m) {
+  if (!host || !m || !m.size) return;
+  for (const [k, el] of rowKeys(host)) {
+    const s = m.get(k); if (!s) continue;
+    el.scrollLeft = s[0];
+    const [b, id] = rowLit(el); if (!b || id === s[1]) continue;
+    const r = b.getBoundingClientRect(), R = el.getBoundingClientRect(), pad = 28;
+    if (r.left < R.left + pad) el.scrollLeft -= R.left + pad - r.left;
+    else if (r.right > R.right - pad) el.scrollLeft += r.right - R.right + pad;
+  }
 }
 let fadeQ = false;
 function scrollFades() { if (fadeQ) return; fadeQ = true; requestAnimationFrame(() => { fadeQ = false; document.querySelectorAll(HSCROLL).forEach(el => { if (el.offsetParent) fadeEdge(el); }); }); }
@@ -9395,11 +9562,13 @@ $('#exCopy').hidden = !canCopyImg();
 $('#exCopy').addEventListener('click', copyImage);
 $('#exGo').addEventListener('click', async () => {
   const btn = $('#exGo'); if (btn.disabled) return;
-  btn.disabled = true; btn.textContent = '作成中…';
+  btn.disabled = true; btn.textContent = PUB.vis !== 'private' ? '保存・公開中…' : '作成中…';
+  // posting starts first: on phones the share sheet (写真に保存) can send the page to the background, which used to cut the upload off
+  const pubP = PUB.vis !== 'private' ? (($('#exPub').disabled = true), runPublish()) : null;
   let ok = false;
   try { ok = await exportImage(); if (ok && !$('#exAd').firstChild) { $('#exAd').innerHTML = adHtml('save'); adFill($('#exAd')); } }
   finally {
-    if (ok && PUB.vis !== 'private') { btn.textContent = '公開中…'; await runPublish(); }
+    if (pubP) { await pubP.catch(() => { }); $('#exPub').disabled = false; }
     btn.disabled = false; btn.textContent = exGoLabel();
   }
 });
@@ -9569,7 +9738,16 @@ function acctWire(c) {
     acctRender();
   });
 }
-const authRedirect = () => location.origin + location.pathname;
+const authRedirect = () => location.origin + location.pathname.replace(/index\.html$/, '');   // …/lufora/ (the URL registered in Supabase), also when opened as …/index.html
+/* which provider a login started with: sessionStorage, plus localStorage for browsers that come back in another tab (iOS Chrome) */
+function authMark(p) { try { sessionStorage.setItem('lf.auth', p); } catch (e) { } try { localStorage.setItem('lf.auth', JSON.stringify({ p, t: Date.now() })); } catch (e) { } }
+function authTake() {
+  let p = null; try { p = sessionStorage.getItem('lf.auth'); sessionStorage.removeItem('lf.auth'); } catch (e) { }
+  try { const v = JSON.parse(localStorage.getItem('lf.auth')); localStorage.removeItem('lf.auth'); if (!p && v && Date.now() - v.t < 30 * 60e3) p = v.p; } catch (e) { }
+  return p;
+}
+/* back / swipe from the Google page restores this page from the back-forward cache with the buttons still busy */
+addEventListener('pageshow', e => { if (e.persisted && acctBusy) { acctBusy = false; acctRender(); } });
 const errKey = e => ((e && (e.code || '')) + ' ' + (e && (e.message || '')) + ' ' + (e && e.status === 429 ? 'rate' : '')).toLowerCase();
 function acctErr(e) {
   const k = errKey(e);
@@ -9577,7 +9755,10 @@ function acctErr(e) {
   if (/rate|too many/.test(k)) return '短い間に何度も試したため、少し待ってからもう一度お試しください';
   if (/manual_linking_disabled|provider is not enabled|unsupported provider|provider_disabled|validation_failed/.test(k)) return 'このログイン方法はまだ準備中です';
   if (/otp_expired|expired/.test(k)) return 'リンクの有効期限が切れています。もう一度送ってください';
-  return 'ログインできませんでした。もう一度お試しください';
+  if (/^load https|failed to fetch|network|load failed/.test(k.trim())) return 'ログインの準備ができませんでした。通信状態を確認するか、広告ブロックなどをオフにしてもう一度お試しください';
+  if (/redirect|url/.test(k)) return `ログイン後の戻り先が登録されていません。${LF_MAIL} までお知らせください`;
+  const code = String(e && (e.code || e.message) || '').slice(0, 40);
+  return 'ログインできませんでした。もう一度お試しください' + (code ? `（${code}）` : '');
 }
 /* Google / Apple: link to this device's user (posts carry over), or sign in when there is no anonymous session to keep */
 async function acctOAuth(provider) {
@@ -9586,14 +9767,14 @@ async function acctOAuth(provider) {
   try {
     await saveDraft();   // the page leaves for the provider: keep the work
     const { c } = await sb(), { data: { session } } = await c.auth.getSession();
-    try { sessionStorage.setItem('lf.auth', provider); } catch (e) { }
+    authMark(provider);
     const opt = { provider, options: { redirectTo: authRedirect() } };
     sbOk(session && session.user.is_anonymous ? await c.auth.linkIdentity(opt) : await c.auth.signInWithOAuth(opt));   // success navigates away
   } catch (e) { console.warn('auth', e); toast(acctErr(e)); acctBusy = false; acctRender(); }
 }
 /* the provider identity already belongs to an account (made on another device): sign in to that one instead */
 async function acctSwitch(provider) {
-  try { await saveDraft(); const { c } = await sb(); sbOk(await c.auth.signInWithOAuth({ provider, options: { redirectTo: authRedirect() } })); }
+  try { await saveDraft(); const { c } = await sb(); authMark(provider); sbOk(await c.auth.signInWithOAuth({ provider, options: { redirectTo: authRedirect() } })); }
   catch (e) { console.warn('auth', e); toast(acctErr(e)); }
 }
 /* メール: an anonymous user adds the address (same user); an address that already has an account gets a normal login link */
@@ -9621,8 +9802,9 @@ const cleanAuthUrl = () => { const q = new URLSearchParams(location.search); ['e
 async function authReturn() {
   const g = authParams(), err = g('error_code') || g('error');
   let desc = (g('error_description') || '').replace(/\+/g, ' '); try { desc = decodeURIComponent(desc); } catch (e) { }   // Supabase may encode it twice
-  let prov = null; try { prov = sessionStorage.getItem('lf.auth'); sessionStorage.removeItem('lf.auth'); } catch (e) { }
+  let prov = authTake();
   if (err) {
+    if (!prov && ACCT_PROVS.length === 1 && /identity_already_exists|already (linked|exists|associated)/i.test(err + ' ' + desc)) prov = ACCT_PROVS[0];   // the start mark was lost
     cleanAuthUrl();
     if (/identity_already_exists|already (linked|exists|associated)/i.test(err + ' ' + desc) && prov && prov !== 'email') {
       toast('このアカウントはほかの端末で使われています。そのアカウントでログインします', 3600);
@@ -9630,7 +9812,9 @@ async function authReturn() {
     }
     toast(/otp_expired|expired/i.test(err + desc) ? 'リンクの有効期限が切れています。もう一度送ってください'
       : /already been registered|email_exists/i.test(err + ' ' + desc) ? 'このメールアドレスはすでに登録されています。もう一度メールアドレスを入れて送ると、ログイン用のメールが届きます'
-      : 'ログインできませんでした' + (desc ? `（${desc.slice(0, 60)}）` : ''), 5200); return;
+      : /access_denied/i.test(err) ? 'ログインを取り消しました'
+      : /redirect/i.test(err + ' ' + desc) ? `ログイン後の戻り先が登録されていません。${LF_MAIL} までお知らせください`
+      : 'ログインできませんでした' + (desc || err ? `（${(desc || err).slice(0, 60)}）` : ''), 5200); return;
   }
   try {
     const { c } = await sb();
@@ -9640,6 +9824,7 @@ async function authReturn() {
     if (session && !session.user.is_anonymous) { const r = await c.auth.refreshSession(); if (!r.error && r.data.session) session = r.data.session; }
     acct = acctFrom(session);
     if (acct) { toast('ログインしました。ほかの端末と同期します'); acctSyncSoon(500); }
+    else toast('ログインを完了できませんでした。設定 › アカウントから、もう一度お試しください（メールでのログインも使えます）', 5200);   // tokens came back but no account session
   } catch (e) { console.warn('auth', e); toast(acctErr(e)); }
 }
 /* ==== username ==== signed-in users pick a unique user name (table profiles, supabase/schema_profiles.sql); right after the
@@ -9892,6 +10077,7 @@ function acctRender() {
       : `<p class="note">ログインすると、ほかの端末と次のものを共有できます。ログインしなくても、これまで通り使えます。</p>
         <ul class="acctlist"><li>みんなの作品の投稿</li><li>マイ素材</li><li>作業中の作品</li><li>設定</li></ul>
         ${inApp() ? `<div class="hint" style="margin:8px 0">${isLineApp() ? 'LINE' : 'アプリ'}の中のブラウザでは、Google のログインが使えません（Google の決まりです）。Safari（Android は Chrome）で開いてからログインしてください。<div class="actions" style="padding:8px 0 0;justify-content:flex-start"><button class="btn primary" data-iab="go">${isLineApp() ? 'ブラウザで開く' : 'リンクをコピー'}</button></div></div>` : ''}
+        ${isIOS && standalone() ? '<div class="hint" style="margin:8px 0">ホーム画面のアプリで Google のログインがうまくいかないときは、Safari か Chrome でこのページを開いてログインするか、下のメールでログインしてください。</div>' : ''}
         <div class="acctbtns">${ACCT_PROVS.map(pv => `<button class="btn acctp" data-acct="${pv}"${dis || (inApp() ? ' disabled' : '')}>${PROV_NAMES[pv]} で続ける</button>`).join('')}</div>
         <div class="acctor"><span>またはメールで</span></div>
         <form class="acctmail" id="acctMail"><input type="email" name="em" placeholder="メールアドレス" autocomplete="email" inputmode="email" aria-label="メールアドレス" required><button class="btn primary" type="submit"${dis}>${acctBusy ? '送信中…' : 'ログインリンクを送る'}</button></form>
@@ -10107,6 +10293,15 @@ const RemoteGallery = {
       return it;
     }).sort((a, b) => b.last - a.last);
   },
+  /* 管理者: 投稿のタグを書き換える (posts_update_admin policy in schema_moderation.sql; rpc mod_set_tags when schema_mod_tags.sql is run) */
+  async modTags(id, tags) {
+    const { c } = await sb();
+    const r = await c.rpc('mod_set_tags', { p_id: id, p_tags: tags });
+    if (!r.error) return;
+    if (!/PGRST202|42883/.test(String(r.error.code))) throw r.error;   // the rpc is not there yet: update the row directly
+    const d = sbOk(await c.from('posts').update({ tags }).eq('id', id).select('id'));
+    if (!d || !d[0]) throw new Error('not found');
+  },
   async modHide(id, on) {
     const { c } = await sb();
     const d = sbOk(await c.from('posts').update(on ? { hidden: true, hidden_reason: 'admin', hidden_at: new Date().toISOString() } : { hidden: false, hidden_reason: null, hidden_at: null }).eq('id', id).select('id'));
@@ -10138,7 +10333,8 @@ const Gallery = {
   isAdmin() { return this.adapter.isAdmin ? this.adapter.isAdmin().catch(() => false) : Promise.resolve(false); },
   modList() { return this.adapter.modList(); },
   modHide(id, on) { return this.adapter.modHide(id, on); },
-  modDelete(it) { return this.adapter.modDelete(it); }
+  modDelete(it) { return this.adapter.modDelete(it); },
+  modTags(id, tags) { return this.adapter.modTags ? this.adapter.modTags(id, tags) : Promise.reject(new Error('local')); }
 };
 if (SUPA.url && SUPA.key) Gallery.adapter = RemoteGallery;
 const netErr = m => m + (navigator.onLine ? '。時間をおいてもう一度試してください' : '（オフラインです）');
@@ -10146,6 +10342,75 @@ const shareLink = id => location.origin + location.pathname + '#p=' + encodeURIC
 const VIS = [['private', '非公開'], ['unlisted', '限定公開'], ['public', '公開']];
 const VIS_NAME = Object.fromEntries(VIS);
 const ADJ_NAMES = { bri: '明るさ', con: 'コントラスト', sat: '彩度', warm: '色温度', tint: '色かぶり', fade: '退色', glow: 'ふんわり', grain: '粒子', vig: '周辺減光', sepia: 'セピア', leak: '光漏れ', split: 'スプリット' };
+/* why a post failed, in words the user can act on (+ the short error code for a report) */
+function pubErrMsg(err) {
+  if (err && err.ui) return err.message;
+  const m = String(err && (err.message || err.error_description || err.error) || err || ''), c = String(err && (err.code || err.statusCode || err.status) || ''), mc = m + ' ' + c;
+  const why = !navigator.onLine || m === 'offline' ? 'オフラインです。インターネットにつながってから、もう一度試してください'
+    : /^load https/.test(m) ? '公開用の部品を読み込めませんでした。通信状態を確認し、広告ブロックなどを使っているときはオフにして試してください'
+    : /anonymous.*disabled|signups? not allowed/i.test(m) ? 'いまはゲストの投稿を受け付けていません。設定 › アカウントからログインして公開してください'
+    : /rate.?limit|too many|\b429\b/i.test(mc) ? '短い時間に操作が集中しました。1分ほど待ってからもう一度試してください'
+    : /bad_tag/i.test(m) ? '使えないタグが含まれています。タグを見直してください'
+    : /jwt|refresh token|invalid claim|\b401\b|not authenticated/i.test(mc) ? 'ログインの有効期限が切れていました。ページを再読み込みしてから、もう一度試してください'
+    : /row-level security|\b42501\b|\b403\b|unauthorized/i.test(mc) ? '投稿する権限を確認できませんでした。ページを再読み込みするか、ログインし直してください'
+    : /payload too large|\b413\b|maximum allowed size|too large/i.test(mc) ? '画像が大きすぎて送れませんでした'
+    : /\b23514\b|check constraint/i.test(mc) ? 'タイトルかタグが長すぎるか、多すぎます（タイトル40文字・タグ6個まで）'
+    : /bucket not found|does not exist|PGRST20|42P01/i.test(mc) ? `サーバーの準備が終わっていません。${LF_MAIL} までお知らせください`
+    : /fetch|network|load failed|timed? ?out|abort/i.test(m) ? '通信が途中で切れました。電波のよい所で、この画面を開いたままもう一度試してください'
+    : 'サーバーでエラーが起きました。時間をおいてもう一度試してください';
+  const code = (c && c !== 'undefined' ? c : m).replace(/\s+/g, ' ').slice(0, 36);
+  return '投稿できませんでした：' + why + (code ? `（${code}）` : '');
+}
+const pubNetErr = e => !(e && e.code && /^\d|^P|^PGRST/.test(String(e.code))) && /fetch|network|load failed|timed? ?out/i.test(String(e && e.message || e));
+/* a tag the community would not want: URLs, very long ones, phone-number-like digits and a short NG word list */
+const TAG_NG = ['死ね', 'しね', '殺す', 'ころす', '殺害', 'レイプ', 'セックス', 'せっくす', 'ちんこ', 'ちんぽ', 'まんこ', 'おっぱい', 'エロ', 'えろ', 'ヌード', 'アダルト', '援交', 'パパ活', 'ガイジ', '池沼', 'キチガイ', 'きちがい', 'ブス', 'ぶす', 'デブ', 'でぶ', 'キモい', 'きもい', 'うざい', 'クソ', 'くそ', 'カス', 'ゴミ', 'sex', 'porn', 'fuck', 'shit', 'nude', 'kill', 'bitch', 'nigger', 'hentai', '18禁'];
+function tagCheck(src) {
+  const raw = String(src || '').split(/[\s,、，#＃　]+/).map(t => t.trim()).filter(Boolean);
+  for (const t of raw) {
+    const n = t.toLowerCase().normalize('NFKC');
+    if (/https?:|www\.|\.(com|net|jp|org|io|me|ly)\b|@/.test(n)) return `タグ「${t.slice(0, 20)}」は使えません（URL やアカウント名は入れられません）`;
+    if ([...t].length > 16) return `タグ「${t.slice(0, 16)}…」が長すぎます（1つ16文字まで）`;
+    if (/\d{3,}[-‐ー]?\d{3,}/.test(n)) return `タグ「${t.slice(0, 20)}」は使えません（電話番号のような数字は入れられません）`;
+    if (TAG_NG.some(w => n.includes(w))) return `タグ「${t.slice(0, 20)}」は使えません。ほかの言葉にしてください`;
+  }
+  return raw.length > 6 ? 'タグは6個までです' : '';
+}
+/* tag suggestions (one chip row under the tag fields): the user's recent tags, what the photo looks like (aiScene), the
+   template category, the filter, drawn stickers, the season and popular tags of the posts already loaded */
+let tagTpl = null, tagScn = { k: '', t: [] };
+const TAG_DECO = { food: 'グルメ', animal: 'どうぶつ', season: '季節', oshi: '推し活', sparkle: 'キラキラ' };
+function tagSugs(cur) {
+  if (!doc) return [];
+  const have = new Set(parseTags(cur)), out = [], add = t => { t = String(t || '').trim(); if (t && [...t].length <= 16 && !have.has(t) && !out.includes(t) && !tagCheck(t)) out.push(t); };
+  (Array.isArray(UI.tagHist) ? UI.tagHist : []).slice(0, 3).forEach(add);
+  try {
+    const bm = bitmaps.get(doc.baseId), k = doc.baseId + '|' + bmpRev;
+    if (bm && tagScn.k !== k) { const smp = aiSample(bm.canvas, 48); tagScn = { k, t: aiScene(smp, aiStats(smp.d, smp.nm)).tags.map(t => t === '緑・自然' ? '自然' : t) }; }
+    tagScn.t.forEach(add);
+  } catch (e) { }
+  if (tagTpl && tagTpl.d === doc) { const c = [...TPL_CATS, ...TPL_CATS_PRO].find(x => x[0] === tagTpl.c); if (c && c[0] !== 'all') add(c[1].split('・')[0]); }
+  const fp = doc.adjust && doc.adjust.preset; if (fp && fp !== 'none' && FILTERS[fp]) add(FILTERS[fp][0]);
+  doc.objects.forEach(o => { if (o.type === 'deco' && DECO[o.kind]) add(TAG_DECO[DECO[o.kind].cat]); if (o.type === 'chart') add('グラフ'); });
+  add(['冬', '冬', '春', '春', '春', '夏', '夏', '夏', '秋', '秋', '秋', '冬'][new Date().getMonth()]);
+  const cnt = {}; (GV.items || []).forEach(it => (it.tags || []).forEach(t => { cnt[t] = (cnt[t] || 0) + 1; }));
+  Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 4).forEach(([t]) => add(t));
+  if (out.length < 4) ['思い出', '日常', 'おでかけ', 'エモい'].forEach(add);
+  return out.slice(0, 8);
+}
+const tagSugHtml = (inp, cur) => tagSugs(cur).map(t => `<button type="button" class="chip" data-tsug="${esc(t)}" data-tfor="${inp}">＋${esc(t)}</button>`).join('');
+function tagSugRender() {
+  const p = $('#pubSug'), pi = $('#pubTags'); if (p && pi) p.innerHTML = tagSugHtml('pubTags', pi.value);
+  const g = $('#gpSug'), gi = $('#gpTags'); if (g && gi) g.innerHTML = tagSugHtml('gpTags', gi.value);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-tsug]'); if (!b) return;
+  const inp = document.getElementById(b.dataset.tfor); if (!inp || inp.disabled) return;
+  const v = inp.value.replace(/[\s　]+$/, ''), nv = (v ? v + ' ' : '') + b.dataset.tsug;
+  if ([...nv].length > 60 || parseTags(nv).length > 6) { toast('タグは6個までです'); return; }
+  inp.value = nv; inp.dispatchEvent(new Event('input', { bubbles: true })); tagSugRender();
+});
+document.addEventListener('input', e => { if (e.target.id === 'pubTags' || e.target.id === 'gpTags') { clearTimeout(tagSugRender.t); tagSugRender.t = setTimeout(tagSugRender, 250); } });
+const tagRemember = tags => { if (!tags.length) return; UI.tagHist = [...new Set([...tags, ...(Array.isArray(UI.tagHist) ? UI.tagHist : [])])].slice(0, 12); saveUI(); };
 const parseTags = s => [...new Set(String(s || '').split(/[\s,、，#＃　]+/).map(t => t.trim().slice(0, 16)).filter(Boolean))].slice(0, 6);
 function makeRecipe() {
   const counts = {};
@@ -10947,6 +11212,7 @@ function renderGalPub() {
   el.innerHTML = `<div class="galpub open">${th}<div class="gpf">
     <input id="gpTitle" class="pubin" maxlength="40" placeholder="タイトル（例：夕焼けエモ）" aria-label="タイトル" autocomplete="off" enterkeyhint="next" value="${esc(GP.title)}"${dis}>
     <input id="gpTags" class="pubin" maxlength="60" placeholder="タグ（スペース区切り　例：エモ 夕焼け）" aria-label="タグ" autocomplete="off" enterkeyhint="send" value="${esc(GP.tags)}"${dis}>
+    <div class="fcats tagsug" id="gpSug" aria-label="タグの候補（タップで追加）">${GP.busy ? '' : tagSugHtml('gpTags', GP.tags)}</div>
     <div class="wrap" role="radiogroup" aria-label="公開範囲">${[['public', '公開'], ['unlisted', '限定公開']].map(([v, l]) => `<button class="chip${GP.vis === v ? ' on' : ''}" role="radio" aria-checked="${GP.vis === v}" data-gpv="${v}"${dis}>${l}</button>`).join('')}</div>
     <p class="note" id="gpWho">${pubWhoHtml()}</p><p class="note" id="gpVisNote">${esc(gpVisNote())}</p>
     <p class="note" id="gpMsg" aria-live="polite">${esc(GP.msg)}</p>
@@ -10959,6 +11225,7 @@ async function galPubGo() {
   if (GP.busy || !doc) return;
   const t = $('#gpTitle'), g = $('#gpTags'); if (t) GP.title = t.value; if (g) GP.tags = g.value;
   if (Gallery.online && !navigator.onLine) { GP.msg = 'オフラインのため公開できません。インターネットにつながってから、もう一度試してください。'; renderGalPub(); return; }
+  { const bad = tagCheck(GP.tags); if (bad) { GP.msg = bad; renderGalPub(); const g2 = $('#gpTags'); if (g2) g2.focus({ preventScroll: true }); return; } }
   GP.busy = true; GP.msg = ''; renderGalPub();
   try {
     const it = await publishDoc(GP.vis, GP.title, GP.tags);
@@ -10967,7 +11234,7 @@ async function galPubGo() {
     GV.newId = it.dup ? PUB.lastId : it.id; GV.tab = 'mine'; GV.tag = null; $('#sheetGallery').scrollTop = 0; renderGal();
   } catch (err) {
     console.warn('publish', err); GP.busy = false;
-    GP.msg = Gallery.online ? netErr('投稿できませんでした') + '。' : '投稿を保存できませんでした。端末の空き容量を確認してください。';
+    GP.msg = Gallery.online ? pubErrMsg(err) : '投稿を保存できませんでした。端末の空き容量を確認してください。';
     renderGalPub(); const b = $('#galPub [data-gp="go"]'); if (b) b.focus({ preventScroll: true });
   }
 }
@@ -11063,6 +11330,7 @@ function renderGalDetail(it) {
   const linkBtn = canLink ? `<button class="btn" data-g="link">${ICON.link}リンクをコピー</button>` : '';
   d.innerHTML = `<img class="gdimg" src="${esc(safeImg(it.full || it.thumb))}" alt="${esc(it.title || '')}">
     <div class="gtags">${galBadges(it)}${(it.tags || []).map(t => `<span>#${esc(t)}</span>`).join('')}<span style="margin-left:auto">${esc(it.ai ? 'Lufora AI' : it.sample ? 'Lufora公式' : (it.author && it.author.name) || 'あなた')}${it.createdAt ? '・' + fmtDate(it.createdAt) : ''}</span></div>
+    ${modIsAdmin() && Gallery.online && !it.ai && !it.sample && (it.tags || []).length ? `<div class="gtags" aria-label="管理者：タグを消す">${it.tags.map(t => `<button class="chip mtag" data-gmt="${esc(t)}" title="このタグを消す">#${esc(t)} ×</button>`).join('')}<button class="chip mtag danger" data-gmt="*">タグをすべて消す</button></div>` : ''}
     ${it.ai ? '<p class="note aiwork"><b>AI</b>が編集した作例です。元の写真はプログラムで描いた風景なので、著作権の心配はありません。</p>' : ''}
     ${it.hidden ? `<p class="note gwarn">${it.mine ? hidNote(it) : 'この投稿は非表示中です（持ち主と管理者だけが見られます）。'}</p>` : ''}
     <h3>この作品のレシピ</h3><div class="grecipe">${recipeText(it.recipe)}</div>
@@ -11140,7 +11408,7 @@ function applyRecipe(it) {
   toast(`「${it.title || '無題'}」の色味を適用しました。「元に戻す」で取り消せます`, 3400);
 }
 $('#sheetGallery').addEventListener('click', async e => {
-  const t = e.target.closest('[data-gtab],[data-gtag],[data-gid],[data-g],[data-gv],[data-grr],[data-gm],[data-like],[data-gp],[data-gpv]'); if (!t) return;
+  const t = e.target.closest('[data-gtab],[data-gtag],[data-gid],[data-g],[data-gv],[data-grr],[data-gm],[data-like],[data-gp],[data-gpv],[data-gmt]'); if (!t) return;
   const ds = t.dataset;
   if (ds.like !== undefined) { likeTap(ds.like); return; }
   if (ds.gp === 'open') { GP.open = true; GP.msg = ''; renderGalPub(); const f = $('#gpTitle'); if (f) f.focus({ preventScroll: true }); return; }
@@ -11196,6 +11464,16 @@ $('#sheetGallery').addEventListener('click', async e => {
     }
     finally { GV.busy = false; }
   }
+  else if (ds.gmt !== undefined && GV.cur && modIsAdmin()) {   // 管理者: 不適切なタグを消す (1つ / すべて)
+    const it = GV.cur, tags = ds.gmt === '*' ? [] : (it.tags || []).filter(x => x !== ds.gmt);
+    GV.busy = true; t.disabled = true;
+    try {
+      await Gallery.modTags(it.id, tags);
+      [it, ...GV.items.filter(x => x.id === it.id), ...GV.mod.filter(x => x.id === it.id)].forEach(x => { x.tags = tags.slice(); });
+      GV.busy = false; renderGalDetail(it); toast(tags.length ? 'タグを消しました' : 'タグをすべて消しました');
+    } catch (err) { console.warn(err); t.disabled = false; toast(netErr('タグを変更できませんでした')); }
+    finally { GV.busy = false; }
+  }
   else if (ds.gm && ds.mid && GV.view === 'admin') {
     const it = GV.mod.find(x => x.id === ds.mid); if (!it) return;
     if (ds.gm === 'del' && GV.modArm !== it.id) { GV.modArm = it.id; t.textContent = 'もう一度タップで完全に削除'; return; }
@@ -11227,7 +11505,7 @@ function renderPub() {
   const on = PUB.vis !== 'private', sw = $('#pubSw'); sw.setAttribute('aria-checked', on);
   $('#pubSwSub').textContent = on ? '保存すると、みんなの作品にも投稿されます。' : 'オフなら、画像を保存するだけです。どこにも公開されません。';
   $('#pubVis').innerHTML = VIS.filter(([v]) => v !== 'private').reverse().map(([v, l]) => `<button class="chip${PUB.vis === v ? ' on' : ''}" aria-pressed="${PUB.vis === v}" data-pv="${v}">${l}${v === 'unlisted' ? '<small class="mnote">リンクを知っている人だけ</small>' : '<small class="mnote">だれでも見られる</small>'}</button>`).join('');
-  $('#pubForm').hidden = !on;
+  $('#pubForm').hidden = !on; if (on) tagSugRender();
   $('#pubNote').textContent = PUB.vis === 'public'
     ? (Gallery.online ? '保存すると「みんなの作品」に表示され、色味のレシピも一緒に公開されます。' : 'サーバー接続後に他の人にも表示されます。今はこの端末のギャラリーに保存されます。色味のレシピも一緒に保存されます。')
     : Gallery.online ? 'リンクを知っている人だけが見られます。保存後に「見る」→ 作品 →「リンクをコピー」で共有できます。'
@@ -11243,6 +11521,8 @@ const pubWhoHtml = () => acct && acctName ? `<b>@${esc(acctName)}</b> として�
 const publishCurrent = () => publishDoc(PUB.vis, $('#pubTitle').value, $('#pubTags').value);
 async function publishDoc(vis, title0, tags0) {
   if (!doc || !VIS_NAME[vis] || vis === 'private') return null;
+  const bad = tagCheck(tags0); if (bad) throw Object.assign(new Error(bad), { ui: true });
+  if (Gallery.online && !navigator.onLine) throw new Error('offline');
   const title = String(title0 || '').trim().slice(0, 40) || '無題', tags = parseTags(tags0);
   const nick = acct && acctName ? acctName : 'ゲスト';   // the server sets the author from the user name as well
   const key = lastSnap + '|' + vis + '|' + title + '|' + tags.join(',');
@@ -11253,7 +11533,17 @@ async function publishDoc(vis, title0, tags0) {
   const item = { id: 'p' + now.toString(36) + Math.random().toString(36).slice(2, 6), title, tags, visibility: vis, createdAt: now, updatedAt: now,
     w: Math.round(doc.w * r), h: Math.round(doc.h * r), thumb: docJpeg(480, 0.82), full: docJpeg(1280, 0.85), recipe: makeRecipe(),
     author: { name: nick || (Gallery.online ? 'ゲスト' : 'あなた'), local: !Gallery.online }, mine: true };
-  const saved = (await Gallery.publish(item)) || item;
+  let saved;
+  try { saved = await Gallery.publish(item); }
+  catch (e) {   // the connection dropped (phones: the share sheet / another app sent the page to the background): once more, when visible
+    if (!Gallery.online || !pubNetErr(e)) throw e;
+    console.warn('publish retry', e);
+    if (document.hidden) await new Promise(r => { const f = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', f); r(); } }; document.addEventListener('visibilitychange', f); });
+    await new Promise(r => setTimeout(r, 1200));
+    try { saved = await Gallery.publish(item); }
+    catch (e2) { if (String(e2 && e2.code) === '23505') saved = await Gallery.adapter.get(item.id); else throw e2; }   // the first try did arrive
+  }
+  saved = saved || item; tagRemember(tags);
   PUB.lastKey = key; PUB.lastId = saved.id;
   return saved;
 }
@@ -11273,11 +11563,15 @@ async function runPublish() {
   try {
     const it = await publishCurrent(); if (!it) return;
     $('#pubDoneMsg').textContent = it.dup ? 'この内容はすでに投稿済みです。' : `「${it.title}」を${VIS_NAME[it.visibility]}で投稿しました。` + (Gallery.online ? '' : '今はこの端末のギャラリーに保存されています。');
+    $('#pubDone').classList.remove('err'); $('#pubDone [data-gal]').hidden = false;
+    toast(it.dup ? 'この内容はすでに投稿済みです' : '投稿しました。「みんなの作品」で見られます', 3000);
   } catch (err) {
     console.warn('publish', err);
-    $('#pubDoneMsg').textContent = Gallery.online ? netErr('投稿できませんでした') + '。' : '投稿を保存できませんでした。端末の空き容量を確認してください。';
+    const m = Gallery.online ? pubErrMsg(err) : '投稿を保存できませんでした。端末の空き容量を確認してください。';
+    $('#pubDoneMsg').textContent = m; $('#pubDone').classList.add('err'); $('#pubDone [data-gal]').hidden = true;
+    toast(m, 6000);
   }
-  $('#pubDone').hidden = false;
+  $('#pubDone').hidden = false; try { $('#pubDone').scrollIntoView({ block: 'nearest' }); } catch (e) { }
 }
 
 /* ============================================================
