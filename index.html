@@ -28,13 +28,13 @@
   --chrome2:#F0EBDF;
   --line:#DDD5C3;
   --fg:#2E3A2D;
-  --muted:#77806F;
+  --muted:#646D5C;          /* 4.7:1 on --bg, 5.1:1 on --chrome (WCAG AA for small text) */
   --u:1.1;                 /* UI scale, set per device in 表示とツールの設定 (html[data-ui]) */
-  --accent:#5E8C5F;
+  --accent:#527D55;         /* white on it 4.75:1 */
   --accent-ink:#FFFFFF;
   --accent2:#8DB27F;
   --leaf:#C9DBB9;
-  --grad:linear-gradient(135deg,#7EA676,#5A8A5C 70%);
+  --grad:linear-gradient(135deg,#6A9565,#4D7A50 70%);
   --glow:0 6px 18px -8px rgba(80,120,78,.55);
   --hi:inset 0 1px 0 rgba(255,255,255,.7);
   --spring:cubic-bezier(.22,1.25,.36,1);
@@ -45,7 +45,7 @@
 html,body{height:100%;background:var(--bg);color:var(--fg);overflow:hidden;overscroll-behavior:none}
 body{font-family:var(--ui);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;touch-action:manipulation}
-button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,input:focus-visible,label:focus-within,a:focus-visible,summary:focus-visible,select:focus-visible,textarea:focus-visible,[role="switch"]:focus-visible,[tabindex]:not([tabindex="-1"]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 [hidden]{display:none!important}
 input,textarea{-webkit-user-select:text;user-select:text}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
@@ -1364,7 +1364,7 @@ function polyDist(px, py, pts) {
 /* ============================================================
    constants
    ============================================================ */
-const ACCENT = '#5E8C5F';   // Lufora sage (selection frames, handles, guides UI)
+const ACCENT = '#527D55';   // Lufora sage (selection frames, handles, guides UI)
 const COLORS = ['#FFFFFF', '#111111', '#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#00B4D8', '#007AFF', '#AF52DE', '#FF2D92'];
 const NOTE_COLORS = ['#FFE66D', '#FFB3C7', '#A8D8FF', '#B8EBA0', '#FFC98A', '#D9C7FF', '#BDF2E4', '#FFFFFF', '#2B2E36'];
 /* [family, category, weights] — loaded from Google Fonts only when first used */
@@ -3107,6 +3107,12 @@ Object.assign(DECO, DECO_GEN, DECO_SHAPES, DECO_STAMPS);
 DECO_CATS.unshift(...DECO_CATS_STAMPS);
 [...DECO_CATS_GEN, ...DECO_CATS_SHAPES].forEach(c => { if (!DECO_CATS.some(d => d[0] === c[0])) DECO_CATS.push(c); });
 const PREVIEW_MAX = 2560;
+/* pixel budgets by device. Phones / tablets (touch or iOS) stay under iOS Safari's ~16.7 MP per-canvas limit with room for the
+   undo copies; low-memory phones (navigator.deviceMemory <= 2) get less. PX_DOC = an opened photo, PX_LAYER = a photo added
+   on top, PX_HIST = all bitmaps kept for undo (gcBitmaps), SIDE_MAX = the longest side (tall screenshots keep their width). */
+const MOB = matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform || ''));
+const MEM = navigator.deviceMemory || (MOB ? 4 : 8), LOWMEM = MEM <= 2;
+const PX_DOC = !MOB ? 16.7e6 : LOWMEM ? 8e6 : 12.6e6, PX_LAYER = !MOB ? 8.4e6 : LOWMEM ? 2.5e6 : 4.2e6, PX_HIST = !MOB ? 90e6 : LOWMEM ? 32e6 : 60e6, SIDE_MAX = 8192;
 
 const I = d => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON = {
@@ -3309,14 +3315,26 @@ function restore(s) {
 /* an arrow-key nudge commits 400 ms later: flush it first so undo / redo don't swallow it */
 function flushNudge() { if (typeof nudgeT !== 'undefined' && nudgeT) { clearTimeout(nudgeT); nudgeT = 0; commit(); } }
 let delSel = null;   // {snap, ids}: what the last delete removed, selected again when exactly that step is undone
+/* undo steps restored from the draft keep their pictures as blobs until a step needs them (bitmaps entry {canvas: null, blob, w, h}):
+   they are decoded before undo / redo lands on that step; a picture that can't be read drops the steps beyond it */
+let histWait = false;
+function histReady(s, fwd) {
+  const ids = [...refsOf(s)].filter(id => { const e = bitmaps.get(id); return e && !e.canvas; });
+  if (!ids.length) return true;
+  histWait = true; const at = lastSnap;
+  Promise.all(ids.map(id => blobToCanvas(bitmaps.get(id).blob).then(c => { const e = bitmaps.get(id); if (e && !e.canvas) e.canvas = c; })))
+    .then(() => { histWait = false; if (lastSnap === at) fwd ? redo() : undo(); })
+    .catch(e => { histWait = false; console.warn('history', e); if (fwd) hist.future = []; else hist.past = []; gcBitmaps(); updateUndoUI(); toast('この先の履歴は読み込めませんでした'); });
+  return false;
+}
 function undo() {
-  flushNudge(); if (!hist.past.length || G) return;
+  flushNudge(); if (!hist.past.length || G || histWait || !histReady(hist.past[hist.past.length - 1])) return;
   const ds = delSel && delSel.snap === lastSnap && tool === 'select' ? delSel.ids : null; delSel = null;
   hist.future.push(lastSnap); lastSnap = hist.past.pop();
   if (ds) { multi = ds.length > 1 ? ds : []; selId = ds.length === 1 ? ds[0] : null; }   // restore() drops ids that don't exist
   restore(lastSnap);
 }
-function redo() { flushNudge(); if (!hist.future.length || G) return; hist.past.push(lastSnap); lastSnap = hist.future.pop(); restore(lastSnap); }
+function redo() { flushNudge(); if (!hist.future.length || G || histWait || !histReady(hist.future[hist.future.length - 1], true)) return; hist.past.push(lastSnap); lastSnap = hist.future.pop(); restore(lastSnap); }
 function updateUndoUI() { $('#btnUndo').disabled = !hist.past.length; $('#btnRedo').disabled = !hist.future.length; }
 /* bitmap ids referenced by each history snapshot, parsed once per snapshot (not re-scanned on every commit) */
 const snapRefs = new Map();
@@ -3331,8 +3349,8 @@ function gcBitmaps() {
   };
   sweep();
   // keep total pixel memory in check on phones: drop the oldest undo steps if needed
-  const px = () => { let t = 0; for (const e of bitmaps.values()) t += e.canvas.width * e.canvas.height; return t; };
-  while (px() > 90e6 && hist.past.length) { hist.past.shift(); sweep(); }
+  const px = () => { let t = 0; for (const e of bitmaps.values()) if (e.canvas) t += e.canvas.width * e.canvas.height; return t; };   // lazy undo bitmaps (restored history) hold no pixels yet
+  while (px() > PX_HIST && hist.past.length) { hist.past.shift(); sweep(); }
 }
 function normDoc(d) { d.adjust = { ...DEFAULT_ADJ, ...(d.adjust || {}) }; d.bg = d.bg || null; d.bgPat = d.bgPat || null; d.baseOrig = d.baseOrig || null; return d; }
 
@@ -4134,7 +4152,8 @@ function drawMosaic(ctx, o, scale) {
 let checkerPat = null, compSc = 0;
 /* preview resolution follows the on-screen size (rounded up to ×1.5 steps so zooming doesn't re-render every frame), capped at PREVIEW_MAX */
 function previewScale() {
-  const cap = Math.min(1, PREVIEW_MAX / Math.max(doc.w, doc.h)), want = view.s * dpr;
+  // long side ≤ PREVIEW_MAX, or for tall / wide pictures the same area as a 4:3 photo (so a long screenshot stays sharp when zoomed to its width)
+  const cap = Math.min(1, SIDE_MAX / Math.max(doc.w, doc.h), Math.max(PREVIEW_MAX / Math.max(doc.w, doc.h), Math.sqrt(PREVIEW_MAX * PREVIEW_MAX * 0.75 / (doc.w * doc.h)))), want = view.s * dpr;
   if (!(want > 0)) return cap;
   return Math.min(cap, Math.pow(1.5, Math.ceil(Math.log(want) / Math.log(1.5))));
 }
@@ -5605,7 +5624,7 @@ $('#fileSlot').addEventListener('change', e => { const f = e.target.files && e.t
 async function fillSlot(id, file) {
   try {
     toast('読み込み中…');
-    const { canvas, resized, alpha } = await fileToCanvas(file, 2048);
+    const { canvas, resized, alpha } = await fileToCanvas(file, SIDE_MAX, PX_LAYER);
     const o = doc && doc.objects.find(x => x.id === id); if (!o) return;
     o.bmp = regBitmap(canvas, resized ? null : file, alpha); delete o.orig; o.fz = 1; o.fx = 0; o.fy = 0;
     selId = o.id; multi = []; invalidate(); commit(); refreshPanel(); requestDraw(); libSave(canvas, alpha, true);
@@ -5615,7 +5634,7 @@ async function fillSlot(id, file) {
 async function addPhoto(file, fromLib) {
   try {
     toast('読み込み中…');
-    const { canvas, resized, alpha } = await fileToCanvas(file, 2048);
+    const { canvas, resized, alpha } = await fileToCanvas(file, SIDE_MAX, PX_LAYER);
     const id = regBitmap(canvas, resized ? null : file, alpha);
     const box = MIN() * 0.5, a = canvas.width / canvas.height;
     const w = a >= 1 ? box : box * a, h = a >= 1 ? box / a : box;
@@ -6188,13 +6207,24 @@ function rememberColor(v) {
   if (!/^#[0-9a-f]{6}$/i.test(v) || COLORS.some(c => c.toLowerCase() === v.toLowerCase())) return;
   UI.recent = [v, ...UI.recent.filter(c => c.toLowerCase() !== v.toLowerCase())].slice(0, 8); saveUI();
 }
+/* a spoken name for a swatch colour (palette colours by name, others by hue: 「明るい青」「暗い緑」…) */
+const COLOR_NAMES = { '#ffffff': '白', '#111111': '黒', '#2a2724': '黒', '#2b2e36': '黒', '#ff3b30': '赤', '#e8392f': '赤', '#ff9500': 'オレンジ', '#ffcc00': '黄色', '#34c759': '緑', '#00b4d8': '水色', '#007aff': '青', '#2563eb': '青', '#af52de': '紫', '#ff2d92': 'ピンク', '#5e8c5f': 'セージグリーン', '#f4efe4': 'アイボリー', '#f4efe6': 'アイボリー', '#ffe66d': '薄い黄色', '#ffb3c7': '薄いピンク', '#ff8fb1': 'ピンク', '#a8d8ff': '薄い水色', '#b8eba0': '薄い緑', '#ffc98a': '薄いオレンジ', '#d9c7ff': '薄い紫', '#bdf2e4': '薄いミント', '#f7c948': '黄色', '#ffd23f': '黄色' };
+function colorName(hex) {
+  const h = String(hex || '').toLowerCase(); if (COLOR_NAMES[h]) return COLOR_NAMES[h];
+  if (!/^#[0-9a-f]{6}$/.test(h)) return '色';
+  const [r, g, b] = hexRGB(h).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  if (d < 0.08) return l > 0.92 ? '白' : l < 0.12 ? '黒' : l > 0.6 ? '明るい灰色' : l < 0.35 ? '暗い灰色' : '灰色';
+  let hu = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; hu *= 60;
+  const nm = hu < 15 || hu >= 340 ? '赤' : hu < 40 ? 'オレンジ' : hu < 65 ? '黄色' : hu < 90 ? '黄緑' : hu < 160 ? '緑' : hu < 195 ? '水色' : hu < 250 ? '青' : hu < 290 ? '紫' : 'ピンク';
+  return (l > 0.75 ? '薄い' : l < 0.3 ? '暗い' : '') + nm;
+}
 function swatches(act, k, cur, list = COLORS) {
   const low = list.map(c => c.toLowerCase());
   list = [...list, ...UI.recent.filter(c => !low.includes(c.toLowerCase()))];
   const c = String(cur).toLowerCase();
-  return list.map(col => `<button class="swb${col.toLowerCase() === c ? ' on' : ''}" aria-pressed="${col.toLowerCase() === c}" style="--c:${col}" data-act="${act}" data-k="${k}" data-v="${J(col)}" aria-label="色 ${col}"></button>`).join('')
+  return list.map(col => `<button class="swb${col.toLowerCase() === c ? ' on' : ''}" aria-pressed="${col.toLowerCase() === c}" style="--c:${col}" data-act="${act}" data-k="${k}" data-v="${J(col)}" aria-label="${colorName(col)}"></button>`).join('')
     + `<button class="swb eyedrop" data-act="eye" data-k="${k}" data-v="${J(act)}" aria-label="画面から色を拾う（スポイト）" title="スポイト：画面から色を拾う">${ICON.dropper}</button>`
-    + `<label class="swb custom" aria-label="ほかの色を選ぶ"><input type="color" id="cc-${act}-${k.replace(/\W/g, '')}" value="${/^#[0-9a-f]{6}$/i.test(cur) ? cur : '#ff3b30'}" data-act="${act}" data-k="${k}"></label>`;
+    + `<label class="swb custom" title="ほかの色を選ぶ"><input type="color" aria-label="ほかの色を選ぶ" id="cc-${act}-${k.replace(/\W/g, '')}" value="${/^#[0-9a-f]{6}$/i.test(cur) ? cur : '#ff3b30'}" data-act="${act}" data-k="${k}"></label>`;
 }
 function slider(sl, label, min, max, val, mul = 1) {
   const id = 'sl-' + sl.replace(/\W/g, '-'), v = Math.round(val);
@@ -6923,7 +6953,7 @@ function renderTools() {
   toolsEl.innerHTML = (deskOn ? ids : ids.slice(0, BAR_MAX)).map(id => toolBtn(id, lit)).join('')
     + (deskOn ? `<button class="tool tedit" data-tedit="1" aria-label="編集ツールの並び替え">${ICON.sort}<span>並び替え</span></button>`
       : `<button class="tool tmore${moreIds().includes(lit) ? ' on' : ''}" data-tmore="1" aria-haspopup="dialog" aria-label="その他のツール・並び替え">${ICON.tmore}<span>その他</span></button>`);
-  toolEdges();
+  requestAnimationFrame(toolEdges);   // the fade hint can wait a frame (reading scrollWidth here forced an extra layout at start)
 }
 /* phone その他: tools past the 8th, hidden tools (still usable) and 並び替え */
 function openMoreSheet() {
@@ -7249,10 +7279,10 @@ async function takeShared() {
       const b = await r.blob(); files.push(new File([b], decodeURIComponent(r.headers.get('x-name') || '') || 'photo', { type: b.type || r.headers.get('content-type') || 'image/jpeg' }));
     }
     if (!files.length) { bad(); return true; }
-    const [f, ...rest] = files, { canvas, resized, alpha } = await fileToCanvas(f, 4096);
+    const [f, ...rest] = files, { canvas, resized, alpha, big } = await fileToCanvas(f, SIDE_MAX, PX_DOC);
     setDoc(canvas, resized ? null : f, [], alpha); scheduleSave(); libSave(canvas, alpha, true);
     for (const g of rest) await addPhoto(g);
-    toast(rest.length ? `共有された写真 ${files.length}枚を開きました` : '共有された写真を開きました');
+    toast((rest.length ? `共有された写真 ${files.length}枚を開きました` : '共有された写真を開きました') + (big ? '（' + bigMsg(canvas) + '）' : ''), big ? 3600 : undefined);
   } catch (e) { console.warn('share', e); bad(); }
   return true;
 }
@@ -8636,17 +8666,21 @@ stage.addEventListener('drop', e => {
    images & files
    ============================================================ */
 function loadImgEl(url) { return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; }); }
+const bigMsg = c => `大きな写真のため、${c.width}×${c.height} に縮小しました`;
 const IMG_ERR = 'この画像は読み込めませんでした。JPEG・PNG形式で試してください';
 const imgErr = f => f && (/hei[cf]/i.test(f.type || '') || /\.hei[cf]$/i.test(f.name || ''))
   ? 'HEIC形式の写真はこのブラウザでは開けません。JPEGに変換するか、カメラの設定を「互換性優先」にしてください' : IMG_ERR;
 /* decode straight to the target size when the photo is larger than max (a 48 MP photo decoded at full size can crash phones).
    Dimensions come from an <img> (EXIF-oriented); if the browser resized before rotating, retry with swapped sizes. */
-async function fileToCanvas(file, max) {
+/* fileToCanvas(file, max side, max pixels): the scale is the smaller of the two caps; .big = [w, h] of the source when the pixel
+   cap (not just the side) made it smaller, for the 「大きな写真のため…」 toast */
+const fitK = (w, h, max, mp) => Math.min(1, max / Math.max(w, h), mp ? Math.sqrt(mp / (w * h)) : 1);
+async function fileToCanvas(file, max, mp) {
   const url = URL.createObjectURL(file);
   let src = null, im = null;
   try {
     try { im = await loadImgEl(url); } catch (e) { }
-    const W0 = im ? im.naturalWidth : 0, H0 = im ? im.naturalHeight : 0, k0 = W0 ? Math.min(1, max / Math.max(W0, H0)) : 1;
+    const W0 = im ? im.naturalWidth : 0, H0 = im ? im.naturalHeight : 0, k0 = W0 ? fitK(W0, H0, max, mp) : 1;
     try {
       const o = { imageOrientation: 'from-image' };
       if (k0 < 1) Object.assign(o, { resizeWidth: Math.max(1, Math.round(W0 * k0)), resizeHeight: Math.max(1, Math.round(H0 * k0)), resizeQuality: 'high' });
@@ -8656,11 +8690,12 @@ async function fileToCanvas(file, max) {
       }
     } catch (e) { if (!im) throw e; src = im; }
     const w0 = src.naturalWidth || src.width, h0 = src.naturalHeight || src.height;
-    const k = Math.min(1, max / Math.max(w0, h0));
+    const k = fitK(w0, h0, max, mp);
     const c = mk(w0 * k, h0 * k), g = c.getContext('2d');
     g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height);
+    const SW = W0 || w0, SH = H0 || h0, big = mp && SW * SH > mp * 1.02 ? [SW, SH] : null;
     // alpha: formats that can carry transparency are kept as PNG in the draft (JPEG would turn it black)
-    return { canvas: c, resized: k0 < 1 || k < 1, alpha: /png|webp|gif|avif|svg/i.test(file.type || '') };
+    return { canvas: c, resized: k0 < 1 || k < 1, big, alpha: /png|webp|gif|avif|svg/i.test(file.type || '') };
   } finally { if (src && src.close) src.close(); URL.revokeObjectURL(url); }
 }
 /* ==== recent works (最近の作品) ==== the work being replaced (open / new / sample / template canvas / another work) is kept
@@ -8750,9 +8785,9 @@ $('#fileOpen').addEventListener('change', async e => {
   if (!f) return;
   closeSheets(); toast('読み込み中…');
   try {
-    const { canvas, resized, alpha } = await fileToCanvas(f, 4096);
+    const { canvas, resized, alpha, big } = await fileToCanvas(f, SIDE_MAX, PX_DOC);
     setDoc(canvas, resized ? null : f, [], alpha); scheduleSave(); libSave(canvas, alpha, true);
-    toast('写真を開きました');
+    toast(big ? bigMsg(canvas) : '写真を開きました', big ? 3600 : undefined);
   } catch (err) { toast(imgErr(f)); }
 });
 $('#fileAdd').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); });
@@ -8824,11 +8859,34 @@ const toBlob = (c, type, q) => new Promise(r => c.toBlob(r, type, q));
 /* draft saves are serialized: saveDraft() queues one; a queued save that a newer one superseded is skipped */
 let saveTimer = null, saveQ = Promise.resolve(), saveGen = 0, saveWarned = false;
 function scheduleSave(ms = 1500) { clearTimeout(saveTimer); saveTimer = setTimeout(saveDraft, ms); }
-function saveDraft() {
+function saveDraft(quick) {
   clearTimeout(saveTimer); saveTimer = null;
   const gen = ++saveGen;
-  return (saveQ = saveQ.then(() => gen === saveGen ? saveDraftNow() : 0));
+  return (saveQ = saveQ.then(() => gen === saveGen ? saveDraftNow(quick) : 0));
 }
+/* undo history in the draft (loaded back at start, see histLoad): the newest steps that fit HIST_SAVE_JSON characters and
+   HIST_SAVE_PX pixels of pictures only the history uses. Those pictures are stored once each as kv 'hb:<id>' (a bitmap id keeps its
+   pixels once a later step exists: edits fork a new id). A save encodes pictures for at most one more step that has none yet and
+   comes back later for the rest; quick saves (leaving the page) encode none. Only the local draft carries history (not 最近の作品 / cloud). */
+const HIST_SAVE_JSON = MOB ? 1.5e6 : 4e6, HIST_SAVE_PX = MOB ? (LOWMEM ? 12e6 : 24e6) : 48e6, hbKey = id => 'hb:' + id;
+let hbSaved = new Set();   // history pictures known to be in IndexedDB
+function histPick(cur, used, quick) {
+  const seen = new Set(used), ents = new Map(), out = { past: [], future: [] };
+  let chars = 0, px = 0, enc = quick ? 0 : 1, more = false;
+  const past = lastSnap && cur !== lastSnap ? [...hist.past, lastSnap] : hist.past, fut = cur === lastSnap ? hist.future : [];   // uncommitted change: the last step is lastSnap
+  const take = s => {
+    const add = [...refsOf(s)].filter(id => !seen.has(id)); let p = 0, need = 0;
+    for (const id of add) { const e = bitmaps.get(id); if (!e) return false; p += e.canvas ? e.canvas.width * e.canvas.height : e.w * e.h || 0; if (!e.blob) need++; }
+    if (chars + s.length > HIST_SAVE_JSON || px + p > HIST_SAVE_PX) return false;
+    if (need && enc <= 0) { more = true; return false; }
+    enc -= need ? 1 : 0; chars += s.length; px += p; for (const id of add) { seen.add(id); ents.set(id, bitmaps.get(id)); }
+    return true;
+  };
+  for (let i = past.length - 1; i >= Math.max(0, past.length - 50) && take(past[i]); i--) out.past.unshift(past[i]);
+  for (let i = fut.length - 1; i >= 0 && take(fut[i]); i--) out.future.unshift(fut[i]);
+  return { ...out, ents, more };
+}
+const hbSweep = () => idbOp('readwrite', st => { const rq = st.getAllKeys(IDBKeyRange.bound('hb:', 'hb:\uffff')); rq.onsuccess = () => rq.result.forEach(k => { if (!hbSaved.has(String(k).slice(3))) st.delete(k); }); }).catch(() => { });
 /* the bitmaps a snapshot uses, encoded (entries are taken synchronously, so the pixels match the snapshot) */
 async function docBlobs(d) {
   const used = new Set([d.baseId, d.baseOrig, ...d.objects.filter(o => o.type === 'image').flatMap(o => [o.bmp, o.orig])].filter(Boolean));
@@ -8840,14 +8898,14 @@ async function docBlobs(d) {
   }
   return blobs;
 }
-async function saveDraftNow() {
+async function saveDraftNow(quick) {
   if (!doc) return;
   if (G) { scheduleSave(800); return; }       // mid-gesture (e.g. a brush stroke): pixels are half-edited, try again shortly
   try {
-    // snapshot first, synchronously, so the stored doc and the set of blobs always match
-    const d = JSON.parse(snapshot());
+    // snapshot first, synchronously, so the stored doc and the set of blobs always match (the history too)
+    const cur = snapshot(), d = JSON.parse(cur);
     const used = new Set([d.baseId, d.baseOrig, ...d.objects.filter(o => o.type === 'image').flatMap(o => [o.bmp, o.orig])].filter(Boolean));
-    const ents = [...used].map(id => [id, bitmaps.get(id)]).filter(x => x[1]), blobs = {};
+    const ents = [...used].map(id => [id, bitmaps.get(id)]).filter(x => x[1]), blobs = {}, hp = histPick(cur, used, quick);
     for (const [id, e] of ents) {
       let b = e.blob;
       if (!b) {
@@ -8858,7 +8916,21 @@ async function saveDraftNow() {
       }
       blobs[id] = b;
     }
-    await idbOp('readwrite', st => st.put({ v: 1, doc: d, blobs }, 'draft'));
+    const hb = {}, ids = [];
+    for (const [id, e] of hp.ents) {
+      let b = e.blob;
+      if (!b) { b = await toBlob(e.canvas, e.alpha ? 'image/png' : 'image/jpeg', 0.92); if (!b) throw new Error('toBlob failed'); e.blob = b; }
+      if (!hbSaved.has(id)) hb[id] = b;
+      ids.push([id, e.canvas ? e.canvas.width : e.w, e.canvas ? e.canvas.height : e.h]);
+    }
+    const keep = new Set(ids.map(x => x[0]));
+    await idbOp('readwrite', st => {
+      for (const id in hb) st.put(hb[id], hbKey(id));
+      for (const id of hbSaved) if (!keep.has(id)) st.delete(hbKey(id));
+      return st.put({ v: 1, doc: d, blobs, hist: { past: hp.past, future: hp.future, ids } }, 'draft');
+    });
+    hbSaved = keep;
+    if (hp.more && !saveTimer) scheduleSave(4000);   // more history pictures to encode: one step per save
     cloudSoon();   // signed in: the cloud copy follows a little later
   } catch (e) {
     console.warn('draft save', e);
@@ -8866,14 +8938,33 @@ async function saveDraftNow() {
   }
 }
 // leaving the page / switching apps: write the pending draft now instead of waiting for the debounce
-document.addEventListener('visibilitychange', () => { if (document.hidden && (saveTimer || editingId)) saveDraft(); });   // editingId: typed text isn't committed yet
-addEventListener('pagehide', () => { if (saveTimer) saveDraft(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && (saveTimer || editingId)) saveDraft(true); });   // editingId: typed text isn't committed yet
+addEventListener('pagehide', () => { if (saveTimer) saveDraft(true); });
 async function blobToCanvas(blob) {
   const { canvas } = await fileToCanvas(blob, 8192);
   return canvas;
 }
 async function loadDraft() {
-  try { return await restoreDraft(await idbOp('readonly', st => st.get('draft'))); } catch (e) { return false; }
+  try {
+    const d = await idbOp('readonly', st => st.get('draft')), hs = d && d.hist;
+    if (hs && Array.isArray(hs.ids)) hbSaved = new Set(hs.ids.map(x => x[0]));
+    setTimeout(() => { saveQ = saveQ.then(hbSweep); }, 5000);   // history pictures no draft refers to (an interrupted save)
+    const ok = await restoreDraft(d);
+    if (ok && hs) await histLoad(hs).catch(e => console.warn('history', e));
+    return ok;
+  } catch (e) { return false; }
+}
+/* the saved undo history → hist; its pictures stay blobs until undo / redo needs them (histReady). Steps whose picture is missing are cut off. */
+async function histLoad(hs) {
+  if (!Array.isArray(hs.past) || !Array.isArray(hs.future) || !Array.isArray(hs.ids)) return;
+  const at = lastSnap, got = new Map();
+  await idbOp('readonly', st => { for (const [id] of hs.ids) { if (bitmaps.has(id)) continue; const rq = st.get(hbKey(id)); rq.onsuccess = () => { if (rq.result) got.set(id, rq.result); }; } });
+  if (lastSnap !== at) return;   // something was opened or edited meanwhile
+  for (const [id, w, h] of hs.ids) { const b = got.get(id); if (b && !bitmaps.has(id)) bitmaps.set(id, { canvas: null, blob: b, alpha: b.type === 'image/png', w: +w || 0, h: +h || 0 }); }
+  const ok = s => typeof s === 'string' && [...refsOf(s)].every(id => bitmaps.has(id)), past = [], fut = [];
+  for (let i = hs.past.length - 1; i >= 0 && ok(hs.past[i]) && past.length < 50; i--) past.unshift(hs.past[i]);
+  for (let i = hs.future.length - 1; i >= 0 && ok(hs.future[i]); i--) fut.unshift(hs.future[i]);
+  hist.past = past; hist.future = fut; gcBitmaps(); updateUndoUI();
 }
 /* {doc, blobs} → the open document (also used for the cloud draft from another device; force = replace what is open) */
 async function restoreDraft(d, force) {
@@ -8881,10 +8972,10 @@ async function restoreDraft(d, force) {
     if (!d || !d.doc || !d.blobs) return false;
     let lost = 0;
     // decode each bitmap on its own: one unreadable image only drops that image, not the whole draft
-    for (const [id, blob] of Object.entries(d.blobs)) {
-      try { if (!blob) throw 0; bitmaps.set(id, { canvas: await blobToCanvas(blob), blob, alpha: blob.type === 'image/png' }); }
-      catch (e) { lost++; }
-    }
+    const todo = Object.entries(d.blobs), one = async () => {
+      for (let x; (x = todo.shift());) { const [id, blob] = x; try { if (!blob) throw 0; bitmaps.set(id, { canvas: await blobToCanvas(blob), blob, alpha: blob.type === 'image/png' }); } catch (e) { lost++; } }
+    };
+    await Promise.all([one(), one()]);   // two at a time: decoding runs off the main thread, and phones don't hold many full-size decodes at once
     if (doc && !force) return null;           // the user opened something while we were decoding: theirs wins
     if (!bitmaps.has(d.doc.baseId)) {
       if (d.doc.baseOrig && bitmaps.has(d.doc.baseOrig)) { d.doc.baseId = d.doc.baseOrig; d.doc.baseOrig = null; }
@@ -11151,8 +11242,11 @@ $('#btnSave').addEventListener('click', openSave);
 const brandEl = $('.brand'), brandFit = () => {
   brandEl.style.fontSize = ''; brandEl.style.letterSpacing = ''; brandEl.classList.remove('tight');
   const over = () => brandEl.scrollWidth > brandEl.clientWidth + 1;
-  if (over()) brandEl.style.letterSpacing = '0';
+  if (!over()) return;
+  brandEl.style.letterSpacing = '0';
   let fs = parseFloat(getComputedStyle(brandEl).fontSize);
+  const sp = brandEl.lastElementChild, tw = sp ? sp.offsetWidth : 0;   // the word scales with the font size, the logo doesn't: jump close to the fit first
+  if (tw && over()) { fs = Math.max(13, Math.floor(fs * (tw - (brandEl.scrollWidth - brandEl.clientWidth) - 1) / tw * 2) / 2); brandEl.style.fontSize = fs + 'px'; }
   while (over() && fs > 13) { fs -= 0.5; brandEl.style.fontSize = fs + 'px'; }
   brandEl.classList.toggle('tight', brandEl.scrollWidth > brandEl.clientWidth + 1);
 };
@@ -11262,8 +11356,9 @@ document.querySelectorAll('.sheet .xbtn[data-ex="close"]').forEach(b => b.closes
   resizeCanvas(); lastStageW = stageW;
   setTool('select');
   familyCSS('Klee One'); familyCSS('Noto Sans JP');
-  await loadCustomFonts();
+  const fontsP = loadCustomFonts().then(() => { if (customFonts.length && doc) { layoutMemo.clear(); invalidate(); } });   // imported fonts and the draft load side by side
   const ok = await loadDraft();   // true = restored, null = the user already opened something, false = nothing
+  await fontsP;
   const welcome = !UI.seen && !navigator.webdriver && !hashPost();   // first visit: the welcome sheet explains the sample
   if (ok) toast('前回の下書きを開きました');
   else if (ok === false && !doc) { loadSample(); if (!welcome) toast('サンプル写真を表示中。左上の「開く」から写真を選べます', 4200); }
