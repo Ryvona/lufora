@@ -10245,7 +10245,9 @@ const RemoteGallery = {
     for (const k of ['thumb', 'full']) {
       if (!item[k]) continue;
       const path = `${uid}/${item.id}-${k}.jpg`;
-      sbOk(await st.upload(path, await durlBlob(item[k]), { contentType: 'image/jpeg', upsert: true }));
+      // a new post id = a new file: plain insert (no upsert, which also needs the storage UPDATE policy); a retry after a dropped connection finds the file already there, which is fine
+      const r = await st.upload(path, await durlBlob(item[k]), { contentType: 'image/jpeg' });
+      if (r.error && !/already exists|duplicate|409/i.test(String(r.error.message || '') + ' ' + String(r.error.statusCode || r.error.status || ''))) throw r.error;
       url[k] = st.getPublicUrl(path).data.publicUrl;
     }
     const row = { id: item.id, title: item.title, tags: item.tags, visibility: item.visibility, w: item.w, h: item.h,
