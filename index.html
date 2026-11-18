@@ -9610,9 +9610,12 @@ async function exportImage() {
    never under webdriver / offline. Slots: 'gal' = a full-width card after every 8th みんなの作品 card (public tab; one id per position,
    the list of ids is used in order and positions past the end get no ad), 'save' = under the 保存 sheet after a save, 'menu' = bottom
    of the phone ☰ menu (only when the screen is tall enough). Never on the editing screen. AdMax frames are 300×250 (ADS.w/h). */
-const ADS = { net: 'admax', client: '', w: 300, h: 250, slots: { gal: [], save: '', menu: '' } };   // admax: ad ids from the 忍者AdMax dashboard; adsense: client 'ca-pub-…' + ad unit ids
+/* admax: 32-hex ids from the 忍者AdMax tags (https://adm.shinobi.jp/s/<id>), one set for phones/tablets (sp) and one for PC (pc); each id shows in
+   its own iframe ad.html?id=… because the tag uses document.write. adsense: client 'ca-pub-…' + ad unit ids in slots. */
+const ADS = { net: 'admax', client: '', w: 300, h: 250, sp: { gal: '3327d2af2016cc4fa4aad5d943ffea01', save: '008185275fd2c9090ac9b3bd7db2650a', menu: 'd7b76f26292fc949827e7a30aa6e84d3' },
+  pc: { gal: 'cc4a18014d1282e0865f5e9f01c0e512', save: 'bbec50b7f4bd892baa349e3f98d71580' } };
 const adsJP = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Tokyo'; } catch (e) { return false; } };
-const adId = (k, i = 0) => { const v = ADS.slots[k]; return Array.isArray(v) ? v[i] || '' : i ? '' : v || ''; };
+const adId = (k, i = 0) => { const v = ((ADS.net === 'admax' ? ADS[deskOn ? 'pc' : 'sp'] : ADS.slots) || {})[k]; return Array.isArray(v) ? v[i] || '' : i ? '' : v || ''; };
 const adsOn = (k, i) => !!adId(k, i) && (ADS.net === 'admax' || !!ADS.client) && location.protocol === 'https:' && !navigator.webdriver && navigator.onLine && adsJP();
 let adsP = null;
 const adsLoad = () => adsP || (adsP = new Promise((res, rej) => { const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous';
@@ -9620,7 +9623,7 @@ const adsLoad = () => adsP || (adsP = new Promise((res, rej) => { const s = docu
 const adHtml = (k, cls = '', i = 0) => {
   if (!adsOn(k, i)) return '';
   const id = esc(adId(k, i)), box = b => `<div class="adbox ${cls}" data-ad="${k}"><span class="adlbl">広告</span>${b}</div>`;
-  return ADS.net === 'admax' ? box(`<div class="admax-ads" data-admax-id="${id}" style="display:inline-block;width:${ADS.w}px;height:${ADS.h}px"></div>`)
+  return ADS.net === 'admax' ? (/^[0-9a-f]{32}$/.test(adId(k, i)) ? box(`<iframe class="adfr" src="ad.html?id=${id}" width="${ADS.w}" height="${ADS.h}" title="広告" loading="lazy" scrolling="no" style="border:0;display:inline-block;max-width:100%"></iframe>`) : '')
     : box(`<ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.client)}" data-ad-slot="${id}" data-ad-format="auto" data-full-width-responsive="true"></ins>`);
 };
 /* AdMax: queue the new frames and re-run its loader (t.js reads window.admaxads; a fresh script tag per fill is how it works in pages that add ads later) */

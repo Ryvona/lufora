@@ -10,8 +10,8 @@
  * - A new version waits until the page posts {type:'skipWaiting'} (after its "update available" toast).
  */
 'use strict';
-const CACHE = 'petaphoto-v72';
-const RT_CACHE = 'petaphoto-rt-v72';
+const CACHE = 'petaphoto-v73';
+const RT_CACHE = 'petaphoto-rt-v73';
 const MODEL_CACHE = 'lufora-model-u2';
 const PRECACHE = ['./', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
@@ -40,7 +40,9 @@ async function networkFirstNav(req) {
   try {
     const res = await fetch(req, { cache: 'no-cache' });
     // keep the offline copy in step with the page the user last saw online
-    if (res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then(c => c.put('index.html', copy)).catch(() => {}); }
+    // only the app page itself becomes the offline copy (not privacy.html, survey.html, ad.html or an iframe)
+    const u = new URL(req.url), app = /\/(index\.html)?$/.test(u.pathname) && req.destination !== 'iframe';
+    if (app && res && res.ok && res.type === 'basic') { const copy = res.clone(); caches.open(CACHE).then(c => c.put('index.html', copy)).catch(() => {}); }
     return res;
   } catch (err) {
     const c = await caches.open(CACHE);
@@ -104,6 +106,7 @@ self.addEventListener('fetch', e => {
   try { url = new URL(req.url); } catch (_) { return; }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
   if (skipHost(url.hostname)) return;
+  if (url.origin === self.location.origin && url.pathname.endsWith('/ad.html')) return;   // ad frames: always straight from the network
 
   let p = null;
   if (url.origin === self.location.origin) {
