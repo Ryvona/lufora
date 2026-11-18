@@ -1288,7 +1288,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   <div id="uiInst"></div>
   <div class="setrow"><span class="st">使い方<small>操作のしかたとキーボードショートカット</small></span><button class="chip" data-uihelp="1">開く</button></div>
   <div class="setrow"><span class="st">ご意見・ご要望<small>不具合の報告や「こうしてほしい」を運営者に送れます</small></span><button class="chip" data-fbopen="1">送る</button></div>
-  <div class="setrow"><span class="st">公式 X<small>@Ryvona_stdio　新機能のお知らせや使い方のコツ</small></span><a class="chip" href="https://x.com/Ryvona_stdio" target="_blank" rel="noopener">開く</a></div>
+  <div class="setrow"><span class="st">公式 X<small>@Ryvona_stadio　新機能のお知らせや使い方のコツ</small></span><a class="chip" href="https://x.com/Ryvona_stadio" target="_blank" rel="noopener">開く</a></div>
   <p class="note">この端末だけに保存されます。</p>
   <p class="note legal"><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a> ・ <a href="terms.html" target="_blank" rel="noopener">利用規約</a></p>
 </div>
@@ -8860,7 +8860,7 @@ function cmdItems() {
   add('編集ツールの並び替え', 'ツールの表示・非表示', ['order', 'tools', '並べ替え', 'ならびかえ'], openOrderSheet);
   if (!deskOn) add('その他のツール', 'ツール欄に入らないツール', ['more', 'tools', 'そのた', 'つーる'], openMoreSheet);
   add('使い方・ショートカット', '?', ['help', 'shortcut', 'ヘルプ', 'つかいかた'], () => openSheet('#sheetHelp'));
-  add('公式 X', '@Ryvona_stdio を開く（お知らせ・使い方のコツ）', ['x', 'twitter', 'sns', 'こうしき えっくす ついったー おしらせ'], () => window.open('https://x.com/Ryvona_stdio', '_blank', 'noopener'));
+  add('公式 X', '@Ryvona_stadio を開く（お知らせ・使い方のコツ）', ['x', 'twitter', 'sns', 'こうしき えっくす ついったー おしらせ'], () => window.open('https://x.com/Ryvona_stadio', '_blank', 'noopener'));
   add('ご意見・ご要望', '不具合の報告・要望・感想を送る', ['feedback', 'contact', 'bug', 'いけん ようぼう ふぐあい おといあわせ かんそう れんらく'], () => openFeedback());
   add('操作ガイド', '写真→文字→保存を順番に案内', ['tour', 'guide', 'がいど', 'あんない', 'ちゅーとりある', 'はじめて'], () => tourStart());
   Object.entries(FILTERS).forEach(([id, f]) => add('フィルター：' + f[0], '補正のフィルター', ['filter', id, f[0]], () => { S.colorTab = 'filter'; if (deskOn) setTool('filter'); runCmd('preset', id); }));
