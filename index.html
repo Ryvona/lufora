@@ -79,6 +79,8 @@ input,textarea{-webkit-user-select:text;user-select:text}
 #toast.act{pointer-events:auto}
 #toast .tact{margin-left:10px;height:30px;padding:0 12px;border-radius:15px;background:var(--accent);color:#FFFFFF;font-weight:700;font-size:12.5px}
 .chip .mnote{margin-left:6px;font-size:10.5px;opacity:.7}
+.chip.tgt{display:inline-flex;align-items:center;gap:6px;padding-left:5px}
+.chip.tgt img{width:26px;height:26px;border-radius:7px;object-fit:cover;flex:0 0 auto;background:repeating-conic-gradient(#e6e1d6 0 25%,#fff 0 50%) 0 0/10px 10px;box-shadow:0 0 0 1px var(--line)}
 
 /* bottom dock */
 .dock{background:linear-gradient(180deg,#FFFDF8,var(--chrome) 40%);border-top:1px solid var(--line);box-shadow:var(--hi),0 -8px 20px -14px rgba(60,70,50,.25);position:relative;z-index:1;padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1129,7 +1131,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
       <div class="hcard"><span class="hic" data-ic="layout"></span><b>画面</b><ul><li>左：写真・テンプレート・素材・補正・背景削除（下にみんなの作品・設定）</li><li>左の「ツール」：選択・文字・ペンなどの編集ツールの列を出す・しまう</li><li>右：選んだ物の設定とレイヤー</li></ul></div>
       <div class="hcard"><span class="hic" data-ic="mouse"></span><b>基本の操作</b><ul><li>クリックで選択、ドラッグで移動</li><li>角の● で拡大縮小、上の● で回転</li><li>ダブルクリックで文字を書き換え</li><li>物を右クリック：複製・重なり順・ロック・削除</li><li>何もない所を右クリック：貼り付け・すべて選択</li></ul></div>
       <div class="hcard"><span class="hic" data-ic="photo"></span><b>写真を入れる</b><ul><li>ドラッグ＆ドロップ、または Ctrl+V</li><li>写真枠はダブルクリックかドロップ</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>Ctrl+K で何でも検索</li><li>補正の「おまかせ」で色を自動で整える</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>編集は自動で下書き保存・キー一覧は下の表</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>Ctrl+K で何でも検索</li><li>補正の「おまかせ」で色を自動で整える</li><li>背景削除は AI で自動（写真は外に送られません）</li><li>追加した画像も、選んでから「補正」「背景削除」でその画像だけに使える</li><li>編集は自動で下書き保存・キー一覧は下の表</li></ul></div>
     </div>
   </div>
   <div class="help-sp">
@@ -1139,7 +1141,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
       <div class="hcard"><span class="hic" data-ic="hold"></span><b>長押しメニュー</b><ul><li>物を長押し（またはパネル右上の ⋯）：複製・コピー・重なり順・ロック・削除</li><li>何もない所を長押し：貼り付け・写真を追加・複数選択・囲んで選ぶ</li><li>反転・位置などはパネルの「詳細」に</li></ul></div>
       <div class="hcard"><span class="hic" data-ic="group"></span><b>まとめて操作</b><ul><li>何もない所を長押し →「複数選択」→ 物をタップして追加</li><li>2つ以上で「グループにする」・揃える・等間隔・反転</li></ul></div>
       <div class="hcard"><span class="hic" data-ic="photo"></span><b>写真を入れる</b><ul><li>ツールの「写真」で今の作品に写真を追加</li><li>作品ごと替えるときは「開く」。前の作品は ☰ の「最近の作品」から</li><li>写真枠はダブルタップ</li><li>素材 →「マイ素材」の「写真を追加」で端末の写真をためておける</li></ul></div>
-      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>色の横のスポイトで、写真から色を拾う</li><li>図形の「線」でくにゃくにゃ線・カギ線・矢印</li><li>補正の「おまかせ」で色を自動で整える。背景削除は AI で自動</li><li>編集は自動で下書き保存</li><li>☰ の「機能をさがす」で何でも検索</li></ul></div>
+      <div class="hcard"><span class="hic" data-ic="spark"></span><b>便利な機能</b><ul><li>色の横のスポイトで、写真から色を拾う</li><li>図形の「線」でくにゃくにゃ線・カギ線・矢印</li><li>補正の「おまかせ」で色を自動で整える。背景削除は AI で自動</li><li>追加した画像は、タップしてパネルの「補正」「背景削除」でその画像だけに</li><li>編集は自動で下書き保存</li><li>☰ の「機能をさがす」で何でも検索</li></ul></div>
     </div>
   </div>
   <h3 class="keysh">キーボードショートカット（パソコン）</h3>
@@ -3277,7 +3279,8 @@ const S = {
   num: { color: '#FF3B30' },
   image: { border: 'none', shadow: true, rad: 0, bw: 7 },
   filterCat: 'all', fontCat: 'all', marq: false, colorTab: 'ai',
-  cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true }
+  cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true },
+  adjT: 'base'   // 補正 target: 'base' (元の写真) or an image object id (its o.adj)
 };
 /* last-used tool settings survive reloads (per device). Only known keys whose type matches the default are restored. */
 const TOOLS_KEY = 'petaphoto.tools', TOOLS_SAVED = ['pen', 'shape', 'mosaic', 'text', 'note', 'num', 'image'];
@@ -3366,6 +3369,8 @@ function gcBitmaps() {
     for (const s of snaps) for (const id of refsOf(s)) live.add(id);
     for (const s of snapRefs.keys()) if (!keep.has(s)) snapRefs.delete(s);
     for (const id of [...bitmaps.keys()]) if (!live.has(id)) bitmaps.delete(id);
+    for (const k of [...fxC.keys()]) if (!bitmaps.has(k.slice(0, k.indexOf('|')))) fxC.delete(k);   // image 補正 cache goes with its bitmap
+    for (const k of [...tgtThumbs.keys()]) if (!bitmaps.has(k)) tgtThumbs.delete(k);
   };
   sweep();
   // keep total pixel memory in check on phones: drop the oldest undo steps if needed
@@ -3800,6 +3805,79 @@ function getBase(W, H, cache) {
   if (cache) { baseCache = { key, sig, canvas: c }; liveBase = null; }
   return c;
 }
+/* ==== image 補正 ==== an image object (or a filled photo slot) may carry o.adj = the non-default keys of a doc.adjust-shaped
+   object. drawImageObj / drawSlot draw fxImg(): the bitmap run through effParams + processCanvas, cached per bitmap + adj
+   (entry {rev: bmpRev, w, c}); a cached copy at least as wide as needed is reused, so dragging / zooming out never re-runs the
+   pipeline. The vignette is not baked in: fxVig draws it over the image's own frame (slot frame / image box) and skips
+   transparent bitmaps (a cut-out would get a dark rim). compareOn shows the plain bitmap. */
+const adjOf = o => ({ ...DEFAULT_ADJ, ...(o && o.adj || {}) });
+function adjPack(a) {
+  const r = {}; for (const k in DEFAULT_ADJ) if (a[k] != null && a[k] !== DEFAULT_ADJ[k]) r[k] = a[k];
+  if (!r.preset) delete r.amt;   // strength means nothing without a filter
+  return r;
+}
+const fxC = new Map(), FX_MAX = 24, FX_PX = 30e6;
+let fxLive = null;
+function fxImg(o, bm, px) {
+  const src = bm.canvas;
+  if (!o.adj || compareOn || !src) return src;
+  const P = effParams(adjOf(o)); P.vig = 0;
+  if (isPlainP(P)) return src;
+  const key = o.bmp + '|' + JSON.stringify(o.adj), e = fxC.get(key);
+  if (e && e.rev !== bmpRev && G && G.type === 'cutbrush' && G.t && G.t.o === o) {   // brushing the cut-out: follow the new alpha only
+    if (!fxLive || fxLive.width !== e.c.width || fxLive.height !== e.c.height) fxLive = mk(e.c.width, e.c.height);
+    const g = fxLive.getContext('2d');
+    g.globalCompositeOperation = 'copy'; g.drawImage(e.c, 0, 0);
+    g.globalCompositeOperation = 'destination-in'; g.drawImage(src, 0, 0, fxLive.width, fxLive.height);
+    g.globalCompositeOperation = 'destination-over'; g.drawImage(src, 0, 0, fxLive.width, fxLive.height);
+    g.globalCompositeOperation = 'source-over';
+    return fxLive;
+  }
+  const need = Math.min(src.width, Math.max(64, Math.ceil(px * (adjDragging ? 0.5 : 1))));
+  if (e && e.rev === bmpRev && e.w >= need) { fxC.delete(key); fxC.set(key, e); return e.c; }
+  const W = Math.min(src.width, 2 ** Math.ceil(Math.log2(need))), H = Math.max(1, Math.round(src.height * W / src.width)), c = mk(W, H), g = c.getContext('2d');
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, W, H);
+  processCanvas(c, P);
+  fxC.delete(key); fxC.set(key, { rev: bmpRev, w: W, c });
+  let t = 0; for (const v of fxC.values()) t += v.c.width * v.c.height;
+  for (const [k, v] of fxC) { if (fxC.size <= 1 || (fxC.size <= FX_MAX && t <= FX_PX)) break; t -= v.c.width * v.c.height; fxC.delete(k); }
+  return c;
+}
+const fxTr = new WeakMap();   // canvas → [bmpRev, has see-through pixels] (bm.alpha only says the format could carry them)
+function hasClear(c) {
+  let r = fxTr.get(c); if (r && r[0] === bmpRev) return r[1];
+  const t = mk(48, 48), g = t.getContext('2d', { willReadFrequently: true }); g.drawImage(c, 0, 0, 48, 48);
+  const d = g.getImageData(0, 0, 48, 48).data; let v = false; for (let i = 3; i < d.length; i += 4) if (d[i] < 245) { v = true; break; }
+  fxTr.set(c, r = [bmpRev, v]); return v;
+}
+function fxVig(ctx, o, bm, x, y, w, h) {
+  if (!o.adj || compareOn || !bm.canvas || !(effParams(adjOf(o)).vig > 0) || hasClear(bm.canvas)) return;
+  const v = clamp(effParams(adjOf(o)).vig, 0, 100);
+  const cx0 = x + w / 2, cy0 = y + h / 2, R = Math.hypot(w, h) / 2, gr = ctx.createRadialGradient(cx0, cy0, R * (0.62 - v / 400), cx0, cy0, R);
+  gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, `rgba(0,0,0,${v / 100 * 0.8})`);
+  ctx.fillStyle = gr; ctx.fillRect(x, y, w, h);
+}
+/* the 補正 tool's target: 元の写真 (doc.adjust) or one image with a picture; tAdj() is a full adjust object, tAdjSet writes it back */
+function adjTarget() {
+  if (S.adjT && S.adjT !== 'base') { const o = doc.objects.find(x => x.id === S.adjT && x.type === 'image' && x.bmp); if (o) return o; S.adjT = 'base'; }
+  return null;
+}
+const tAdj = () => { const o = adjTarget(); return o ? adjOf(o) : doc.adjust; };
+function tAdjSet(a) { const o = adjTarget(); if (!o) { doc.adjust = a; return; } const p = adjPack(a); if (Object.keys(p).length) o.adj = p; else delete o.adj; }
+const tBmp = () => { const o = adjTarget(); return o ? o.bmp : doc.baseId; };
+/* 対象 chips: 元の写真 + every image with a picture, each with a small thumbnail (cached per bitmap id) */
+const tgtThumbs = new Map();
+function tgtThumb(id) {
+  let u = tgtThumbs.get(id); if (u) return u;
+  const e = bitmaps.get(id); if (!e || !e.canvas) return '';
+  const s = 52 / Math.max(e.canvas.width, e.canvas.height), c = mk(Math.max(1, Math.round(e.canvas.width * s)), Math.max(1, Math.round(e.canvas.height * s)));
+  const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(e.canvas, 0, 0, c.width, c.height);
+  tgtThumbs.set(id, u = c.toDataURL(e.alpha ? 'image/png' : 'image/jpeg', 0.8)); return u;
+}
+const imgList = () => doc.objects.filter(o => o.type === 'image' && o.bmp);
+const imgName = o => (o.slot ? '枠の写真' : '画像') + (imgList().indexOf(o) + 1);
+const tgtRow = (k, cur, imgs) => row('対象', chips('s', k, [['base', '元の写真', doc.baseId], ...imgs.map(o => [o.id, imgName(o), o.bmp])]
+  .map(([v, l, b]) => [v, `<img src="${tgtThumb(b)}" alt="">${l}`]), cur).replace(/class="chip/g, 'class="chip tgt'));
 function renderDoc(canvas, scale, opt = {}) {
   const W = Math.max(1, Math.round(doc.w * scale)), H = Math.max(1, Math.round(doc.h * scale));
   if (canvas.width !== W) canvas.width = W;
@@ -3846,7 +3924,8 @@ function drawSlot(ctx, o, k) {
   ctx.save(); rrect(ctx, x, y, w, h, r); ctx.clip();
   if (bm) {
     const iw = bm.canvas.width, ih = bm.canvas.height, s = Math.max(w / iw, h / ih) * Math.max(1, o.fz || 1), dw = iw * s, dh = ih * s;
-    ctx.drawImage(bm.canvas, -dw / 2 - (o.fx || 0) * (dw - w) / 2, -dh / 2 - (o.fy || 0) * (dh - h) / 2, dw, dh);
+    ctx.drawImage(fxImg(o, bm, dw * k), -dw / 2 - (o.fx || 0) * (dw - w) / 2, -dh / 2 - (o.fy || 0) * (dh - h) / 2, dw, dh);
+    fxVig(ctx, o, bm, x, y, w, h);   // the vignette follows the slot frame, not the whole photo
   } else {
     ctx.fillStyle = '#E9E5DE'; ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = '#B9B2A6'; ctx.lineWidth = m * 0.012; ctx.setLineDash([m * 0.04, m * 0.03]); rrect(ctx, x + m * 0.04, y + m * 0.04, w - m * 0.08, h - m * 0.08, Math.max(0, r - m * 0.04)); ctx.stroke(); ctx.setLineDash([]);
@@ -3862,16 +3941,16 @@ function drawImageObj(ctx, o, k) {
   if (o.slot) return drawSlot(ctx, o, k);
   const bm = bitmaps.get(o.bmp); if (!bm) return;
   const w = o.w, h = o.h, x = -w / 2, y = -h / 2, r = (o.rad || 0) / 100 * Math.min(w, h) / 2;
-  const framed = r > 0 || (o.border && o.border !== 'none');
+  const framed = r > 0 || (o.border && o.border !== 'none'), src = fxImg(o, bm, w * k);   // src: the picture with its own 補正 (o.adj)
   if (o.shadow) {
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = Math.min(w, h) * 0.06 * k; ctx.shadowOffsetY = Math.min(w, h) * 0.02 * k;
     if (framed) { ctx.fillStyle = o.border && o.border !== 'none' ? o.border : '#000'; rrect(ctx, x, y, w, h, r); ctx.fill(); }
-    else ctx.drawImage(bm.canvas, x, y, w, h);
+    else ctx.drawImage(src, x, y, w, h);
     ctx.restore();
-    if (!framed) return;
+    if (!framed) { fxVig(ctx, o, bm, x, y, w, h); return; }
   }
-  ctx.save(); rrect(ctx, x, y, w, h, r); ctx.clip(); ctx.drawImage(bm.canvas, x, y, w, h);
+  ctx.save(); rrect(ctx, x, y, w, h, r); ctx.clip(); ctx.drawImage(src, x, y, w, h); fxVig(ctx, o, bm, x, y, w, h);
   if (o.border && o.border !== 'none') { ctx.lineWidth = Math.min(w, h) * (o.bw || 7) * 0.01; ctx.strokeStyle = o.border; ctx.stroke(); }   // clipped: half of it shows
   ctx.restore();
 }
@@ -4215,6 +4294,7 @@ function draw() {
   cx.fillStyle = checker(); cx.fillRect(view.tx, view.ty, doc.w * view.s, doc.h * view.s);
   cx.drawImage(comp, view.tx, view.ty, doc.w * view.s, doc.h * view.s);
   if (tool === 'cutout' && S.cut.target !== 'base') { const o = doc.objects.find(x => x.id === S.cut.target); if (o) drawSelection({ ...o, locked: true }); }
+  if (tool === 'filter' && S.adjT !== 'base') { const o = adjTarget(); if (o) drawSelection({ ...o, locked: true }); }
   if (UI.grid !== 'off' && tool !== 'crop') drawGridOverlay();
   if (tool === 'crop') drawCropOverlay();
   else if (tool === 'select') {
@@ -6225,8 +6305,9 @@ function runCmd(k, v, final) {
     case 'rotL': case 'rotR': case 'flipH': case 'flipV': geomOp(k); break;
     case 'cropCancel': setTool('select'); break;
     case 'cropApply': applyCrop(); break;
-    case 'preset': if (doc.adjust.preset !== v) doc.adjust.amt = 100; doc.adjust.preset = v; invalidate(); commit(); refreshPanel(); break;
-    case 'adjReset': doc.adjust = { ...DEFAULT_ADJ, preset: doc.adjust.preset, amt: doc.adjust.amt }; invalidate(); commit(); refreshPanel(); break;
+    case 'preset': { const a = tAdj(); if (a.preset !== v) a.amt = 100; a.preset = v; tAdjSet(a); invalidate(); commit(); refreshPanel(); } break;
+    case 'adjReset': { const a = tAdj(); tAdjSet({ ...DEFAULT_ADJ, preset: a.preset, amt: a.amt }); invalidate(); commit(); refreshPanel(); } break;
+    case 'fxThis': if (o && o.type === 'image' && o.bmp) setTool('filter'); break;   // setTool targets the selected image
     case 'fontPicker': openFontPicker(); break;
     case 'noteRatio': if (o) {
       const m = Math.max(o.w, o.h), r = NOTE_RATIOS[v] || NOTE_RATIOS.square;
@@ -6389,12 +6470,12 @@ function fontButton(fam) {
 /* filter thumbnails made from the current photo */
 let thumbs = {}, thumbKey = null;
 function ensureThumbs() {
-  const key = doc.baseId + '|' + bmpRev + '|' + (doc.bg || '');
+  const ob = adjTarget(), key = tBmp() + '|' + bmpRev + '|' + (doc.bg || '');
   if (thumbKey === key) return;
   thumbKey = key; thumbs = {};
-  const src = bitmaps.get(doc.baseId).canvas, T = 132, b = mk(T, T), g = b.getContext('2d');
+  const src = bitmaps.get(tBmp()).canvas, T = 132, b = mk(T, T), g = b.getContext('2d');
   const s = Math.max(T / src.width, T / src.height);
-  g.fillStyle = doc.bg || '#FFFFFF'; g.fillRect(0, 0, T, T);
+  g.fillStyle = ob ? '#FFFFFF' : doc.bg || '#FFFFFF'; g.fillRect(0, 0, T, T);
   g.imageSmoothingQuality = 'high';
   g.drawImage(src, (T - src.width * s) / 2, (T - src.height * s) / 2, src.width * s, src.height * s);
   for (const id in FILTERS) {
@@ -6506,8 +6587,8 @@ function aiSolve(smp, tgt, base, vars, wts = {}, lim = {}) {
 /* per-photo cache: sample, stats, scene, solved look params, look thumbnails */
 let aiC = { key: null }, aiRef = null, aiLast = null;
 function aiData() {
-  const key = doc.baseId + '|' + bmpRev;
-  if (aiC.key !== key) { const smp = aiSample(bitmaps.get(doc.baseId).canvas), st = aiStats(smp.d, smp.nm); aiC = { key, smp, st, scene: aiScene(smp, st), looks: {}, thumbs: {} }; }
+  const key = tBmp() + '|' + bmpRev;
+  if (aiC.key !== key) { const smp = aiSample(bitmaps.get(tBmp()).canvas), st = aiStats(smp.d, smp.nm); aiC = { key, smp, st, scene: aiScene(smp, st), looks: {}, thumbs: {} }; }
   return aiC;
 }
 const aiPullT = (st, t, k = AI_PULL) => { const o = {}; for (const s in t) o[s] = st[s] + (t[s] - st[s]) * k; return o; };
@@ -6539,8 +6620,8 @@ function aiRefParams() {
   return { ...x, sepia: 0, split: 0, glow: 0, grain: 0, vig: 0, leak: 0, preset: 'none', amt: 100 };
 }
 function aiThumb(adj) {
-  const src = bitmaps.get(doc.baseId).canvas, T = 132, c = mk(T, T), g = c.getContext('2d'), s = Math.max(T / src.width, T / src.height);
-  g.fillStyle = doc.bg || '#FFFFFF'; g.fillRect(0, 0, T, T); g.imageSmoothingQuality = 'high';
+  const src = bitmaps.get(tBmp()).canvas, T = 132, c = mk(T, T), g = c.getContext('2d'), s = Math.max(T / src.width, T / src.height);
+  g.fillStyle = adjTarget() ? '#FFFFFF' : doc.bg || '#FFFFFF'; g.fillRect(0, 0, T, T); g.imageSmoothingQuality = 'high';
   g.drawImage(src, (T - src.width * s) / 2, (T - src.height * s) / 2, src.width * s, src.height * s);
   const P = effParams({ ...DEFAULT_ADJ, ...adj }); if (!isPlainP(P)) processCanvas(c, P);
   return c.toDataURL('image/jpeg', 0.82);
@@ -6558,14 +6639,14 @@ function aiWarm() {
   setTimeout(step, 30);
 }
 function aiApply(adj, name) {
-  const before = { ...doc.adjust };
-  doc.adjust = { ...doc.adjust, ...adj };
-  const moved = ADJ_KEYS.reduce((t, k) => t + Math.abs((+doc.adjust[k] || 0) - (+before[k] || 0)), 0);
-  aiLast = { name, json: JSON.stringify(doc.adjust) };
+  const before = { ...tAdj() }, after = { ...before, ...adj };
+  tAdjSet(after);
+  const moved = ADJ_KEYS.reduce((t, k) => t + Math.abs((+after[k] || 0) - (+before[k] || 0)), 0);
+  aiLast = { name, json: JSON.stringify(tAdj()), t: tBmp() };
   invalidate(); commit(); refreshPanel();
   toast(moved < 12 && name === 'AIおまかせ補正' ? 'この写真はもとから整っていたので、変化は小さめです。「押して元の写真と比べる」で違いを確かめられます' : `${name}に整えました。「調整」タブで細かく変えられます`, 4200);
 }
-const aiIsOn = name => !!aiLast && aiLast.name === name && aiLast.json === JSON.stringify(doc.adjust);
+const aiIsOn = name => !!aiLast && aiLast.name === name && aiLast.t === tBmp() && aiLast.json === JSON.stringify(tAdj());
 const aiRefInput = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*', id: 'fileRef', className: 'vh', tabIndex: -1 });
 aiRefInput.setAttribute('aria-hidden', 'true'); document.body.appendChild(aiRefInput);
 aiRefInput.addEventListener('change', async e => {
@@ -6586,7 +6667,7 @@ function aiPanel(where) {
   const D = aiData();
   let h = `<button class="aibtn" data-act="cmd" data-k="aiAuto">${ICON.spark}AIおまかせ補正</button>`
     + `<div class="cmprow"><button class="chip" data-cmp="1" title="押している間だけ、フィルター・調整をかける前の写真を表示（キーボードの \\ でも同じ）">◐ 押して元の写真と比べる</button></div>`;
-  h += `<div class="aiscene">${D.scene.tags.length ? 'この写真: ' + D.scene.tags.join('・') + '　' : ''}おすすめ: <b>${AI_LOOKS[D.scene.best][0]}</b></div>`;
+  h += `<div class="aiscene">${D.scene.tags.length ? (adjTarget() ? 'この画像: ' : 'この写真: ') + D.scene.tags.join('・') + '　' : ''}おすすめ: <b>${AI_LOOKS[D.scene.best][0]}</b></div>`;
   if (where === 'adjust') return h + hint(`${ICON.spark}明るさと色を自動で整えます`);
   if (Object.keys(AI_LOOKS).some(i => !D.thumbs[i])) aiWarm();
   const ord = [D.scene.best, ...Object.keys(AI_LOOKS).filter(i => i !== D.scene.best)];
@@ -6600,7 +6681,7 @@ const COLOR_TABS = [['ai', 'おまかせ'], ['filter', 'フィルター'], ['adj
 const colorTabs = () => `<div class="ctabs" role="tablist" aria-label="補正">${COLOR_TABS.map(([v, l]) => `<button class="ctab${S.colorTab === v ? ' on' : ''}" role="tab" aria-selected="${S.colorTab === v}" data-act="s" data-k="colorTab" data-v="${J(v)}">${l}</button>`).join('')}</div>`;
 /* 補正 › 調整 tab: the manual sliders + reset */
 function adjHtml() {
-  const a = doc.adjust;
+  const a = tAdj();
   return [['bri', '明るさ', -100, 'aBri'], ['con', 'コントラスト', -100, 'aCon'], ['sat', '彩度', -100, 'aSat'], ['warm', '色温度', -100, 'aWarm'], ['tint', '色かぶり', -100, 'aTint'],
         ['fade', '退色', 0, 'aFade'], ['glow', 'ふんわり', 0, 'aGlow'], ['grain', '粒子', 0, 'aGrain'], ['vig', '周辺減光', 0, 'aVig']]
         .map(([k, l, lo, ic]) => slider('a:' + k, `<span class="aic" aria-hidden="true">${ICON[ic]}</span>${l}`, lo, 100, a[k])).join('')
@@ -6701,7 +6782,8 @@ function objPanel(o) {
 /* panel head extras: グループ解除 for one member picked out of a group, and the main action of a photo / photo slot */
 function headX(o) {
   let h = o.gid && (groupOf(o) || []).length > 1 ? `<button class="chip gbadge" data-act="cmd" data-k="ungroup" title="グループ解除">${IW('ungroup', 'グループ解除')}</button>` : '';
-  if (!o.locked && o.type === 'image') h += o.slot ? cmdBtn('slotPick', IW('photo', o.bmp ? '写真を差し替え' : '写真を入れる'), undefined, o.bmp ? '' : 'on') : cmdBtn('cutThis', IW('cutout', '背景削除'));
+  if (!o.locked && o.type === 'image') h += (o.slot ? cmdBtn('slotPick', IW('photo', o.bmp ? '写真を差し替え' : '写真を入れる'), undefined, o.bmp ? '' : 'on') : cmdBtn('cutThis', IW('cutout', '背景削除')))
+    + (o.bmp ? cmdBtn('fxThis', IW('filter', '補正'), undefined, o.adj ? 'on' : '') : '');   // 補正 = this image's own filter / adjust
   return h;
 }
 /* phones: the PC #objBar's quick actions at the right of the panel head (複製・削除・⋯ = the long-press menu); the 複数選択
@@ -6921,9 +7003,10 @@ function refreshPanel() {
       h += `<div class="actions"><button class="btn" data-act="cmd" data-k="cropCancel">キャンセル</button><button class="btn primary" data-act="cmd" data-k="cropApply">トリミング</button></div>`;
       break;
     case 'filter': {
-      const a = doc.adjust;
+      const a = tAdj(), imgs = imgList(), to = adjTarget();
       ensureThumbs();
-      h = colorTabs();   // 補正 = おまかせ / フィルター / 調整 tabs (S.colorTab; setTool('adjust') opens 調整)
+      if (imgs.length) h += tgtRow('adjT', to ? to.id : 'base', imgs) + (to ? hint(`${ICON.photo}「${imgName(to)}」だけに色をかけます。元の写真は変わりません`) : '');
+      h += colorTabs();   // 補正 = おまかせ / フィルター / 調整 tabs (S.colorTab; setTool('adjust') opens 調整)
       if (S.colorTab === 'ai') { h += aiPanel('filter'); break; }
       if (S.colorTab === 'adjust') { h += adjHtml(); break; }
       h += row('種類', chips('s', 'filterCat', FILTER_CATS, S.filterCat));
@@ -6937,7 +7020,7 @@ function refreshPanel() {
     }
     case 'cutout': {
       const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
-      if (imgs.length) h += row('対象', chips('s', 'cut.target', [['base', '元の写真'], ...imgs.map((o, i) => [o.id, '貼った写真' + (i + 1)])], S.cut.target));
+      if (imgs.length) h += tgtRow('cut.target', S.cut.target, imgs) + (t.o ? hint(`${ICON.photo}「${imgName(t.o)}」の背景を消します`) : '');
       h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで背景削除'}</button>`;
       if (aiBusy) h += `<div class="aistopw"><button class="chip" data-act="cmd" data-k="aiStop"${aiStop ? ' disabled' : ''}>中止</button></div>` + hint('処理中も、写真の拡大・移動やほかの画面の操作はできます。');
       let dt = row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
@@ -7014,7 +7097,7 @@ function onSlider(t, final) {
     invalidate(); if (final) commit();
   }
   else if (scope === 'a') {
-    doc.adjust[k] = raw;
+    const a = tAdj(); a[k] = raw; tAdjSet(a);   // 元の写真 or the targeted image
     adjDragging = !final; invalidate(); if (final) commit();
   }
 }
@@ -7164,9 +7247,15 @@ function useTool(id) {
 function setTool(t) {
   if (t === 'adjust') { S.colorTab = 'adjust'; t = 'filter'; }   // 調整 is a tab of 補正 (old links, quick search, photo card)
   const prev = selObj();
+  // the picked image, else the image the other photo tool (補正 / 背景削除) was working on; nothing: 元の写真
+  const pi = !doc ? null : prev && prev.type === 'image' && prev.bmp ? prev : tool === 'filter' ? adjTarget() : tool === 'cutout' ? cutTarget().o : null;
   if (t === 'cutout' && doc) {
-    if (prev && prev.type === 'image' && !prev.slot) S.cut.target = prev.id;
-    else if (!doc.objects.some(o => o.id === S.cut.target)) S.cut.target = 'base';
+    if (pi && !pi.slot) S.cut.target = pi.id;
+    else if (tool !== t || !doc.objects.some(o => o.id === S.cut.target)) S.cut.target = 'base';
+  }
+  if (t === 'filter' && doc) {
+    if (pi) S.adjT = pi.id;
+    else if (tool !== t) S.adjT = 'base';
   }
   tool = t;
   if (t !== 'select') { selId = null; multi = []; }
@@ -8739,6 +8828,7 @@ function cmdItems() {
   if (GEN_ON && SUPA.url) add('AIで素材を作る', '言葉からステッカーを作る', ['ai', 'えーあい そざい つくる あい', 'sticker', 'ステッカー', 'すてっかー', 'claude'], genOpen);
   add('新規作成・サンプル', '白紙', ['new', 'blank', '白紙', 'キャンバス', 'しんき はくし'], () => { renderNB(); openSheet('#sheetNew'); });
   add('AIで背景削除', '背景削除', ['ai', 'background', 'remove', '切り抜き', 'くりぬき はいけい けす'], () => { setTool('cutout'); runCmd('ai'); });
+  add('画像を補正', '選んだ画像だけにフィルター・調整', ['image', 'filter', 'がぞう ほせい ふぃるたー ちょうせい えらんだ'], () => { const o = selObj(); if (o && o.type === 'image' && o.bmp) runCmd('fxThis'); else { const im = imgList()[0]; S.adjT = 'base'; setTool('filter'); if (im) { S.adjT = im.id; refreshPanel(); requestDraw(); } else toast('写真を追加すると、その画像だけを補正できます'); } });
   add('AIおまかせ補正', '色を自動で整える', ['ai', 'auto', '自動', '補正', 'おまかせ じどう ほせい'], () => runCmd('aiAuto'));
   add('調整をリセット', '明るさなどを元に', ['reset', 'adjust', 'リセット', 'ちょうせい'], () => runCmd('adjReset'));
   add('元に戻す', 'Ctrl+Z', ['undo', 'もとにもどす'], undo);
