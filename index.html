@@ -12063,7 +12063,7 @@ function acctDelHtml(nm) {
     <input id="acctDelIn" class="pubin" maxlength="10" placeholder="削除" aria-label="確認のため「削除」と入力" autocomplete="off" value="${esc(ADL.txt)}"${dis}>
     ${msg}<div class="acts"><button class="btn" data-acct="delCancel"${dis}>やめる</button><button class="btn dng" data-acct="delGo"${ADL.busy || ADL.txt.trim() !== '削除' ? ' disabled' : ''}>${ADL.busy ? '削除しています…' : '完全に削除する'}</button></div></div>`;
 }
-const ACCT_BUCKETS = ['posts', 'library', 'drafts', 'fonts'];
+const ACCT_BUCKETS = ['posts', 'library', 'drafts', 'fonts', 'cal-photos'];   // cal-photos = ひびカレンダー (same Ryvona account)
 async function acctWipeFiles(c, uid) {
   for (const bk of ACCT_BUCKETS) {
     const st = c.storage.from(bk);
