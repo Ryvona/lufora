@@ -978,6 +978,15 @@ html:not(.desk) .pcb{grid-template-columns:repeat(3,minmax(0,1fr))}
 #sheetUI #uiSave .wrap .chip{height:auto;min-height:calc(34px*var(--u));white-space:normal}
 html:not(.desk) .legend:has(>span:nth-child(4):last-child){grid-template-columns:repeat(4,minmax(0,1fr))}
 html:not(.desk):not(.tab) .dock .tools .tool span.tl{display:block;font-size:.92em;width:2.2em;max-width:2.2em;margin:0 auto;white-space:normal;word-break:break-all;line-height:1.05}
+/* ==== brand kit / dates / product photo ==== */
+.brlogo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0}
+.brlogo img{width:64px;height:64px;object-fit:contain;border-radius:12px;border:1px solid var(--line);background:var(--chrome2)}
+.brcols{display:flex;gap:10px;margin:6px 0}
+.brcol{width:44px;height:44px;padding:0;border:1px solid var(--line);border-radius:50%;background:none;cursor:pointer;overflow:hidden}
+.brcol::-webkit-color-swatch-wrapper{padding:0}.brcol::-webkit-color-swatch{border:0;border-radius:50%}.brcol::-moz-color-swatch{border:0;border-radius:50%}
+.dtlist{margin:6px 0;padding:8px 12px;border-radius:12px;background:var(--chrome2);border:1px solid var(--line);font-size:13px;line-height:1.9}
+.dtlist b{color:var(--accent)}
+.pjdup{position:absolute;left:6px;top:6px;height:28px;padding:0 10px;border-radius:14px;background:rgba(251,248,241,.94);border:1px solid var(--line);font-size:12px;color:var(--fg)}
 /* ==== phone touch targets (2026-11-17) ==== */
 /* Phones/tablets only (--u is 1.1/1.2/1.32 there): primary taps >= 44 px, dense chip rows >= 40 px even at 標準, >= 8 px between neighbours, 削除 kept apart from 複製. */
 html:not(.desk) .topbar{gap:6px}
@@ -1303,6 +1312,17 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
   <div class="actions" style="padding:4px 0 0;justify-content:flex-start"><button class="chip" id="ordToUI">‹ 設定へ</button></div>
 </div>
 
+<div class="sheet" id="sheetBrand" aria-labelledby="brTitle" hidden>
+  <div class="grab"></div>
+  <div style="display:flex;align-items:center;gap:10px"><h2 id="brTitle" style="flex:1;margin:4px 0 6px">お店の情報</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
+  <p class="note" style="margin:0 0 6px">登録しておくと、テンプレートの店名・連絡先・ロゴに自動で入ります。この端末に保存され、ログイン中はほかの端末とも同期されます。</p>
+  <div id="brBody"></div>
+</div>
+<div class="sheet" id="sheetDate" aria-labelledby="dtTitle" hidden>
+  <div class="grab"></div>
+  <div style="display:flex;align-items:center;gap:10px"><h2 id="dtTitle" style="flex:1;margin:4px 0 6px">日付をまとめて変える</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
+  <div id="dtBody"></div>
+</div>
 <div class="sheet" id="sheetMore" aria-labelledby="moreTitle" hidden>
   <div class="grab"></div>
   <div style="display:flex;align-items:center;gap:10px"><h2 id="moreTitle" style="flex:1;margin:4px 0 6px">その他のツール</h2><button class="xbtn" data-ex="close" aria-label="閉じる" title="閉じる">×</button></div>
@@ -1316,6 +1336,7 @@ html:not(.desk) .setrow:has(>.tg) .st{cursor:pointer}
 <input type="file" id="fileAdd" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileSlot" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileLib" accept="image/*" multiple class="vh" tabindex="-1" aria-hidden="true">
+<input type="file" id="fileBrand" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 <input type="file" id="fileFont" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" class="vh" tabindex="-1" aria-hidden="true">
 
 <script>
@@ -3208,6 +3229,9 @@ Object.assign(ICON, {
   zoom: I('<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5M11 8.5v5M8.5 11h5"/>'),
   hold: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
   heal: I('<rect x="2.6" y="8.2" width="18.8" height="7.6" rx="3.8" transform="rotate(-45 12 12)"/><path d="M9.6 9.6l4.8 4.8"/><path d="M10.6 12.2h.01M12 13.6h.01M12.2 10.6h.01M13.6 12h.01"/>'),
+  cal: I('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/>'),
+  shop: I('<path d="M4 9.5 5.5 4.5h13L20 9.5"/><path d="M4 9.5c0 1.5 1.2 2.5 2.7 2.5s2.6-1 2.6-2.5c0 1.5 1.2 2.5 2.7 2.5s2.7-1 2.7-2.5c0 1.5 1.1 2.5 2.6 2.5S20 11 20 9.5"/><path d="M5.5 12v8h13v-8M10 20v-4.5h4V20"/>'),
+  box: I('<path d="M12 3.5 20 7.5v9L12 20.5 4 16.5v-9z"/><path d="M4 7.5 12 11.5 20 7.5M12 11.5v9"/>'),
   aHil: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none" opacity=".2"/><path d="M15 8.5l2 -2M16.5 12h2.5M15 15.5l2 2"/>'),
   aShd: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor" stroke="none" opacity=".55"/>'),
   aSharp: I('<path d="M12 3l8 16H4z"/><path d="M12 9v5"/>'),
@@ -3285,7 +3309,7 @@ const S = {
   num: { color: '#FF3B30' },
   image: { border: 'none', shadow: true, rad: 0, bw: 7 },
   filterCat: 'all', fontCat: 'all', marq: false, colorTab: 'ai',
-  cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true, blur: 60 },
+  cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true, blur: 60, pbg: '#FFFFFF', psz: '1080x1080' },
   heal: { size: 40 },
   adjT: 'base'   // 補正 target: 'base' (元の写真) or an image object id (its o.adj)
 };
@@ -5518,6 +5542,21 @@ function bokehApply(c, src, mask, str) {
   const g = c.getContext('2d'); g.save(); g.clearRect(0, 0, W, H); g.drawImage(big, 0, 0); g.drawImage(fg, 0, 0);
   g.globalCompositeOperation = 'destination-in'; g.drawImage(src, 0, 0, W, H); g.restore();   // a see-through picture stays see-through
 }
+/* ==== 商品写真モード ==== the cut-out subject, trimmed, centred on a new canvas with a plain background, a soft floor shadow and margins */
+function prodMake() {
+  const src = bitmaps.get(tgtId(cutTarget())).canvas, W0 = src.width, H0 = src.height;
+  const d = src.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W0, H0).data;
+  let x0 = W0, y0 = H0, x1 = -1, y1 = -1;
+  for (let y = 0; y < H0; y++) for (let x = 0; x < W0; x++) if (d[(y * W0 + x) * 4 + 3] > 16) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) { toast('残っている部分が見つかりませんでした'); return; }
+  const tw = x1 - x0 + 1, th = y1 - y0 + 1, tc = mk(tw, th); tc.getContext('2d').drawImage(src, x0, y0, tw, th, 0, 0, tw, th);
+  const [W, H] = S.cut.psz.split('x').map(Number), k = Math.min(W * 0.78 / tw, H * 0.7 / th), w = tw * k, h = th * k, cxp = W / 2, cyp = H * 0.47;
+  newBlankDoc(W, H, S.cut.pbg || '#FFFFFF', null);
+  const sh = { ...baseObj('shape', cxp, cyp + h / 2), kind: 'ellipse', color: '#000000', width: 1, oc: 'none', fc: '#000000', fa: 14, ls: 'solid', w: w * 0.86, h: Math.max(8, h * 0.07) };
+  const im = { ...baseObj('image', cxp, cyp), bmp: regBitmap(tc, null, true), w, h, border: 'none', rad: 0, shadow: false };
+  doc.objects.push(sh, im); selId = im.id; invalidate(); commit(); refreshPanel(); scheduleSave();
+  toast('商品写真を作りました。文字や価格を足して保存できます', 3600);
+}
 /* ==== 修復 ==== trace an unwanted thing; it is filled from the surroundings (exemplar-based inpainting, Criminisi-style,
    on a ≤ HEAL_WORK px region around the stroke, entirely on the device). The result is blended in with a soft edge. */
 let healBusy = false;
@@ -5625,7 +5664,8 @@ async function runAI(mode) {
   const blur = mode === 'blur', bm = m => blur ? m.replace('背景を消しています', '写っている物を見分けています') : m;
   // remember what we started on: the download + inference can take a while, and the user may undo, open or crop meanwhile
   const t = cutTarget(), doc0 = doc, id0 = tgtId(t), src = bitmaps.get(id0).canvas;
-  const want = AI_MODELS[S.cut.model] ? S.cut.model : 'u2';
+  let want = AI_MODELS[S.cut.model] ? S.cut.model : 'u2';
+  if (LOWMEM && want !== 'u2') { want = 'u2'; toast('この端末はメモリが少ないため、軽い「標準」AIで処理します', 3200); }   // the 1024 px models need ~1 GB
   aiBusy = true; aiStop = false; aiTick = null; aiMsg = 'AIを準備中…'; refreshPanel();
   const tick = setInterval(() => { if (aiTick && aiBusy && !aiStop) setAiMsg(aiTick.m + '  ' + ((performance.now() - aiTick.t0) / 1000 | 0) + '秒'); }, 1000);
   let fellBack = false;
@@ -5662,6 +5702,7 @@ async function runAI(mode) {
     g.save(); g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     g.drawImage(mask, 0, 0, c.width, c.height); g.restore();
     bmpRev++; invalidate(); commit();
+    if (mode === 'product') { prodMake(); return; }
     toast(fellBack ? '高精度AIを使えなかったため、標準AIで背景を削除しました' : '背景を削除しました。消しすぎた所は「ブラシで戻す」で直せます', 3600);
   } catch (err) {
     if (aiStop) { toast('AI背景削除を中止しました'); return; }
@@ -6490,6 +6531,8 @@ function runCmd(k, v, final) {
     case 'cutThis': if (o && o.type === 'image' && !o.slot) { S.cut.target = o.id; setTool('cutout'); } break;
     case 'healThis': if (o && o.type === 'image' && !o.slot) { S.cut.target = o.id; setTool('heal'); } break;
     case 'aiBlur': runAI('blur'); break;
+    case 'prodGo': { const t = cutTarget(); if (bitmaps.get(tgtId(t)).alpha && (t.o ? t.o.orig : doc.baseOrig)) prodMake(); else runAI('product'); } break;
+    case 'dateOpen': openDate(); break;
     case 'ai': runAI(); break;
     case 'aiStop': aiCancel(); break;
     // the colour picker fires 'input' continuously (final === false): preview only; commit + rebuild the panel on the final change
@@ -6625,7 +6668,8 @@ function colorName(hex) {
 }
 function swatches(act, k, cur, list = COLORS) {
   const low = list.map(c => c.toLowerCase());
-  list = [...list, ...UI.recent.filter(c => !low.includes(c.toLowerCase()))];
+  const bc = (UI.brand && UI.brand.colors || []).filter(c => !low.includes(c.toLowerCase()));
+  list = [...list, ...bc, ...UI.recent.filter(c => !low.includes(c.toLowerCase()) && !bc.includes(c))];
   const c = String(cur).toLowerCase();
   return list.map(col => `<button class="swb${col.toLowerCase() === c ? ' on' : ''}" aria-pressed="${col.toLowerCase() === c}" style="--c:${col}" data-act="${act}" data-k="${k}" data-v="${J(col)}" aria-label="${colorName(col)}"></button>`).join('')
     + `<button class="swb eyedrop" data-act="eye" data-k="${k}" data-v="${J(act)}" aria-label="画面から色を拾う（スポイト）" title="スポイト：画面から色を拾う">${ICON.dropper}</button>`
@@ -7083,6 +7127,71 @@ panel.addEventListener('drop', e => {
   invalidate(); commit(); refreshPanel();
 });
 /* PC inspector with nothing selected: the photo itself (size + shortcuts to the photo-wide tools) */
+/* ==== 日付をまとめて変える ==== finds dates in texts / notes (2026年11月20日, 2026/11/20, 11月20日, 11/20, + （金） / 金曜日) and shifts
+   them all by the same number of days, so a range (11/20〜11/22) stays a range and the weekdays follow */
+const DRX = /(?:(\d{4})(\s*[年\/.\-]\s*)(\d{1,2})(\s*[月\/.\-]\s*)(\d{1,2})(\s*日)?|(\d{1,2})(\s*月\s*)(\d{1,2})(\s*日)|(?<![\d:.\/¥$])(\d{1,2})(\/)(\d{1,2})(?=$|[\s〜~～\-–—、。,，)）】」(（]|[月火水木金土日]曜))(\s*[（(]\s*[月火水木金土日](?:曜日?)?\s*[)）]|\s*[月火水木金土日]曜日?)?/g;
+const WD = '日月火水木金土';
+function dateBase() { const t = new Date(); t.setHours(0, 0, 0, 0); return t; }
+function dateOf(m) {
+  const full = m[1] != null, M = +(full ? m[3] : m[7] != null ? m[7] : m[11]), D = +(full ? m[5] : m[7] != null ? m[9] : m[13]);
+  if (M < 1 || M > 12 || D < 1 || D > 31) return null;
+  let Y = full ? +m[1] : dateBase().getFullYear();
+  const d = new Date(Y, M - 1, D); if (d.getMonth() !== M - 1) return null;
+  if (!full && d < dateBase() - 200 * 864e5) d.setFullYear(Y + 1);   // 1/10 written in late autumn = next January
+  return d;
+}
+function dateScan() {
+  const out = [];
+  if (doc) for (const o of doc.objects) if ((o.type === 'text' || o.type === 'note') && typeof o.text === 'string')
+    for (const m of o.text.matchAll(DRX)) { const d = dateOf(m); if (d) out.push({ o, d, s: m[0] }); }
+  return out;
+}
+const dPad = (v, like) => like.length > 1 && like[0] === '0' && v < 10 ? '0' + v : String(v);   // 05 stays two digits, 27 → 4
+function dateFmt(m, nd) {
+  const full = m[1] != null, wd = m[14] ? m[14].replace(/[月火水木金土日](?=曜|\s*[)）]|$)/, WD[nd.getDay()]) : '';
+  if (full) return nd.getFullYear() + m[2] + dPad(nd.getMonth() + 1, m[3]) + m[4] + dPad(nd.getDate(), m[5]) + (m[6] || '') + wd;
+  if (m[7] != null) return dPad(nd.getMonth() + 1, m[7]) + m[8] + dPad(nd.getDate(), m[9]) + m[10] + wd;
+  return dPad(nd.getMonth() + 1, m[11]) + '/' + dPad(nd.getDate(), m[13]) + wd;
+}
+function dateShift(days) {
+  let n = 0;
+  for (const o of doc.objects) if ((o.type === 'text' || o.type === 'note') && typeof o.text === 'string') {
+    const t = o.text.replace(DRX, (...a) => { const m = a.slice(0, 15), d = dateOf(m); if (!d) return a[0]; n++; return dateFmt(m, new Date(d.getFullYear(), d.getMonth(), d.getDate() + days)); });
+    if (t !== o.text) { o.text = t; if (typeof layoutMemo !== 'undefined' && layoutMemo.clear) layoutMemo.clear(); }
+  }
+  return n;
+}
+const DT = { days: 7 };
+const dLabel = d => `${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+function openDate() {
+  if (!doc) return;
+  if (!dateScan().length) { toast('この作品の文字に日付が見つかりませんでした（例：11月20日、11/20、2026年11月20日）', 3600); return; }
+  DT.days = 7; dtRender(); openSheet('#sheetDate');
+}
+function dtRender() {
+  const f = dateScan(), first = f.reduce((a, x) => x.d < a ? x.d : a, f[0].d), seen = new Set(), rows = [];
+  for (const x of f.sort((a, b) => a.d - b.d)) { const k = +x.d; if (seen.has(k)) continue; seen.add(k); rows.push(`${esc(x.s.trim())} → <b>${dLabel(new Date(x.d.getFullYear(), x.d.getMonth(), x.d.getDate() + DT.days))}</b>`); }
+  const toToday = Math.round((dateBase() - first) / 864e5);
+  $('#dtBody').innerHTML = `<p class="note" style="margin:0 0 6px">文字の中の日付を、すべて同じ日数だけずらします。曜日も合わせて直ります。</p>`
+    + `<div class="wrap">${[[1, '＋1日'], [7, '＋1週間'], [14, '＋2週間'], [toToday, '今日から始める'], [-7, '−1週間']].map(([v, l]) => `<button class="chip${DT.days === v ? ' on' : ''}" data-dtd="${v}" aria-pressed="${DT.days === v}">${l}</button>`).join('')}</div>`
+    + `<label class="setlab" for="dtIn">最初の日付をこの日にする</label><input type="date" class="pubin" id="dtIn" value="${new Date(first.getFullYear(), first.getMonth(), first.getDate() + DT.days).toLocaleDateString('sv')}">`
+    + `<div class="dtlist">${rows.slice(0, 12).join('<br>')}${rows.length > 12 ? '<br>…' : ''}</div>`
+    + `<div class="actions"><button class="btn primary" data-dtgo>${IW('cal', DT.days ? '日付を変える' : '変更なし')}</button></div>`;
+  $('#dtBody')._first = first;
+}
+$('#sheetDate').addEventListener('click', e => {
+  const c = e.target.closest('[data-dtd]'); if (c) { DT.days = +c.dataset.dtd; dtRender(); return; }
+  if (e.target.closest('[data-dtgo]')) {
+    if (!DT.days) { closeSheets(); return; }
+    const n = dateShift(DT.days); closeSheets(); invalidate(); commit(); refreshPanel();
+    toast(`${n}か所の日付を変えました（元に戻すで取り消せます）`);
+  }
+});
+$('#sheetDate').addEventListener('change', e => {
+  if (e.target.id !== 'dtIn' || !e.target.value) return;
+  const [y, m, d] = e.target.value.split('-').map(Number), f = $('#dtBody')._first;
+  DT.days = Math.round((new Date(y, m - 1, d) - f) / 864e5); dtRender();
+});
 function photoCard() {
   const fl = doc.adjust.preset && doc.adjust.preset !== 'none' ? `フィルター: ${FILTERS[doc.adjust.preset] ? FILTERS[doc.adjust.preset][0] : ''}` : 'フィルターなし';
   return `<div class="pcard"><div class="pch">元の写真<small>${doc.w} × ${doc.h} px・${esc(fl)}</small></div><div class="pcb">`
@@ -7134,7 +7243,7 @@ function refreshPanel() {
       else {   // nothing selected: (phone) a head with 複数選択 / 囲む, the photo card, tips, then 詳細 = 範囲選択 (PC) + layers
         const marqRow = row('範囲選択', chips('s', 'marq', [[false, 'オフ'], [true, IW('marq', '囲む')]], S.marq));
         h = (deskOn ? '' : `<div class="objhead"><span class="badge">選択</span><span class="qbar">${togChip('cmd', 'addSel', S.addSel, ICON.addSel + '<span class="vh">複数選択</span>').replace('class="chip', 'title="複数選択" class="chip')}${togChip('s', 'marq', S.marq, ICON.marq + '<span class="vh">囲んで選ぶ</span>').replace('class="chip', 'title="囲んで選ぶ" class="chip')}</span></div>`)
-          + photoCard() + (S.addSel && !deskOn ? hint('タップした物が選択に加わります。終わるときは上の複数選択をもう一度') : '')
+          + photoCard() + (dateScan().length ? `<div class="wrap" style="margin:0 12px 6px">${cmdBtn('dateOpen', IW('cal', '日付をまとめて変える'))}</div>` : '') + (S.addSel && !deskOn ? hint('タップした物が選択に加わります。終わるときは上の複数選択をもう一度') : '')
           + (S.marq ? (deskOn ? marqRow : '') + hint(deskOn ? '何もない所をドラッグして囲む（画面の移動は Space＋ドラッグ）' : '何もない所をドラッグして囲む（画面の移動は2本指）') : selGuide())
           + foldMore('詳細', (deskOn && !S.marq ? marqRow : '') + layersPanel());
       }
@@ -7198,6 +7307,8 @@ function refreshPanel() {
       const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
       if (imgs.length) h += tgtRow('cut.target', S.cut.target, imgs) + (t.o ? hint(`${ICON.photo}「${imgName(t.o)}」の背景を消します`) : '');
       h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで背景削除'}</button>`;
+      if (!aiBusy) h += row('商品写真', cmdBtn('prodGo', IW('box', '商品写真にする'))) + row('仕上がり', chips('s', 'cut.psz', [['1080x1080', '正方形'], ['1080x1350', '縦 4:5']], S.cut.psz)
+        + swatches('s', 'cut.pbg', S.cut.pbg, ['#FFFFFF', '#F3F3F1', '#F6EFE6', '#E9EEF2'])) + hint('背景を消して、白い背景・影・余白つきの商品画像を新しいキャンバスに作ります（今の作品は「最近の作品」に残ります）。');
       if (!aiBusy) h += row('背景ぼかし', cmdBtn('aiBlur', IW('blur', '背景だけぼかす'))) + slider('s:cut.blur', 'ぼかしの強さ', 10, 100, S.cut.blur);
       if (aiBusy) h += `<div class="aistopw"><button class="chip" data-act="cmd" data-k="aiStop"${aiStop ? ' disabled' : ''}>中止</button></div>` + hint('処理中も、写真の拡大・移動やほかの画面の操作はできます。');
       let dt = row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
@@ -7296,6 +7407,16 @@ const UI_KEY = 'petaphoto.ui', TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t[0
 const UI_DEF = { order: TOOLS.map(t => t[0]), hidden: [], size: 'l', fx: true, haptic: false, aiModel: 'u2', nick: '', side: true, recent: [], recentMat: [],
   ph: 'm', hand: 'right', gest: true, snap: 'normal', more: false, libAuto: true,
   grid: 'off', calm: false, lp: 'normal', exFmt: 'jpeg', exQ: 0.95, boot: 'resume', galSort: 'new', tcol: true };
+/* ==== brand kit ==== お店の情報: texts + a small logo (data URL) + 3 colours, kept in UI.brand (synced with the settings) */
+const BR_FIELDS = [['name', '店名・教室名', 'Café Lumière', 40], ['catch', 'キャッチコピー', '街角の小さなカフェ', 60], ['tel', '電話番号', '03-1234-5678', 30],
+  ['addr', '住所', '東京都○○区○○ 1-2-3', 80], ['hours', '営業時間', '10:00–18:00／水曜定休', 60], ['url', 'URL・SNS', '@lumiere_cafe', 80]];
+function brandClean(b) {
+  const r = { colors: [] }; if (!b || typeof b !== 'object') return r;
+  for (const [k, , , n] of BR_FIELDS) if (typeof b[k] === 'string' && b[k].trim()) r[k] = b[k].slice(0, n);
+  if (typeof b.logo === 'string' && /^data:image\/(png|webp|jpeg);base64,/.test(b.logo) && b.logo.length < 400000) r.logo = b.logo;
+  r.colors = (Array.isArray(b.colors) ? b.colors : []).filter(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).slice(0, 3);
+  return r;
+}
 function loadUI() {
   let v = null; try { v = JSON.parse(localStorage.getItem(UI_KEY)); } catch (e) { }
   const u = { ...UI_DEF, ...(v && typeof v === 'object' ? v : {}) }, ids = UI_DEF.order;
@@ -7324,6 +7445,7 @@ function loadUI() {
   if (!['resume', 'new'].includes(u.boot)) u.boot = 'resume';
   if (!['new', 'likes'].includes(u.galSort)) u.galSort = 'new';
   u.calm = !!u.calm; u.tcol = u.tcol !== false;
+  u.brand = brandClean(u.brand);
   u.gest = u.gest !== false; u.more = !!u.more; u.libAuto = u.libAuto !== false; u.errRep = u.errRep !== false; u.seen = !!u.seen; u.visits = Math.min(99, +u.visits | 0); u.instHint = !!u.instHint;
   u.legendN = Math.min(99, +u.legendN | 0);
   return u;
@@ -8644,7 +8766,7 @@ function tplObj(s) {
   const M = MIN(), X = s.x * doc.w, Y = s.y * doc.h;
   switch (s.t) {
     case 'text': {
-      const o = { ...baseObj('text', X, Y), rot: s.rot || 0, text: s.text, font: s.font || 'Noto Sans JP', bold: s.bold !== false, italic: !!s.italic, underline: !!s.underline,
+      const o = { ...baseObj('text', X, Y), rot: s.rot || 0, text: (s.brand && brandVal(s.brand)) || s.text, font: s.font || 'Noto Sans JP', bold: s.bold !== false, italic: !!s.italic, underline: !!s.underline,
         size: Math.round(M * s.size), color: s.color || '#FFFFFF', outline: s.outline || 'none', bg: s.bg || 'none', align: s.align || (s.anchor === 'left' ? 'left' : s.anchor === 'right' ? 'right' : 'center'), vert: !!s.vert, shadow: !!s.shadow };
       if (s.maxW || s.anchor) {
         let L = layoutText(o);
@@ -8653,7 +8775,8 @@ function tplObj(s) {
       }
       return o;
     }
-    case 'slot': return { ...baseObj('image', X, Y), rot: s.rot || 0, slot: true, bmp: null, w: s.w * doc.w, h: s.h * doc.h, border: s.border || 'none', rad: s.rad || 0, shadow: !!s.shadow, fz: 1, fx: 0, fy: 0, ...(s.ph ? { ph: s.ph } : {}) };
+    case 'slot': if (s.brand === 'logo' && brandLogoC) return brandLogoObj(X, Y, s.w * doc.w, s.h * doc.h, s.rot);
+      return { ...baseObj('image', X, Y), rot: s.rot || 0, slot: true, bmp: null, w: s.w * doc.w, h: s.h * doc.h, border: s.border || 'none', rad: s.rad || 0, shadow: !!s.shadow, fz: 1, fx: 0, fy: 0, ...(s.ph ? { ph: s.ph } : {}) };
     case 'box': return { ...baseObj('shape', X, Y), rot: s.rot || 0, op: s.op == null ? 1 : s.op, kind: s.kind || 'rect', color: s.oc && s.oc !== 'none' ? s.oc : (s.fc || '#000000'), width: M * (s.width || .006),
       oc: s.oc || 'none', fc: s.fc || 'none', fa: s.fa == null ? 100 : s.fa, ls: s.ls || 'solid', rad: s.rad || 0, w: s.w * doc.w, h: s.h * doc.h };
     case 'line': {
@@ -8679,6 +8802,64 @@ function tplObj(s) {
   }
   return null;
 }
+const brandVal = k => UI.brand && typeof UI.brand[k] === 'string' ? UI.brand[k].trim() : '';
+let brandLogoC = null, brandLogoId = null, brandLogoSrc = '';
+function brandLogoLoad() {
+  const u = UI.brand && UI.brand.logo || ''; if (u === brandLogoSrc) return; brandLogoSrc = u; brandLogoC = null; brandLogoId = null;
+  if (!u) return;
+  const im = new Image(); im.onload = () => { if (brandLogoSrc !== u) return; const c = mk(im.naturalWidth, im.naturalHeight); c.getContext('2d').drawImage(im, 0, 0); brandLogoC = c; tplThumbs.clear(); }; im.src = u;
+}
+/* the logo as a plain picture, fitted (not cropped) inside the slot's box */
+function brandLogoObj(X, Y, w, h, rot) {
+  if (!brandLogoId || !bitmaps.has(brandLogoId)) { const c = mk(brandLogoC.width, brandLogoC.height); c.getContext('2d').drawImage(brandLogoC, 0, 0); brandLogoId = regBitmap(c, null, true); }
+  const k = Math.min(w / brandLogoC.width, h / brandLogoC.height);
+  return { ...baseObj('image', X, Y), rot: rot || 0, bmp: brandLogoId, w: brandLogoC.width * k, h: brandLogoC.height * k, border: 'none', rad: 0, shadow: false };
+}
+function openBrand() { brandLogoLoad(); brRender(); openSheet('#sheetBrand'); }
+function brRender() {
+  const b = UI.brand || {}, cols = [...(b.colors || [])]; while (cols.length < 3) cols.push(['#527D55', '#F4EFE4', '#2A2724'][cols.length]);
+  $('#brBody').innerHTML = BR_FIELDS.map(([k, l, ph, n]) => `<label class="setlab" for="br-${k}">${l}</label><input class="pubin" id="br-${k}" data-br="${k}" maxlength="${n}" placeholder="例：${esc(ph)}" value="${esc(b[k] || '')}" autocomplete="off">`).join('')
+    + `<div class="setlab">ロゴ</div><div class="brlogo">${b.logo ? `<img src="${b.logo}" alt="ロゴ">` : ''}<button class="chip" data-brl="pick">${IW('photo', b.logo ? 'ロゴを変える' : 'ロゴ画像をえらぶ')}</button>${b.logo ? '<button class="chip" data-brl="del">削除</button>' : ''}</div>`
+    + `<div class="setlab">お店の色（色をえらぶ所の先頭に出ます）</div><div class="brcols">${cols.map((c, i) => `<input type="color" class="brcol" data-brc="${i}" value="${c}" aria-label="お店の色 ${i + 1}">`).join('')}</div>`
+    + `<div class="actions"><button class="btn primary" data-brl="put">${IW('shop', 'この作品に店名とロゴを入れる')}</button></div>`
+    + hint('テンプレートを「追加」すると、店名・電話番号などの欄にここの内容が入ります。');
+}
+let brT = 0;
+function brSet(k, v) { UI.brand = brandClean({ ...UI.brand, [k]: v }); clearTimeout(brT); brT = setTimeout(() => { saveUI(); tplThumbs.clear(); }, 400); }
+$('#sheetBrand').addEventListener('input', e => {
+  const i = e.target.closest('[data-br]'); if (i) brSet(i.dataset.br, i.value);
+  const c = e.target.closest('[data-brc]'); if (c) { const cols = [...(UI.brand.colors || [])]; while (cols.length < 3) cols.push(['#527D55', '#F4EFE4', '#2A2724'][cols.length]); cols[+c.dataset.brc] = c.value; brSet('colors', cols); }
+});
+$('#sheetBrand').addEventListener('change', e => { if (e.target.closest('[data-brc]')) { saveUI(); refreshPanel(); } });
+$('#sheetBrand').addEventListener('click', e => {
+  const b = e.target.closest('[data-brl]'); if (!b) return;
+  if (b.dataset.brl === 'pick') $('#fileBrand').click();
+  if (b.dataset.brl === 'del') { brSet('logo', ''); saveUI(); brandLogoLoad(); brRender(); }
+  if (b.dataset.brl === 'put') { closeSheets(); brandPut(); }
+});
+$('#fileBrand').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const bm = await createImageBitmap(f), k = Math.min(1, 360 / Math.max(bm.width, bm.height)), c = mk(Math.max(1, Math.round(bm.width * k)), Math.max(1, Math.round(bm.height * k)));
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(bm, 0, 0, c.width, c.height); bm.close && bm.close();
+    let u = c.toDataURL('image/png'); if (u.length > 300000) u = c.toDataURL('image/webp', 0.9); if (u.length > 300000 || !u.startsWith('data:image/')) u = c.toDataURL('image/jpeg', 0.85);
+    brSet('logo', u); saveUI(); brandLogoLoad(); brRender(); toast('ロゴを登録しました');
+  } catch (err) { console.warn(err); toast('この画像は読み込めませんでした'); }
+});
+document.addEventListener('click', e => { if (e.target.closest('[data-bropen]')) openBrand(); });
+/* この作品に店名とロゴを入れる: the shop name near the bottom, the logo in the top-left corner (one undo step) */
+function brandPut() {
+  if (!doc) return;
+  const nm = brandVal('name'), specs = [];
+  if (nm) specs.push({ t: 'text', x: .5, y: .93, text: nm, font: 'Zen Maru Gothic', size: .045, color: (UI.brand.colors || [])[0] || '#2A2724', maxW: .9, brand: 'name' });
+  if (brandLogoC) { const w = .16, h = .16 * doc.w / doc.h; specs.push({ t: 'slot', x: .04 + w / 2, y: .03 + h / 2, w, h, brand: 'logo' }); }
+  if (!specs.length) { toast('先に店名かロゴを登録してください'); openBrand(); return; }
+  const objs = specs.map(tplObj).filter(Boolean); objs.forEach(o => { if (o.font) familyCSS(o.font); });
+  doc.objects.push(...objs); if (tool !== 'select') setTool('select');
+  selId = null; multi = objs.length > 1 ? objs.map(o => o.id) : []; if (objs.length === 1) selId = objs[0].id;
+  invalidate(); commit(); refreshPanel(); toast('店名とロゴを入れました');
+}
+setTimeout(brandLogoLoad, 0);
 function tplBuild(t) { const base = nextNum() - 1; return t.items().map(s => tplObj(s.t === 'num' ? { ...s, n: s.n + base } : s)).filter(Boolean); }
 function applyTemplate(id, sure) {
   const t = TEMPLATES.find(x => x.id === id); if (!t || !doc) return;
@@ -8726,6 +8907,7 @@ function renderTemplates(host) {
   TEMPLATES.forEach(t => t.items().forEach(s => { if (s.font) familyCSS(s.font); }));
   const rs = rowsSnap(tplHost);
   tplHost.innerHTML = `<div class="tplwrap">${hint(`${deskOn ? 'クリック' : 'タップ'}で大きく確かめて、「追加」で反映されます。「新しいキャンバス」のものは今の作品と入れ替わります。`)}`
+    + `<div class="wrap" style="margin:0 0 6px"><button class="chip" data-bropen>${IW('shop', brandVal('name') ? 'お店の情報：' + esc(brandVal('name')) : 'お店の情報を登録（店名・ロゴが自動で入る）')}</button></div>`
     + `<div class="tplcats">${TPL_CATS.map(([k, l]) => `<button class="chip${tplCat === k ? ' on' : ''}" data-tplc="${k}" aria-pressed="${tplCat === k}">${l}</button>`).join('')}</div>`
     + `<div class="tplgrid">${list.map(t => `<button class="tpl" data-tpl="${t.id}"><span class="tim" data-tim="${t.id}" style="aspect-ratio:${t.canvas ? t.canvas[0] + '/' + t.canvas[1] : doc.w + '/' + doc.h}"></span><span class="tnm">${esc(t.name)}${t.canvas ? '<small>新しいキャンバス</small>' : ''}</span></button>`).join('')}</div></div>`;
   rowsBack(tplHost, rs);
@@ -9014,6 +9196,11 @@ function cmdItems() {
   add('マイ素材', '自分で入れた写真・素材', ['library', 'my', '保存', 'アップロード', '画像', 'まいそざい じぶん ほぞん しゃしん'], openLib);
   if (GEN_ON && SUPA.url) add('AIで素材を作る', '言葉からステッカーを作る', ['ai', 'えーあい そざい つくる あい', 'sticker', 'ステッカー', 'すてっかー', 'claude'], genOpen);
   add('新規作成・サンプル', '白紙', ['new', 'blank', '白紙', 'キャンバス', 'しんき はくし'], () => { renderNB(); openSheet('#sheetNew'); });
+  add('お店の情報（ブランドキット）', '店名・ロゴ・色を登録', ['brand', 'shop', 'logo', 'おみせ てんめい ろご ぶらんど いろ じゅうしょ でんわ'], openBrand);
+  add('店名とロゴを入れる', 'お店の情報から', ['brand', 'logo', 'てんめい ろご いれる'], () => brandPut());
+  add('日付をまとめて変える', '文字の中の日付を＋1週間など', ['date', 'ひづけ かえる こうしん いっしゅうかん ようび'], openDate);
+  add('商品写真にする', '背景削除・白背景・影', ['product', 'しょうひん しろはいけい ふりま ねっとしょっぷ'], () => { setTool('cutout'); runCmd('prodGo'); });
+  add('印刷用の白紙（A4・はがき）', '新規作成', ['print', 'pdf', 'a4', 'いんさつ ちらし はがき'], () => { NB.size = '2480x3508'; renderNB(); openSheet('#sheetNew'); });
   add('背景をぼかす', '背景削除・AI', ['blur', 'bokeh', 'portrait', 'はいけい ぼかす ぽーとれーと ぼけ'], () => { setTool('cutout'); runCmd('aiBlur'); });
   add('不要な物を消す', '修復', ['heal', 'erase', 'remove', 'ふようなもの けす けしごむ しゅうふく じゃま'], () => setTool('heal'));
   add('AIで背景削除', '背景削除', ['ai', 'background', 'remove', '切り抜き', 'くりぬき はいけい けす'], () => { setTool('cutout'); runCmd('ai'); });
@@ -9190,13 +9377,18 @@ function projStash() {
   }).catch(e => console.warn('works', e));
 }
 async function projLoad() { try { projList = projRows(await idbOp('readonly', st => st.get(PROJ_IDX))); } catch (e) { projList = []; } return projList; }
-async function projOpen(id) {
+async function projOpen(id, copy) {
   try {
     const rec = await idbOp('readonly', st => st.get(projKey(id)));
     if (!rec) { toast('この作品は見つかりませんでした'); return; }
     closeSheets(true); toast('開いています…');
     const ok = await restoreDraft(rec, true);   // useDoc keeps the work that was open
     if (!ok) { toast('開けませんでした'); return; }
+    if (copy) {   // 複製して使う: the original stays in the list; this copy becomes a new work
+      setCurProj(null); docDirty = true; await projLoad(); scheduleSave(); refreshPanel();
+      if (dateScan().length) toastAct('複製しました。日付もまとめて変えられます', '日付を変える', openDate); else toast('複製しました');
+      return;
+    }
     await (projQ = projQ.then(() => idbOp('readwrite', st => { st.delete(projKey(id)); const rq = st.get(PROJ_IDX); rq.onsuccess = () => st.put(projRows(rq.result).filter(x => x.id !== id), PROJ_IDX); })).catch(e => console.warn('works', e)));
     setCurProj(id); await projLoad(); scheduleSave(); refreshPanel(); toast('作品を開きました');
   } catch (e) { console.warn('works', e); toast('開けませんでした'); }
@@ -9229,8 +9421,9 @@ function projRender() {
   el.innerHTML = `<div class="projgrid">${projList.map(it => {
     let u = projUrls.get(it.id); if (!u && it.thumb) { u = URL.createObjectURL(it.thumb); projUrls.set(it.id, u); }
     return `<div class="projit"><button class="pj" data-proj="${esc(it.id)}" aria-label="${esc(it.name || '作品')}を開く">${u ? `<img src="${u}" alt="" draggable="false">` : ''}<span class="pjn">${esc(it.name || '無題の作品')}</span><small>${ago(it.t)}</small></button>`
+      + `<button class="pjdup" data-projdup="${esc(it.id)}" title="この作品を複製して、新しい作品として使う">複製</button>`
       + `<button class="libx" data-projdel="${esc(it.id)}" title="この作品を削除" aria-label="この作品を削除">×</button></div>`;
-  }).join('')}</div>` + hint('ほかの写真を開くと、今の作品はここに自動で残ります（最大' + PROJ_MAX + '件・この端末だけ）。');
+  }).join('')}</div>` + hint('ほかの写真を開くと、今の作品はここに自動で残ります（最大' + PROJ_MAX + '件・この端末だけ）。「複製」は元を残したまま新しく作ります。毎週の告知は、複製して日付だけ変えると早く作れます。');
 }
 function useDoc(d) {
   if (doc && docDirty) projStash();   // the work being replaced goes to 最近の作品
@@ -9588,7 +9781,8 @@ function renderUISheet() {
     + `<div class="setrow"><span class="st">${deskOn ? 'ツールの並び替え' : 'ツール欄の編集'}<small>${deskOn ? '編集ツールの順番と表示・非表示' : '下のツール欄に出すツールと順番（外したツールは「その他」へ）'}</small></span><button class="chip" data-uiorder="1">${deskOn ? '並び替え' : '編集'} ›</button></div>`;
   $('#uiSave').innerHTML = `<div class="setlab">保存形式の初期値</div>` + opt('exFmt', [['jpeg', 'JPEG（軽い）'], ['png', 'PNG（劣化なし）']])
     + (UI.exFmt === 'jpeg' ? `<div class="setlab">画質の初期値</div>` + opt('exQ', [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']]) : '')
-    + `<div class="setlab">起動したとき</div>` + opt('boot', [['resume', '前回の続きから'], ['new', '「開く・新規作成」を出す']]);
+    + `<div class="setlab">起動したとき</div>` + opt('boot', [['resume', '前回の続きから'], ['new', '「開く・新規作成」を出す']])
+    + `<div class="setlab">お店の情報（ブランドキット）</div><div class="wrap"><button class="chip" data-bropen>${IW('shop', brandVal('name') ? esc(brandVal('name')) + ' を編集' : '店名・ロゴ・色を登録')}</button></div>`;
   $('#uiLib').innerHTML = setRow('libAuto', '写真をマイ素材に自動で残す', '開いた・重ねた写真をこの端末に保存', UI.libAuto)
     + setRow('errRep', '不具合を自動で知らせる', 'エラーが起きたとき、その内容だけを運営者に送ります。写真や文字は送りません', UI.errRep)
     + `<div class="setlab">背景削除のAIモデル（ふだん使うもの）</div>` + opt('aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]))
@@ -9736,7 +9930,7 @@ const NB = { size: '1080x1080', bg: '#FFFFFF', pat: null };
 function newBlankDoc(w, h, bg, pat) {
   useDoc({ w, h, baseId: regBitmap(mk(w, h), null, true), baseOrig: null, bg: bg || '#FFFFFF', bgPat: pat || null, adjust: { ...DEFAULT_ADJ }, objects: [] });
 }
-const NB_SIZES = [['1080x1080', '正方形'], ['1080x1350', '縦 4:5'], ['1080x1920', 'ストーリー'], ['1920x1080', '横長'], ['1240x1754', 'A4']];
+const NB_SIZES = [['1080x1080', '正方形'], ['1080x1350', '縦 4:5'], ['1080x1920', 'ストーリー'], ['1920x1080', '横長'], ['1240x1754', 'A4（軽い）'], ['2480x3508', 'A4 印刷'], ['3508x2480', 'A4 横 印刷'], ['1748x2480', 'A5 印刷'], ['2150x3035', 'B5 印刷'], ['1181x1748', 'はがき 印刷']];
 const NB_COLORS = ['#FFFFFF', '#F4EFE6', '#111111', '#FFE66D', '#FFB3C7', '#A8D8FF', '#B8EBA0'];
 function renderNB() {
   projRender();
@@ -9747,6 +9941,7 @@ function renderNB() {
 $('#sheetNew').addEventListener('click', e => {
   const pj = e.target.closest('[data-proj]'), pd = e.target.closest('[data-projdel]');
   if (pd) { projDel(pd.dataset.projdel); return; }
+  const pc = e.target.closest('[data-projdup]'); if (pc) { projOpen(pc.dataset.projdup, true); return; }
   if (pj) { projOpen(pj.dataset.proj); return; }
   const s = e.target.closest('[data-nbs]'), c = e.target.closest('[data-nbc]'), a = e.target.closest('[data-nb]');
   if (s) { NB.size = s.dataset.nbs; renderNB(); }
@@ -9756,16 +9951,18 @@ $('#sheetNew').addEventListener('click', e => {
   if (a.dataset.nb === 'open') $('#fileOpen').click();
   if (a.dataset.nb === 'sample') { closeSheets(); loadSample(); scheduleSave(); }
   if (a.dataset.nb === 'blank') {
-    const [w, h] = NB.size.split('x').map(Number);
+    let [w, h] = NB.size.split('x').map(Number);
+    if (w * h > PX_DOC) { const k = Math.sqrt(PX_DOC / (w * h)); w = Math.round(w * k); h = Math.round(h * k); }   // small-memory phones: same shape, fewer pixels
     closeSheets(); newBlankDoc(w, h, NB.bg, NB.pat ? { kind: NB.pat, color: NB.bg === '#FFFFFF' ? '#FFD6E5' : NB.bg, color2: NB.bg === '#FFFFFF' ? '#FFFFFF' : '#FFFFFF' } : null);
-    scheduleSave(); toast('白紙を作成しました');
+    scheduleSave(); toast(/印刷/.test((NB_SIZES.find(x => x[0] === NB.size) || [])[1] || '') ? '印刷用の白紙を作りました。保存で「PDF」を選ぶと、そのまま印刷できます' : '白紙を作成しました', 3600);
   }
 });
 
 const EX = { fmt: 'jpeg', q: 0.95, scale: 1, sns: '', fill: 'blur' };
 /* SNS向けの形: the whole picture is fitted inside W×H (nothing is cut off) and the rest is filled (ぼかし = a blurred, slightly darkened cover-fit copy) */
-const EX_SNS = [['', '元の比率'], ['sq', '正方形 1:1', 1080, 1080, 'Instagram 投稿'], ['ig', '縦長 4:5', 1080, 1350, 'Instagram 投稿'], ['st', 'ストーリー 9:16', 1080, 1920, 'ストーリー・リール'], ['x', '横長 16:9', 1600, 900, 'X・YouTube']];
-const exSnsOf = () => EX_SNS.find(x => x[0] === EX.sns && x[2]);
+const EX_SNS = [['', '元の比率'], ['sq', '正方形 1:1', 1080, 1080, 'Instagram 投稿'], ['ig', '縦長 4:5', 1080, 1350, 'Instagram 投稿'], ['st', 'ストーリー 9:16', 1080, 1920, 'ストーリー・リール'], ['x', '横長 16:9', 1600, 900, 'X・YouTube'],
+  ['line', 'LINE リッチ', 1040, 1040, 'LINE公式アカウントのリッチメッセージ'], ['gbp', 'Googleビジネス', 1200, 900, 'Googleビジネスプロフィールの投稿'], ['xh', 'X ヘッダー', 1500, 500, 'X のヘッダー画像']];
+const exSnsOf = () => EX.fmt === 'pdf' ? null : EX_SNS.find(x => x[0] === EX.sns && x[2]);
 function exSnsCanvas(W, H, k = 1) {
   W = Math.round(W * k); H = Math.round(H * k);
   const src = document.createElement('canvas'), sc = Math.min(W / doc.w, H / doc.h);
@@ -9791,12 +9988,13 @@ function exPreview() {
 }
 const exFromUI = () => { EX.fmt = UI.exFmt; EX.q = UI.exQ; };   // 設定 › 保存の初期値 (changes in the 保存 sheet last until the next settings change)
 function renderEX() {
-  $('#exFmt').innerHTML = [['jpeg', 'JPEG（写真向け・軽い）'], ['png', 'PNG（劣化なし）']].map(([v, l]) => `<button class="chip${EX.fmt === v ? ' on' : ''}" data-exf="${v}">${l}</button>`).join('');
+  $('#exFmt').innerHTML = [['jpeg', 'JPEG（写真向け・軽い）'], ['png', 'PNG（劣化なし）'], ['pdf', 'PDF（印刷向け）']].map(([v, l]) => `<button class="chip${EX.fmt === v ? ' on' : ''}" data-exf="${v}">${l}</button>`).join('');
   $('#exQ').innerHTML = EX.fmt === 'jpeg' ? [[0.95, '高画質'], [0.85, '標準'], [0.7, '軽量']].map(([v, l]) => `<button class="chip${EX.q === v ? ' on' : ''}" data-exq="${v}">${l}</button>`).join('') : '';
   const sn = exSnsOf();
   $('#exSns').innerHTML = EX_SNS.map(([v, l, w, h, use]) => `<button class="chip${EX.sns === v ? ' on' : ''}" data-exn="${v}" aria-pressed="${EX.sns === v}"${use ? ` title="${use}向け ${w}×${h}"` : ''}>${l}${w ? `<span style="opacity:.6;font-size:11px;margin-left:6px">${w}×${h}</span>` : ''}</button>`).join('');
   $('#exFill').innerHTML = sn ? `<span class="note" style="margin:0 6px 0 0;align-self:center">余白</span>` + [['blur', 'ぼかし'], ['white', '白'], ['black', '黒']].map(([v, l]) => `<button class="chip${EX.fill === v ? ' on' : ''}" data-exb="${v}" aria-pressed="${EX.fill === v}">${l}</button>`).join('') : '';
-  $('#exFill').hidden = !sn; $('#exSize').hidden = !!sn;
+  $('#exFill').hidden = !sn; $('#exSize').hidden = !!sn; $('#exSns').hidden = EX.fmt === 'pdf';
+  if (EX.fmt === 'pdf') { const pp = pdfPaper(doc.w, doc.h); $('#exQ').innerHTML = `<span class="note" style="align-self:center">${pp ? pp[0] + ' サイズで作ります（そのまま印刷できます）' : '横幅をA4に合わせたページで作ります'}</span>`; }
   $('#exSize').innerHTML = [[1, '原寸'], [0.5, '1/2']].map(([v, l]) => `<button class="chip${EX.scale === v ? ' on' : ''}" data-exs="${v}">${l}<span style="opacity:.6;font-size:11px;margin-left:6px">${Math.round(doc.w * v)}×${Math.round(doc.h * v)}</span></button>`).join('');
 }
 $('#sheetSave').addEventListener('click', e => {
@@ -9817,7 +10015,29 @@ function openSave() {
 }
 let exUrl = null;
 
-const EX_MAX_PX = 16e6;   // iOS Safari refuses canvases above ~16.7 MP
+const EX_MAX_PX = 16e6;
+/* PDF: one page holding the picture as a JPEG (DCTDecode); a page in a paper size when the shape matches one, else A4 width */
+const PDF_PAPERS = [['A4', 210, 297], ['A5', 148, 210], ['B5', 182, 257], ['はがき', 100, 148], ['A3', 297, 420], ['B4', 257, 364]];
+function pdfPaper(w, h) {
+  const r = w / h;
+  for (const [n, a, b] of PDF_PAPERS) { if (Math.abs(r - a / b) < 0.012) return [n, a, b]; if (Math.abs(r - b / a) < 0.012) return [n + ' 横', b, a]; }
+  return null;
+}
+async function pdfFromJpeg(jpg, w, h) {
+  const pp = pdfPaper(w, h), mm = 72 / 25.4, pw = pp ? pp[1] * mm : 210 * mm, ph = pp ? pp[2] * mm : 210 * mm * h / w;
+  const img = new Uint8Array(await jpg.arrayBuffer()), enc = new TextEncoder(), parts = [], offs = [];
+  let len = 0; const put = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, body) => { offs[n] = len; put(`${n} 0 obj\n${body}\nendobj\n`); };
+  const f = v => v.toFixed(2), cs = `q ${f(pw)} 0 0 ${f(ph)} 0 0 cm /Im0 Do Q`;
+  put('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${f(pw)} ${f(ph)}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>`);
+  obj(4, `<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+  offs[5] = len; put(`5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.length} >>\nstream\n`); put(img); put('\nendstream\nendobj\n');
+  const xr = len; put(`xref\n0 6\n0000000000 65535 f \n${offs.slice(1).map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}   // iOS Safari refuses canvases above ~16.7 MP
 /* 保存する: export first, then (if 公開設定 isn't 非公開) publish — one flow, the button stays busy until both finish */
 /* the finished picture → system clipboard as PNG (paste into chats, documents…); only where the browser can write images */
 const canCopyImg = () => !!(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem && window.isSecureContext);
@@ -9858,16 +10078,17 @@ async function exportImage() {
     try { await document.fonts.ready; } catch (e) { }
     const sn = exSnsOf();
     if (sn) c = exSnsCanvas(sn[2], sn[3]);
-    else renderDoc(c, Math.min(EX.scale, Math.sqrt(EX_MAX_PX / (doc.w * doc.h))), { cache: false, flatten: EX.fmt === 'jpeg' ? '#FFFFFF' : null });
-    const type = EX.fmt === 'png' ? 'image/png' : 'image/jpeg';
-    const blob = await toBlob(c, type, EX.q);
+    else renderDoc(c, Math.min(EX.scale, Math.sqrt(EX_MAX_PX / (doc.w * doc.h))), { cache: false, flatten: EX.fmt !== 'png' ? '#FFFFFF' : null });
+    const pdf = EX.fmt === 'pdf', type = EX.fmt === 'png' ? 'image/png' : pdf ? 'application/pdf' : 'image/jpeg';
+    let blob = await toBlob(c, pdf ? 'image/jpeg' : type, pdf ? 0.93 : EX.q);
+    if (pdf && blob) blob = await pdfFromJpeg(blob, c.width, c.height);
     c.width = c.height = 1;
     if (!blob) throw new Error('blob');
     const d = new Date(), pad = n => String(n).padStart(2, '0');
-    const name = `lufora_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.${EX.fmt === 'png' ? 'png' : 'jpg'}`;
+    const name = `lufora_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.${EX.fmt === 'png' ? 'png' : pdf ? 'pdf' : 'jpg'}`;
     if (exUrl) URL.revokeObjectURL(exUrl);
     exUrl = URL.createObjectURL(blob);
-    const img = $('#exImg'); img.src = exUrl; img.hidden = false; $('#exThumb').hidden = true; $('#exMsg').hidden = deskOn;   // the 長押し hint is for phones
+    const img = $('#exImg'); if (!pdf) { img.src = exUrl; img.hidden = false; $('#exThumb').hidden = true; $('#exMsg').hidden = deskOn; }   // the 長押し hint is for phones
     const file = new File([blob], name, { type });
     // phones / tablets: the share sheet (写真に保存). PC: a normal download (Windows/macOS would otherwise open their share dialog)
     if (!deskOn && matchMedia('(pointer: coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -10000,7 +10221,7 @@ const sbDown = async (c, bucket, path) => sbOk(await c.storage.from(bucket).down
    Signed-in users sync settings (user_settings), マイ素材 (library_items + private bucket library: <uid>/<id>.<ext>, <uid>/<id>-t.<jpg|png>)
    and one cloud draft (cloud_drafts + bucket drafts: <uid>/<bitmapId>.<jpg|png>). Server side: supabase/schema_account.sql,
    setup steps for the owner: supabase/DEPLOY-account.md. RLS only lets non-anonymous users touch the sync tables. */
-const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto', 'grid', 'calm', 'lp', 'exFmt', 'exQ', 'boot', 'galSort', 'errRep'];
+const ACCT_KEY = 'petaphoto.acct', UI_SYNC = ['order', 'hidden', 'size', 'fx', 'haptic', 'aiModel', 'nick', 'recent', 'recentMat', 'ph', 'hand', 'gest', 'snap', 'libAuto', 'grid', 'calm', 'lp', 'exFmt', 'exQ', 'boot', 'galSort', 'errRep', 'brand'];
 const acctLocal = (() => { let v = null; try { v = JSON.parse(localStorage.getItem(ACCT_KEY)); } catch (e) { } v = v && typeof v === 'object' ? v : {}; v.at = v.at && typeof v.at === 'object' ? v.at : {}; if (!v.dev) v.dev = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); return v; })();
 function acctSave() { try { localStorage.setItem(ACCT_KEY, JSON.stringify(acctLocal)); } catch (e) { } }
 let acct = null, acctBusy = false, acctSent = '', syncState = '', syncAt = 0, cloudInfo = null, acctWired = false;
