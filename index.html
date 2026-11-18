@@ -1474,8 +1474,8 @@ const sIco = (base, part, name) => `<img class="nico sico" data-s="${J(part)}" s
 function syncShapeIcos(base) { panelEl().querySelectorAll('img[data-s]').forEach(im => { try { im.src = shapeThumb({ ...base, ...JSON.parse(im.dataset.s) }); } catch (e) { } }); }
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const TYPE_NAMES = { image: '写真', text: '文字', note: '付箋', stroke: '手描き', shape: '図形', stamp: 'スタンプ', mosaic: 'モザイク', deco: 'デコ', chart: '表・グラフ' };
-const ADJ_KEYS = ['bri', 'con', 'sat', 'warm', 'tint', 'fade', 'vig', 'sepia', 'grain', 'glow', 'leak', 'split'];
-const DEFAULT_ADJ = { bri: 0, con: 0, sat: 0, warm: 0, tint: 0, fade: 0, vig: 0, sepia: 0, grain: 0, glow: 0, leak: 0, split: 0, preset: 'none', amt: 100 };
+const ADJ_KEYS = ['bri', 'con', 'sat', 'warm', 'tint', 'fade', 'vig', 'sepia', 'grain', 'glow', 'leak', 'split', 'hil', 'shd', 'sharp'];
+const DEFAULT_ADJ = { bri: 0, con: 0, sat: 0, warm: 0, tint: 0, fade: 0, vig: 0, sepia: 0, grain: 0, glow: 0, leak: 0, split: 0, hil: 0, shd: 0, sharp: 0, preset: 'none', amt: 100 };
 const FILTER_CATS = [['all', 'すべて'], ['basic', 'ベーシック'], ['emo', 'エモ'], ['retro', 'レトロ'], ['mono', 'モノクロ'], ['cine', 'シネマ']];
 /* id: [name, category, params]   sh/hi = split-toning colours for shadows / highlights */
 const FILTERS = {
@@ -3207,6 +3207,10 @@ Object.assign(ICON, {
   mouse: I('<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M6 10.5h12M12 3v7.5"/><path d="M13.2 4.2a4.8 4.8 0 0 1 3.6 4.9v.2h-3.6z" fill="currentColor" stroke="none"/>'),
   zoom: I('<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5M11 8.5v5M8.5 11h5"/>'),
   hold: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  heal: I('<rect x="2.6" y="8.2" width="18.8" height="7.6" rx="3.8" transform="rotate(-45 12 12)"/><path d="M9.6 9.6l4.8 4.8"/><path d="M10.6 12.2h.01M12 13.6h.01M12.2 10.6h.01M13.6 12h.01"/>'),
+  aHil: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none" opacity=".2"/><path d="M15 8.5l2 -2M16.5 12h2.5M15 15.5l2 2"/>'),
+  aShd: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor" stroke="none" opacity=".55"/>'),
+  aSharp: I('<path d="M12 3l8 16H4z"/><path d="M12 9v5"/>'),
   aBri: I('<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/>'),
   aCon: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/>'),
   aSat: I('<path d="M12 3.5s6 6.5 6 10.5a6 6 0 0 1-12 0c0-4 6-10.5 6-10.5z"/>'),
@@ -3245,7 +3249,7 @@ const noneSw = (k, cur, act = 'o') => `<button class="swb nonesw${!cur || cur ==
    Phones show the first BAR_MAX visible tools; the rest (and hidden ones) are under その他. */
 const TOOLS = [
   ['select', '選択'], ['photo', '写真', 1], ['text', '文字', 1], ['stamp', '素材'], ['shape', '図形'], ['pen', 'ペン'],
-  ['filter', '補正'], ['cutout', '背景削除'], ['note', '付箋', 1], ['mosaic', 'モザイク'], ['crop', 'トリミング']
+  ['filter', '補正'], ['cutout', '背景削除'], ['heal', '修復'], ['note', '付箋', 1], ['mosaic', 'モザイク'], ['crop', 'トリミング']
 ];
 const OLD_ORDER = 'select,photo,text,pen,shape,note,stamp,filter,adjust,cutout,mosaic,crop', BAR_MAX = 8;
 /* PC layout (html.desk): tools in a column, a left sidebar holds these tools (DESK_HIDE drops them from the column; 素材 = rail only) */
@@ -3281,7 +3285,8 @@ const S = {
   num: { color: '#FF3B30' },
   image: { border: 'none', shadow: true, rad: 0, bw: 7 },
   filterCat: 'all', fontCat: 'all', marq: false, colorTab: 'ai',
-  cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true },
+  cut: { target: 'base', mode: 'tap', tol: 30, size: 40, contig: true, blur: 60 },
+  heal: { size: 40 },
   adjT: 'base'   // 補正 target: 'base' (元の写真) or an image object id (its o.adj)
 };
 /* last-used tool settings survive reloads (per device). Only known keys whose type matches the default are restored. */
@@ -3712,10 +3717,12 @@ function applyPixels(d, P) {
   const fk = 1 - f * 0.28, fo = f * 42;
   const sk = clamp(P.split, 0, 100) / 100 * 0.55, sh = hexRGB(P.sh).map(v => v - 128), hi = hexRGB(P.hi).map(v => v - 128);
   const gr = clamp(P.grain, 0, 100) * 0.7;
+  const hk = clamp(P.hil || 0, -100, 100) * 0.55, dk = clamp(P.shd || 0, -100, 100) * 0.6;   // ハイライト / シャドウ: lift or pull the light / dark end only
   let seed = 1234567;
   for (let i = 0; i < d.length; i += 4) {
     if (d[i + 3] === 0) continue;
     let r = lut[d[i]], g = lut[d[i + 1]], bl = lut[d[i + 2]];
+    if (hk || dk) { const l = clamp((0.299 * r + 0.587 * g + 0.114 * bl) / 255, 0, 1), ws = (1 - l) * (1 - l) * (1 - l), wh = l * l * l, dd = dk * ws + hk * wh; r += dd; g += dd; bl += dd; }
     if (s !== 1) { const y = 0.299 * r + 0.587 * g + 0.114 * bl; r = y + (r - y) * s; g = y + (g - y) * s; bl = y + (bl - y) * s; }
     if (sp) {
       const tr = 0.393 * r + 0.769 * g + 0.189 * bl, tg = 0.349 * r + 0.686 * g + 0.168 * bl, tb = 0.272 * r + 0.534 * g + 0.131 * bl;
@@ -3738,10 +3745,21 @@ function softUp(sm) {
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(sm, 0, 0, m.width, m.height);
   return m;
 }
+/* シャープ: unsharp mask against a slightly blurred copy (half size, smoothly scaled back); k 0…1 */
+function sharpen(c, k) {
+  const W = c.width, H = c.height; if (W < 4 || H < 4) return;
+  const sm = mk(Math.max(1, W / 2), Math.max(1, H / 2)), sg = sm.getContext('2d');
+  sg.imageSmoothingQuality = 'high'; sg.drawImage(c, 0, 0, sm.width, sm.height);
+  const bl = mk(W, H), bg = bl.getContext('2d', { willReadFrequently: true }); bg.imageSmoothingQuality = 'high'; bg.drawImage(sm, 0, 0, W, H);
+  const g = c.getContext('2d', { willReadFrequently: true }), id = g.getImageData(0, 0, W, H), d = id.data, b = bg.getImageData(0, 0, W, H).data, a = k * 1.6;
+  for (let i = 0; i < d.length; i += 4) { if (!d[i + 3]) continue; d[i] += (d[i] - b[i]) * a; d[i + 1] += (d[i + 1] - b[i + 1]) * a; d[i + 2] += (d[i + 2] - b[i + 2]) * a; }
+  g.putImageData(id, 0, 0);
+}
 /* applies P to canvas c in place (keeps transparency) */
 function processCanvas(c, P) {
   const g = c.getContext('2d'), W = c.width, H = c.height;
-  if (P.bri || P.con || P.sat || P.warm || P.tint || P.fade || P.sepia || P.split || P.grain) {
+  if (P.sharp > 0) sharpen(c, clamp(P.sharp, 0, 100) / 100);
+  if (P.bri || P.con || P.sat || P.warm || P.tint || P.fade || P.sepia || P.split || P.grain || P.hil || P.shd) {
     const id = g.getImageData(0, 0, W, H); applyPixels(id.data, P); g.putImageData(id, 0, 0);
   }
   if (P.glow > 0 || P.leak > 0) {
@@ -4295,7 +4313,8 @@ function draw() {
   cx.fillStyle = 'rgba(60,70,50,.18)'; cx.fillRect(view.tx + 2, view.ty + 4, doc.w * view.s, doc.h * view.s);
   cx.fillStyle = checker(); cx.fillRect(view.tx, view.ty, doc.w * view.s, doc.h * view.s);
   cx.drawImage(comp, view.tx, view.ty, doc.w * view.s, doc.h * view.s);
-  if (tool === 'cutout' && S.cut.target !== 'base') { const o = doc.objects.find(x => x.id === S.cut.target); if (o) drawSelection({ ...o, locked: true }); }
+  if (G && G.type === 'heal') drawHealStroke();
+  if ((tool === 'cutout' || tool === 'heal') && S.cut.target !== 'base') { const o = doc.objects.find(x => x.id === S.cut.target); if (o) drawSelection({ ...o, locked: true }); }
   if (tool === 'filter' && S.adjT !== 'base') { const o = adjTarget(); if (o) drawSelection({ ...o, locked: true }); }
   if (UI.grid !== 'off' && tool !== 'crop') drawGridOverlay();
   if (tool === 'crop') drawCropOverlay();
@@ -4982,6 +5001,13 @@ function startSingle(p, shift, ctrlK) {
       G = h ? { type: 'crop', h, p0: p, r0: { ...crop.r } } : { type: 'pan', p0: p, tx0: view.tx, ty0: view.ty, moved: false };
       return;
     }
+    case 'heal': {
+      if (healBusy) { G = { type: 'pan', p0: p, tx0: view.tx, ty0: view.ty, moved: false }; toast('いま消しています。少し待ってください'); return; }
+      const t = cutTarget(), b = docToBmp(t, d);
+      G = { type: 'heal', t, pts: [d], bpts: [b], r: S.heal.size * U() / 2, rb: Math.max(2, S.heal.size * U() * b.k / 2) };
+      requestDraw();
+      return;
+    }
     case 'cutout': {
       if (S.cut.mode === 'tap' || aiBusy) { G = { type: 'cuttap', p0: p, d, tx0: view.tx, ty0: view.ty, moved: false }; return; }
       const t = cutTarget(), c = forkTarget(t), b = docToBmp(t, d);
@@ -5000,6 +5026,11 @@ function moveSingle(p) {
       if (dist(p, G.p0) > slop()) G.moved = true;
       if (G.moved) panTo(p);
       break;
+    case 'heal': {
+      const l = G.pts[G.pts.length - 1];
+      if (Math.hypot(d.x - l.x, d.y - l.y) * view.s > 2) { G.pts.push(d); G.bpts.push(docToBmp(G.t, d)); requestDraw(); }
+      break;
+    }
     case 'cutbrush': {
       const b = docToBmp(G.t, d);
       cutDab(G.t, G.c, G.last, b, cutRadius(b), S.cut.mode === 'restore'); G.last = b; invalidate();
@@ -5109,6 +5140,7 @@ function endSingle(p, cancelled) {
       else if (!cancelled && isDoubleTap(p, G.id)) { const o = selObj(); if (o && o.slot && !o.locked) pickSlot(o.id); else if (o) startInlineEdit(o); }
       break;
     case 'scale': case 'rotate': rememberSize(); commit(); break;
+    case 'heal': if (!cancelled) healRun(G.t, G.bpts, G.rb); requestDraw(); break;
     case 'cutbrush': invalidate(); commit(); break;   // invalidate: drop the live-brush preview so the filter re-applies
     case 'cuttap': if (!G.moved && !cancelled && S.cut.mode === 'tap' && !aiBusy) cutTapAt(G.d); break;
     case 'draw': normalizePts(G.obj); invalidate(); commit(); if (tool === 'mosaic') refreshPanel(); break;
@@ -5457,8 +5489,140 @@ async function segMask(sess, m0, src) {
   return mc;
 }
 const nap = () => new Promise(r => setTimeout(r, 40));
-async function runAI() {
+/* ==== 背景ぼかし ==== portrait-style: the AI mask keeps the subject sharp; the background is blurred from background pixels only
+   (premultiplied downscale of the cut-away background, then un-premultiplied), so the subject does not bleed a halo into it */
+function blurDown(src, L) {
+  let c = src;
+  while (Math.max(c.width, c.height) / 2 > L) { const n = mk(Math.max(1, c.width / 2 | 0), Math.max(1, c.height / 2 | 0)), g = n.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(c, 0, 0, n.width, n.height); c = n; }
+  const k = L / Math.max(c.width, c.height), n = mk(Math.max(1, Math.round(c.width * k)), Math.max(1, Math.round(c.height * k))), g = n.getContext('2d');
+  g.imageSmoothingQuality = 'high'; g.drawImage(c, 0, 0, n.width, n.height); return n;
+}
+function blurUp(sm, W, H) {
+  let c = sm;
+  while (c.width * 2 < W) { const n = mk(c.width * 2, c.height * 2), g = n.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(c, 0, 0, n.width, n.height); c = n; }
+  const n = mk(W, H), g = n.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(c, 0, 0, W, H); return n;
+}
+function bokehApply(c, src, mask, str) {
+  const W = c.width, H = c.height, L = Math.round(260 - clamp(str, 0, 100) * 2.25);   // 100 → 35 px long side (strong), 10 → 237 (light)
+  const bgc = mk(W, H), bgg = bgc.getContext('2d');
+  bgg.drawImage(src, 0, 0, W, H); bgg.globalCompositeOperation = 'destination-out'; bgg.imageSmoothingQuality = 'high'; bgg.drawImage(mask, 0, 0, W, H);
+  const sb = blurDown(bgc, L), sa = blurDown(src, L), w = sb.width, h = sb.height;
+  const gb = sb.getContext('2d', { willReadFrequently: true }), ib = gb.getImageData(0, 0, w, h), db = ib.data, da = sa.getContext('2d').getImageData(0, 0, w, h).data;
+  for (let i = 0; i < db.length; i += 4) {   // un-premultiplied background colour where any background was seen, else the plain blur
+    const t = clamp(db[i + 3] / 70, 0, 1);
+    db[i] = db[i] * t + da[i] * (1 - t); db[i + 1] = db[i + 1] * t + da[i + 1] * (1 - t); db[i + 2] = db[i + 2] * t + da[i + 2] * (1 - t); db[i + 3] = da[i + 3];
+  }
+  gb.putImageData(ib, 0, 0);
+  const big = blurUp(sb, W, H), fg = mk(W, H), fgg = fg.getContext('2d');
+  fgg.drawImage(src, 0, 0, W, H); fgg.globalCompositeOperation = 'destination-in'; fgg.imageSmoothingQuality = 'high'; fgg.drawImage(mask, 0, 0, W, H);
+  const g = c.getContext('2d'); g.save(); g.clearRect(0, 0, W, H); g.drawImage(big, 0, 0); g.drawImage(fg, 0, 0);
+  g.globalCompositeOperation = 'destination-in'; g.drawImage(src, 0, 0, W, H); g.restore();   // a see-through picture stays see-through
+}
+/* ==== 修復 ==== trace an unwanted thing; it is filled from the surroundings (exemplar-based inpainting, Criminisi-style,
+   on a ≤ HEAL_WORK px region around the stroke, entirely on the device). The result is blended in with a soft edge. */
+let healBusy = false;
+const HEAL_WORK = 280, HEAL_P = 4;
+function drawHealStroke() {
+  const pts = G.pts, s = view.s; if (!pts.length) return;
+  cx.save(); cx.lineCap = cx.lineJoin = 'round'; cx.strokeStyle = cx.fillStyle = 'rgba(255,86,86,.45)'; cx.lineWidth = Math.max(2, G.r * 2 * s);
+  if (pts.length === 1) { cx.beginPath(); cx.arc(view.tx + pts[0].x * s, view.ty + pts[0].y * s, cx.lineWidth / 2, 0, Math.PI * 2); cx.fill(); }
+  else { cx.beginPath(); cx.moveTo(view.tx + pts[0].x * s, view.ty + pts[0].y * s); for (const q of pts) cx.lineTo(view.tx + q.x * s, view.ty + q.y * s); cx.stroke(); }
+  cx.restore();
+}
+function healStroke(g, pts, r, ox, oy, k) {
+  g.lineCap = g.lineJoin = 'round'; g.strokeStyle = g.fillStyle = '#000'; g.lineWidth = r * 2 * k;
+  g.beginPath(); g.moveTo((pts[0].x - ox) * k, (pts[0].y - oy) * k);
+  for (const q of pts) g.lineTo((q.x - ox) * k, (q.y - oy) * k);
+  g.stroke(); g.beginPath(); g.arc((pts[0].x - ox) * k, (pts[0].y - oy) * k, r * k, 0, Math.PI * 2); g.fill();
+}
+async function healFill(d, w, h, hole) {
+  const P = HEAL_P, N = w * h, known = new Uint8Array(N), conf = new Float32Array(N);
+  let left = 0;
+  for (let i = 0; i < N; i++) { if (hole[i]) left++; else { known[i] = 1; conf[i] = 1; } }
+  if (!left) return true;
+  // source patches: centres whose whole patch is known (summed-area table over the hole)
+  const sat = new Int32Array((w + 1) * (h + 1));
+  for (let y = 0; y < h; y++) { let row = 0; for (let x = 0; x < w; x++) { row += hole[y * w + x]; sat[(y + 1) * (w + 1) + x + 1] = sat[y * (w + 1) + x + 1] + row; } }
+  const holeIn = (x0, y0, x1, y1) => sat[(y1 + 1) * (w + 1) + x1 + 1] - sat[y0 * (w + 1) + x1 + 1] - sat[(y1 + 1) * (w + 1) + x0] + sat[y0 * (w + 1) + x0];
+  let cand = [];
+  for (let y = P; y < h - P; y++) for (let x = P; x < w - P; x++) if (!holeIn(x - P, y - P, x + P, y + P)) cand.push(y * w + x);
+  if (!cand.length) return false;
+  const st = Math.max(1, Math.ceil(Math.sqrt(cand.length / 7000)));
+  if (st > 1) cand = cand.filter(i => (i % w) % st === 0 && ((i / w | 0) % st === 0));
+  const cx0 = Int32Array.from(cand, i => i % w), cy0 = Int32Array.from(cand, i => i / w | 0);
+  let t0 = performance.now();
+  while (left > 0) {
+    if (performance.now() - t0 > 30) { await new Promise(r => setTimeout(r, 0)); t0 = performance.now(); }
+    // fill front: unknown pixels next to a known one; pick the one whose patch is most trusted (+ a little edge strength)
+    let best = -1, bp = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x; if (known[i]) continue;
+      if (!((x > 0 && known[i - 1]) || (x < w - 1 && known[i + 1]) || (y > 0 && known[i - w]) || (y < h - 1 && known[i + w]))) continue;
+      let cs = 0, n = 0, gmax = 0;
+      for (let dy = -P; dy <= P; dy++) { const yy = y + dy; if (yy < 0 || yy >= h) continue;
+        for (let dx = -P; dx <= P; dx++) { const xx = x + dx; if (xx < 0 || xx >= w) continue; n++; const j = yy * w + xx; cs += conf[j];
+          if (known[j] && xx + 1 < w && known[j + 1]) { const q = j * 4, gg = Math.abs(d[q] - d[q + 4]) + Math.abs(d[q + 1] - d[q + 5]) + Math.abs(d[q + 2] - d[q + 6]); if (gg > gmax) gmax = gg; } } }
+      const pr = cs / n * (0.4 + Math.min(1, gmax / 120));
+      if (pr > best) { best = pr; bp = i; }
+    }
+    if (bp < 0) break;
+    const px = bp % w, py = bp / w | 0;
+    // best matching source patch (SSD over the known pixels of the target patch, early exit; a faint pull toward near patches)
+    let bs = Infinity, bc = 0;
+    for (let c = 0; c < cx0.length; c++) {
+      const sx = cx0[c], sy = cy0[c]; let ssd = ((sx - px) * (sx - px) + (sy - py) * (sy - py)) * 0.02;
+      for (let dy = -P; dy <= P && ssd < bs; dy++) { const ty = py + dy; if (ty < 0 || ty >= h) continue;
+        for (let dx = -P; dx <= P; dx++) { const tx = px + dx; if (tx < 0 || tx >= w) continue; const ti = ty * w + tx; if (!known[ti]) continue;
+          const a = ti * 4, b = ((sy + dy) * w + sx + dx) * 4, e0 = d[a] - d[b], e1 = d[a + 1] - d[b + 1], e2 = d[a + 2] - d[b + 2], e3 = d[a + 3] - d[b + 3];
+          ssd += e0 * e0 + e1 * e1 + e2 * e2 + e3 * e3; } }
+      if (ssd < bs) { bs = ssd; bc = c; }
+    }
+    const sx = cx0[bc], sy = cy0[bc], cf = Math.min(1, best);
+    for (let dy = -P; dy <= P; dy++) { const ty = py + dy; if (ty < 0 || ty >= h) continue;
+      for (let dx = -P; dx <= P; dx++) { const tx = px + dx; if (tx < 0 || tx >= w) continue; const ti = ty * w + tx; if (known[ti]) continue;
+        const a = ti * 4, b = ((sy + dy) * w + sx + dx) * 4; d[a] = d[b]; d[a + 1] = d[b + 1]; d[a + 2] = d[b + 2]; d[a + 3] = d[b + 3];
+        known[ti] = 1; conf[ti] = cf; left--; } }
+  }
+  return true;
+}
+async function healRun(t, pts, rb) {
+  if (healBusy || !pts.length) return;
+  const id0 = tgtId(t), e0 = bitmaps.get(id0); if (!e0) return;
+  const src = e0.canvas, W = src.width, H = src.height, doc0 = doc;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const q of pts) { x0 = Math.min(x0, q.x - rb); y0 = Math.min(y0, q.y - rb); x1 = Math.max(x1, q.x + rb); y1 = Math.max(y1, q.y + rb); }
+  if (x1 < 0 || y1 < 0 || x0 > W || y0 > H) { toast('写真の上をなぞってください'); return; }
+  const pad = Math.max(rb * 2.5, 0.7 * Math.max(x1 - x0, y1 - y0), 24);
+  const rx = Math.max(0, Math.floor(x0 - pad)), ry = Math.max(0, Math.floor(y0 - pad)), rw = Math.min(W, Math.ceil(x1 + pad)) - rx, rh = Math.min(H, Math.ceil(y1 + pad)) - ry;
+  if (rw < 4 || rh < 4) return;
+  const k = Math.min(1, HEAL_WORK / Math.max(rw, rh)), w = Math.max(8, Math.round(rw * k)), h = Math.max(8, Math.round(rh * k));
+  healBusy = true; if (tool === 'heal') refreshPanel(); toast('消しています…', 1500);
+  try {
+    await nap();
+    const im = mk(w, h), ig = im.getContext('2d', { willReadFrequently: true });
+    ig.imageSmoothingQuality = 'high'; ig.drawImage(src, rx, ry, rw, rh, 0, 0, w, h);
+    const mc = mk(w, h), mg = mc.getContext('2d', { willReadFrequently: true });
+    healStroke(mg, pts, rb + 1.5 / k, rx, ry, k);
+    const md = mg.getImageData(0, 0, w, h).data, hole = new Uint8Array(w * h);
+    for (let i = 0; i < hole.length; i++) hole[i] = md[i * 4 + 3] > 10 ? 1 : 0;
+    const id = ig.getImageData(0, 0, w, h);
+    if (!await healFill(id.data, w, h, hole)) { toast('なぞった範囲が広すぎます。少しずつなぞってください', 3200); return; }
+    if (doc !== doc0 || !bitmaps.has(id0) || tgtId(t) !== id0 || (t.o && !doc.objects.includes(t.o))) { toast('編集内容が変わったため、修復を中止しました', 3000); return; }
+    ig.putImageData(id, 0, 0);
+    // soft edge: the stroke (a little wider) drawn at half size, then scaled up, keeps only the filled pixels near the stroke
+    const fm = mk(rw, rh), fg = fm.getContext('2d');
+    const ms = mk(Math.max(4, w / 2 | 0), Math.max(4, h / 2 | 0)), msg = ms.getContext('2d'); healStroke(msg, pts, rb + 3 / k, rx, ry, k / 2);
+    fg.imageSmoothingQuality = 'high'; fg.drawImage(ms, 0, 0, rw, rh);
+    fg.globalCompositeOperation = 'source-in'; fg.drawImage(im, 0, 0, rw, rh);
+    const c = forkTarget(t), g = c.getContext('2d'); g.drawImage(fm, rx, ry);
+    const ne = bitmaps.get(tgtId(t)); if (ne) ne.alpha = e0.alpha;
+    bmpRev++; invalidate(); commit();
+  } catch (err) { console.warn(err); toast('うまく消せませんでした。もう一度なぞってください'); }
+  finally { healBusy = false; if (tool === 'heal') refreshPanel(); requestDraw(); }
+}
+async function runAI(mode) {
   if (aiBusy) return;
+  const blur = mode === 'blur', bm = m => blur ? m.replace('背景を消しています', '写っている物を見分けています') : m;
   // remember what we started on: the download + inference can take a while, and the user may undo, open or crop meanwhile
   const t = cutTarget(), doc0 = doc, id0 = tgtId(t), src = bitmaps.get(id0).canvas;
   const want = AI_MODELS[S.cut.model] ? S.cut.model : 'u2';
@@ -5470,14 +5634,14 @@ async function runAI() {
     if (want !== 'u2') {
       try {
         const sess = await aiSess(want);
-        aiRunMsg('背景を消しています…（数秒〜数十秒）'); await nap();
+        aiRunMsg(bm('背景を消しています…（数秒〜数十秒）')); await nap();
         mask = await segMask(sess, SEG[want], src);
       } catch (e) { if (aiStop) throw e; console.warn(want + ' unavailable, falling back to U2-Net-p', e); releaseModel(want); fellBack = true; }
     }
     if (!mask) {
-      setAiMsg(fellBack ? '標準AIに切り替えて背景を消しています…' : '背景を消しています…');
+      setAiMsg(bm(fellBack ? '標準AIに切り替えて背景を消しています…' : '背景を消しています…'));
       const sess = await aiSess('u2'); if (aiStop) throw new Error('cancel');
-      aiRunMsg(fellBack ? '標準AIで背景を消しています…' : '背景を消しています…'); await nap();
+      aiRunMsg(bm(fellBack ? '標準AIで背景を消しています…' : '背景を消しています…')); await nap();
       try { mask = await segMask(sess, SEG.u2, src); }
       catch (e) {   // the worker failed mid-run (memory etc.): one last try on the main thread
         if (aiStop || !sess.w) throw e;
@@ -5487,6 +5651,13 @@ async function runAI() {
     }
     if (aiStop) throw new Error('cancel');
     if (doc !== doc0 || !bitmaps.has(id0) || tgtId(cutTarget()) !== id0) { toast('編集内容が変わったため、AI背景削除を中止しました', 3200); return; }
+    if (blur) {
+      const al = bitmaps.get(id0).alpha;
+      bokehApply(forkTarget(t), src, mask, S.cut.blur);
+      const ne = bitmaps.get(tgtId(t)); if (ne) ne.alpha = al;
+      bmpRev++; invalidate(); commit();
+      toast('背景をぼかしました。強さを変えるときは「元の写真に戻す」からやり直せます', 3600); return;
+    }
     const c = forkTarget(t), g = c.getContext('2d');
     g.save(); g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     g.drawImage(mask, 0, 0, c.width, c.height); g.restore();
@@ -6317,6 +6488,8 @@ function runCmd(k, v, final) {
       invalidate(); commit(); syncRatio(o);
     } break;
     case 'cutThis': if (o && o.type === 'image' && !o.slot) { S.cut.target = o.id; setTool('cutout'); } break;
+    case 'healThis': if (o && o.type === 'image' && !o.slot) { S.cut.target = o.id; setTool('heal'); } break;
+    case 'aiBlur': runAI('blur'); break;
     case 'ai': runAI(); break;
     case 'aiStop': aiCancel(); break;
     // the colour picker fires 'input' continuously (final === false): preview only; commit + rebuild the panel on the final change
@@ -6685,6 +6858,7 @@ const colorTabs = () => `<div class="ctabs" role="tablist" aria-label="補正">$
 function adjHtml() {
   const a = tAdj();
   return [['bri', '明るさ', -100, 'aBri'], ['con', 'コントラスト', -100, 'aCon'], ['sat', '彩度', -100, 'aSat'], ['warm', '色温度', -100, 'aWarm'], ['tint', '色かぶり', -100, 'aTint'],
+        ['hil', 'ハイライト', -100, 'aHil'], ['shd', 'シャドウ', -100, 'aShd'], ['sharp', 'シャープ', 0, 'aSharp'],
         ['fade', '退色', 0, 'aFade'], ['glow', 'ふんわり', 0, 'aGlow'], ['grain', '粒子', 0, 'aGrain'], ['vig', '周辺減光', 0, 'aVig']]
         .map(([k, l, lo, ic]) => slider('a:' + k, `<span class="aic" aria-hidden="true">${ICON[ic]}</span>${l}`, lo, 100, a[k])).join('')
     + `<div class="actions"><button class="btn" data-act="cmd" data-k="adjReset">調整をリセット</button></div>`;
@@ -6784,7 +6958,7 @@ function objPanel(o) {
 /* panel head extras: グループ解除 for one member picked out of a group, and the main action of a photo / photo slot */
 function headX(o) {
   let h = o.gid && (groupOf(o) || []).length > 1 ? `<button class="chip gbadge" data-act="cmd" data-k="ungroup" title="グループ解除">${IW('ungroup', 'グループ解除')}</button>` : '';
-  if (!o.locked && o.type === 'image') h += (o.slot ? cmdBtn('slotPick', IW('photo', o.bmp ? '写真を差し替え' : '写真を入れる'), undefined, o.bmp ? '' : 'on') : cmdBtn('cutThis', IW('cutout', '背景削除')))
+  if (!o.locked && o.type === 'image') h += (o.slot ? cmdBtn('slotPick', IW('photo', o.bmp ? '写真を差し替え' : '写真を入れる'), undefined, o.bmp ? '' : 'on') : cmdBtn('cutThis', IW('cutout', '背景削除')) + cmdBtn('healThis', IW('heal', '修復')))
     + (o.bmp ? cmdBtn('fxThis', IW('filter', '補正'), undefined, o.adj ? 'on' : '') : '');   // 補正 = this image's own filter / adjust
   return h;
 }
@@ -6912,7 +7086,7 @@ panel.addEventListener('drop', e => {
 function photoCard() {
   const fl = doc.adjust.preset && doc.adjust.preset !== 'none' ? `フィルター: ${FILTERS[doc.adjust.preset] ? FILTERS[doc.adjust.preset][0] : ''}` : 'フィルターなし';
   return `<div class="pcard"><div class="pch">元の写真<small>${doc.w} × ${doc.h} px・${esc(fl)}</small></div><div class="pcb">`
-    + [['filter', '補正', '補正（おまかせ・フィルター・調整）'], ['cutout', '背景削除'], ['crop', 'トリミング', 'トリミング・回転']].map(([t, l, ti]) => `<button class="pcbt" data-gotool="${t}" title="${ti || l}">${ICON[t]}<span>${l}</span></button>`).join('') + '</div></div>';
+    + [['filter', '補正', '補正（おまかせ・フィルター・調整）'], ['cutout', '背景削除'], ['heal', '修復', '修復（なぞって不要な物を消す）'], ['crop', 'トリミング', 'トリミング・回転']].map(([t, l, ti]) => `<button class="pcbt" data-gotool="${t}" title="${ti || l}">${ICON[t]}<span>${l}</span></button>`).join('') + '</div></div>';
 }
 panel.addEventListener('click', e => { const b = e.target.closest('[data-gotool]'); if (b) setTool(b.dataset.gotool); });
 function multiPanel(ms) {
@@ -7024,6 +7198,7 @@ function refreshPanel() {
       const t = cutTarget(), imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
       if (imgs.length) h += tgtRow('cut.target', S.cut.target, imgs) + (t.o ? hint(`${ICON.photo}「${imgName(t.o)}」の背景を消します`) : '');
       h += `<button class="aibtn${aiBusy ? ' busy' : ''}" data-act="cmd" data-k="ai"${aiBusy ? ' disabled' : ''}>${aiBusy ? esc(aiMsg) : ICON.spark + 'AIで背景削除'}</button>`;
+      if (!aiBusy) h += row('背景ぼかし', cmdBtn('aiBlur', IW('blur', '背景だけぼかす'))) + slider('s:cut.blur', 'ぼかしの強さ', 10, 100, S.cut.blur);
       if (aiBusy) h += `<div class="aistopw"><button class="chip" data-act="cmd" data-k="aiStop"${aiStop ? ' disabled' : ''}>中止</button></div>` + hint('処理中も、写真の拡大・移動やほかの画面の操作はできます。');
       let dt = row('AIモデル', chips('cmd', 'aiModel', Object.entries(AI_MODELS).map(([id, m]) => [id, `${m.name}<small class="mnote">${m.note}</small>`]), S.cut.model));
       if (S.cut.model === 'rmbg') dt += hint(ICON.warn + 'RMBG-1.4 は<b>非商用ライセンス</b>です。商用で使う場合は「標準」か「高精度」を選んでください。');
@@ -7037,6 +7212,16 @@ function refreshPanel() {
       h += hint((S.cut.mode === 'tap' ? '消したい所の色をタップすると、近い色がまとめて消えます。' : '') + '透明部分は PNG で保存すると透明のまま残ります。');
       break;
     }
+  }
+  if (tool === 'heal') {
+    const imgs = doc.objects.filter(o => o.type === 'image' && o.bmp && !o.slot);
+    if (imgs.length) h += tgtRow('cut.target', S.cut.target, imgs);
+    h += hint(`${ICON.heal}消したい物（人・電線・ゴミ・文字など）を指でなぞって離すと、まわりの模様でうめて消します。写真は端末の中だけで処理します。`);
+    h += slider('s:heal.size', 'ブラシ', 5, 150, S.heal.size);
+    if (healBusy) h += hint('消しています…');
+    h += row('元に戻す', cmdBtn('cutReset', '元の写真に戻す'), true);
+    h += (deskOn ? '' : '<div class="actions"><button class="btn primary" data-act="cmd" data-k="cutDone">完了</button></div>')
+      + hint('小さな物ほどきれいに消えます。大きな物は何回かに分けてなぞるのがコツです。');
   }
   syncToolLit();   // the selection may have changed which tool button is lit
   if (deskOn) {   // inspector heading: what the panel is about
@@ -7250,8 +7435,8 @@ function setTool(t) {
   if (t === 'adjust') { S.colorTab = 'adjust'; t = 'filter'; }   // 調整 is a tab of 補正 (old links, quick search, photo card)
   const prev = selObj();
   // the picked image, else the image the other photo tool (補正 / 背景削除) was working on; nothing: 元の写真
-  const pi = !doc ? null : prev && prev.type === 'image' && prev.bmp ? prev : tool === 'filter' ? adjTarget() : tool === 'cutout' ? cutTarget().o : null;
-  if (t === 'cutout' && doc) {
+  const pi = !doc ? null : prev && prev.type === 'image' && prev.bmp ? prev : tool === 'filter' ? adjTarget() : tool === 'cutout' || tool === 'heal' ? cutTarget().o : null;
+  if ((t === 'cutout' || t === 'heal') && doc) {
     if (pi && !pi.slot) S.cut.target = pi.id;
     else if (tool !== t || !doc.objects.some(o => o.id === S.cut.target)) S.cut.target = 'base';
   }
@@ -8819,7 +9004,7 @@ function pressTool(id) { useTool(id); }
 function cmdItems() {
   // phones have no keyboard: the shortcut part of a subtitle (Ctrl+S, （V）…) is left out there
   const it = [], add = (l, sub, keys, run) => it.push({ l, sub: deskOn ? sub : sub.replace(/（[A-Z]）|(Ctrl|Shift)\+[^\s・]*\s*|^\?$/g, '').replace(/^\s*・\s*/, ''), k: kana([l, sub, ...keys].join(' ')), run });
-  const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'そざい すたんぷ えもじ ばんごう でこ ますきんぐてーぷ ひづけ', filter: 'ほせい いろみ ふぃるたー ちょうせい おまかせ', cutout: 'はいけいさくじょ はいけい くりぬき', mosaic: 'もざいく ぼかし', crop: 'とりみんぐ きりぬき かいてん' };
+  const YOMI = { select: 'せんたく', photo: 'しゃしん がぞう', text: 'もじ てきすと', pen: 'ぺん てがき', shape: 'ずけい やじるし しかく まる', note: 'ふせん めも', stamp: 'そざい すたんぷ えもじ ばんごう でこ ますきんぐてーぷ ひづけ', filter: 'ほせい いろみ ふぃるたー ちょうせい おまかせ', cutout: 'はいけいさくじょ はいけい くりぬき', heal: 'しゅうふく けす けしごむ ふようぶつ じゃま よごれ ほこり しみ でんせん ひと', mosaic: 'もざいく ぼかし', crop: 'とりみんぐ きりぬき かいてん' };
   TOOLS.filter(([id]) => id !== 'photo').forEach(([id, l]) => add(l, 'ツール' + (TOOL_KEYS[id] ? '（' + TOOL_KEYS[id] + '）' : ''), [id, 'tool', YOMI[id] || ''], () => pressTool(id)));
   add('保存する', 'Ctrl+S', ['save', 'export', '書き出し', 'ダウンロード', 'jpeg', 'png', 'ほぞん かきだし'], () => $('#btnSave').click());
   add('フィルター', '補正のタブ', ['filter', 'ふぃるたー', 'ほせい'], () => { S.colorTab = 'filter'; setTool('filter'); });
@@ -8829,6 +9014,8 @@ function cmdItems() {
   add('マイ素材', '自分で入れた写真・素材', ['library', 'my', '保存', 'アップロード', '画像', 'まいそざい じぶん ほぞん しゃしん'], openLib);
   if (GEN_ON && SUPA.url) add('AIで素材を作る', '言葉からステッカーを作る', ['ai', 'えーあい そざい つくる あい', 'sticker', 'ステッカー', 'すてっかー', 'claude'], genOpen);
   add('新規作成・サンプル', '白紙', ['new', 'blank', '白紙', 'キャンバス', 'しんき はくし'], () => { renderNB(); openSheet('#sheetNew'); });
+  add('背景をぼかす', '背景削除・AI', ['blur', 'bokeh', 'portrait', 'はいけい ぼかす ぽーとれーと ぼけ'], () => { setTool('cutout'); runCmd('aiBlur'); });
+  add('不要な物を消す', '修復', ['heal', 'erase', 'remove', 'ふようなもの けす けしごむ しゅうふく じゃま'], () => setTool('heal'));
   add('AIで背景削除', '背景削除', ['ai', 'background', 'remove', '切り抜き', 'くりぬき はいけい けす'], () => { setTool('cutout'); runCmd('ai'); });
   add('画像を補正', '選んだ画像だけにフィルター・調整', ['image', 'filter', 'がぞう ほせい ふぃるたー ちょうせい えらんだ'], () => { const o = selObj(); if (o && o.type === 'image' && o.bmp) runCmd('fxThis'); else { const im = imgList()[0]; S.adjT = 'base'; setTool('filter'); if (im) { S.adjT = im.id; refreshPanel(); requestDraw(); } else toast('写真を追加すると、その画像だけを補正できます'); } });
   add('AIおまかせ補正', '色を自動で整える', ['ai', 'auto', '自動', '補正', 'おまかせ じどう ほせい'], () => runCmd('aiAuto'));
