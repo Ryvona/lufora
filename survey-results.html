@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://isdnvasoyxnnudvreimu.supabase.co wss://isdnvasoyxnnudvreimu.supabase.co; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>アンケート集計</title>
 <meta name="robots" content="noindex">
@@ -44,7 +45,7 @@ button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   <div id="out"><p>読み込み中…</p></div>
 </main>
 <script src="survey-q.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
@@ -92,7 +93,7 @@ function render() {
       const L = A.map(a => a[q.id]).filter(Boolean);
       body = L.length ? `<ul class="cm">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="ql"><small>回答なし</small></p>';
     }
-    if (q.c) { const L = A.map((a, i) => a[q.id + '_c'] ? `${a[q.id + '_c']}（${esc(String(a.q1 || '機種不明'))}）` : '').filter(Boolean); if (L.length) body += `<ul class="cm">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
+    if (q.c) { const L = A.map((a, i) => a[q.id + '_c'] ? `${a[q.id + '_c']}（${a.q1 || '機種不明'}）` : '').filter(Boolean); if (L.length) body += `<ul class="cm">${L.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
     return `<div class="q"><p class="ql"><small>Q${n}</small>${esc(q.l)}${q._ng ? `<span class="flag">問題あり ${q._ng}</span>` : ''}</p>${body}</div>`;
   }).join('')).join('');
 }
@@ -105,7 +106,7 @@ $('#seen').addEventListener('click', () => {
 $('#showAll').addEventListener('click', () => { showAll = !showAll; pickRows(); });
 $('#csv').addEventListener('click', () => {
   const keys = all.flatMap(q => q.c ? [q.id, q.id + '_c'] : [q.id]);
-  const cell = v => '"' + String(Array.isArray(v) ? v.join(' / ') : v == null ? '' : v).replace(/"/g, '""') + '"';
+  const cell = v => { let s = String(Array.isArray(v) ? v.join(' / ') : v == null ? '' : v); if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
   const head = ['日時', ...keys, '端末情報'].map(cell).join(',');
   const body = rows.map(r => [new Date(r.created_at).toLocaleString('ja-JP'), ...keys.map(k => (r.answers || {})[k]), r.ua].map(cell).join(',')).join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + head + '\r\n' + body], { type: 'text/csv' }));

@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://isdnvasoyxnnudvreimu.supabase.co wss://isdnvasoyxnnudvreimu.supabase.co; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ご意見・ご要望</title>
 <meta name="robots" content="noindex">
@@ -45,10 +46,11 @@ button,.btn{min-height:40px;padding:6px 14px;border-radius:999px;border:1px soli
   <div id="out"><p>読み込み中…</p></div>
 </main>
 <script src="survey-q.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
+const MAIL_OK = /^[^\s@<>"'?&#]+@[^\s@<>"'?&#]+\.[^\s@<>"'?&#]+$/;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const KINDS = [['', 'すべて'], ['bug', '不具合'], ['idea', '要望'], ['thanks', '感想'], ['other', 'その他'], ['open', '未対応']];
 const KN = Object.fromEntries(KINDS);
@@ -93,7 +95,7 @@ function render() {
   $('#out').innerHTML = L.map(r => `<div class="e${r.done ? ' done' : ''}">
       <div class="meta"><span class="k ${esc(r.kind)}">${esc(KN[r.kind] || r.kind)}</span><span>${esc(when(r.created_at))}</span>${r.rating ? `<span class="stars" title="満足度 ${r.rating}">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>` : ''}<span>${esc(uaWords(r.ua))}・${r.layout === 'pc' ? 'PC版' : 'スマホ版'}</span></div>
       <p class="body">${esc(r.body)}</p>
-      ${r.email ? `<div class="meta mail">返信先: <a href="mailto:${esc(r.email)}">${esc(r.email)}</a></div>` : ''}
+      ${r.email ? `<div class="meta mail">返信先: ${MAIL_OK.test(String(r.email)) ? `<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>` : esc(r.email)}</div>` : ''}
       <div class="act"><button data-done="${r.id}" data-v="${!r.done}">${r.done ? '未対応に戻す' : '対応済みにする'}</button></div></div>`).join('');
 }
 $('#days').addEventListener('click', e => { const b = e.target.closest('button[data-d]'); if (!b || +b.dataset.d === days) return; days = +b.dataset.d; chipsSync(); load(); });
@@ -109,7 +111,7 @@ $('#out').addEventListener('click', async e => {
 });
 $('#reload').addEventListener('click', load);
 $('#csv').addEventListener('click', () => {
-  const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const cell = v => { let s = String(v == null ? '' : v); if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
   const head = ['日時', '種類', '満足度', '内容', '返信先', '端末', '版', '対応済み', 'UA'].map(cell).join(',');
   const body = rows.map(r => [when(r.created_at), KN[r.kind] || r.kind, r.rating || '', r.body, r.email, uaWords(r.ua), r.layout === 'pc' ? 'PC' : 'スマホ', r.done ? '済' : '', r.ua].map(cell).join(',')).join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + head + '\r\n' + body], { type: 'text/csv' }));

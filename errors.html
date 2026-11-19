@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://isdnvasoyxnnudvreimu.supabase.co wss://isdnvasoyxnnudvreimu.supabase.co; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>不具合の報告</title>
 <meta name="robots" content="noindex">
@@ -43,7 +44,7 @@ pre{margin:6px 0 0;padding:10px;background:#fff;border:1px solid var(--line);bor
   <div id="out"><p>読み込み中…</p></div>
 </main>
 <script src="survey-q.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
@@ -95,7 +96,7 @@ function render() {
 $('#days').addEventListener('click', e => { const b = e.target.closest('button[data-d]'); if (!b || +b.dataset.d === days) return; setDays(+b.dataset.d); load(); });
 $('#reload').addEventListener('click', load);
 $('#csv').addEventListener('click', () => {
-  const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const cell = v => { let s = String(v == null ? '' : v); if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
   const head = ['件数', 'メッセージ', 'ファイル', '行', '最後', '端末', 'スタック', 'UA'].map(cell).join(',');
   const body = rows.map(r => [r.n, r.msg, r.src, r.line, when(r.last_at), uaWords(r.sample_ua), r.sample_stack, r.sample_ua].map(cell).join(',')).join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + head + '\r\n' + body], { type: 'text/csv' }));

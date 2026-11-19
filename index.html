@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
+<!-- CSP (2026-11-19): GitHub Pages cannot send headers, so it lives here. Add a host here when the app starts loading from it (see CLAUDE.md external loads). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob:; connect-src 'self' data: blob: https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://*.xethub.hf.co https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; font-src 'self' data: blob: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src 'self'; media-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Lufora</title>
 <meta name="description" content="Lufora（ルフォラ）— Creativity grows naturally. スマホとパソコンで使える写真編集アプリ。写真の貼り付け、文字、ペン、付箋、モザイク、トリミング、補正（色調整）。">
@@ -5290,8 +5292,11 @@ const AI_MODELS = {
 };
 let ortP = null, segP = null;
 const modelP = {};
+/* pinned CDN scripts carry SRI hashes: a changed file on the CDN is refused instead of run (the AI worker's importScripts cannot check, see AIW_SRC) */
+const SRI = { 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.3/dist/ort.wasm.min.js': 'sha384-IIbXcAhgJQi54B2BSFW89jOHuticITcB+QZcTVdOax8V9g6V4t9a3y6VoS0Psk+A',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js': 'sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o' };
 function loadScript(src) {
-  return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('load ' + src)); document.head.appendChild(s); });
+  return new Promise((res, rej) => { const s = document.createElement('script'); if (SRI[src]) { s.integrity = SRI[src]; s.crossOrigin = 'anonymous'; } s.src = src; s.onload = res; s.onerror = () => rej(new Error('load ' + src)); document.head.appendChild(s); });
 }
 function getOrt() {
   if (!ortP) {
@@ -7413,7 +7418,7 @@ const BR_FIELDS = [['name', '店名・教室名', 'Café Lumière', 40], ['catch
 function brandClean(b) {
   const r = { colors: [] }; if (!b || typeof b !== 'object') return r;
   for (const [k, , , n] of BR_FIELDS) if (typeof b[k] === 'string' && b[k].trim()) r[k] = b[k].slice(0, n);
-  if (typeof b.logo === 'string' && /^data:image\/(png|webp|jpeg);base64,/.test(b.logo) && b.logo.length < 400000) r.logo = b.logo;
+  if (typeof b.logo === 'string' && /^data:image\/(png|webp|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(b.logo) && b.logo.length < 400000) r.logo = b.logo;
   r.colors = (Array.isArray(b.colors) ? b.colors : []).filter(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).slice(0, 3);
   return r;
 }
@@ -10264,7 +10269,7 @@ function openBrand() { brandLogoLoad(); brRender(); openSheet('#sheetBrand'); }
 function brRender() {
   const b = UI.brand || {}, cols = [...(b.colors || [])]; while (cols.length < 3) cols.push(['#527D55', '#F4EFE4', '#2A2724'][cols.length]);
   $('#brBody').innerHTML = BR_FIELDS.map(([k, l, ph, n]) => `<label class="setlab" for="br-${k}">${l}</label><input class="pubin" id="br-${k}" data-br="${k}" maxlength="${n}" placeholder="例：${esc(ph)}" value="${esc(b[k] || '')}" autocomplete="off">`).join('')
-    + `<div class="setlab">ロゴ</div><div class="brlogo">${b.logo ? `<img src="${b.logo}" alt="ロゴ">` : ''}<button class="chip" data-brl="pick">${IW('photo', b.logo ? 'ロゴを変える' : 'ロゴ画像をえらぶ')}</button>${b.logo ? '<button class="chip" data-brl="del">削除</button>' : ''}</div>`
+    + `<div class="setlab">ロゴ</div><div class="brlogo">${b.logo ? `<img src="${esc(b.logo)}" alt="ロゴ">` : ''}<button class="chip" data-brl="pick">${IW('photo', b.logo ? 'ロゴを変える' : 'ロゴ画像をえらぶ')}</button>${b.logo ? '<button class="chip" data-brl="del">削除</button>' : ''}</div>`
     + `<div class="setlab">お店の色（色をえらぶ所の先頭に出ます）</div><div class="brcols">${cols.map((c, i) => `<input type="color" class="brcol" data-brc="${i}" value="${c}" aria-label="お店の色 ${i + 1}">`).join('')}</div>`
     + `<div class="actions"><button class="btn primary" data-brl="put">${IW('shop', 'この作品に店名とロゴを入れる')}</button></div>`
     + hint('テンプレートを「追加」すると、店名・電話番号などの欄にここの内容が入ります。');
@@ -11557,40 +11562,20 @@ async function exportImage() {
    the list of ids is used in order and positions past the end get no ad), 'save' = under the 保存 sheet after a save, 'menu' = bottom
    of the phone ☰ menu (only when the screen is tall enough). Never on the editing screen. AdMax frames are 300×250 (ADS.w/h). */
 /* admax: 32-hex ids from the 忍者AdMax tags (https://adm.shinobi.jp/s/<id>), one set for phones/tablets (sp) and one for PC (pc); each id shows in
-   its own iframe ad.html?id=… because the tag uses document.write. adsense: client 'ca-pub-…' + ad unit ids in slots. */
+   its own sandboxed iframe ad.html?id=… because the tag uses document.write. AdSense (loading ad scripts into the app page) was removed
+   2026-11-19 for safety: ad code must never run with the app's origin. */
 const ADS = { net: 'admax', client: '', w: 300, h: 250, sp: { gal: '3327d2af2016cc4fa4aad5d943ffea01', save: '008185275fd2c9090ac9b3bd7db2650a', menu: 'd7b76f26292fc949827e7a30aa6e84d3' },
   pc: { gal: 'cc4a18014d1282e0865f5e9f01c0e512', save: 'bbec50b7f4bd892baa349e3f98d71580' } };
 const adsJP = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Tokyo'; } catch (e) { return false; } };
 const adId = (k, i = 0) => { const v = ((ADS.net === 'admax' ? ADS[deskOn ? 'pc' : 'sp'] : ADS.slots) || {})[k]; return Array.isArray(v) ? v[i] || '' : i ? '' : v || ''; };
-const adsOn = (k, i) => !!adId(k, i) && (ADS.net === 'admax' || !!ADS.client) && location.protocol === 'https:' && !navigator.webdriver && navigator.onLine && adsJP();
-let adsP = null;
-const adsLoad = () => adsP || (adsP = new Promise((res, rej) => { const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous';
-  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(ADS.client); s.onload = res; s.onerror = () => { adsP = null; rej(); }; document.head.appendChild(s); }));
+const adsOn = (k, i) => !!adId(k, i) && ADS.net === 'admax' && location.protocol === 'https:' && !navigator.webdriver && navigator.onLine && adsJP();
 const adHtml = (k, cls = '', i = 0) => {
-  if (!adsOn(k, i)) return '';
-  const id = esc(adId(k, i)), box = b => `<div class="adbox ${cls}" data-ad="${k}"><span class="adlbl">広告</span>${b}</div>`;
-  return ADS.net === 'admax' ? (/^[0-9a-f]{32}$/.test(adId(k, i)) ? box(`<iframe class="adfr" src="ad.html?id=${id}" width="${ADS.w}" height="${ADS.h}" title="広告" loading="lazy" scrolling="no" style="border:0;display:inline-block;max-width:100%"></iframe>`) : '')
-    : box(`<ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.client)}" data-ad-slot="${id}" data-ad-format="auto" data-full-width-responsive="true"></ins>`);
+  if (!adsOn(k, i) || ADS.net !== 'admax' || !/^[0-9a-f]{32}$/.test(adId(k, i))) return '';
+  /* each ad is its own sandboxed frame (no allow-same-origin): the ad network's scripts run in an opaque origin and cannot read
+     our localStorage (login session) or touch the page. Ad scripts are never loaded into the app page itself. */
+  return `<div class="adbox ${cls}" data-ad="${k}"><span class="adlbl">広告</span><iframe class="adfr" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" src="ad.html?id=${adId(k, i)}" width="${ADS.w}" height="${ADS.h}" title="広告" loading="lazy" scrolling="no" style="border:0;display:inline-block;max-width:100%"></iframe></div>`;
 };
-/* AdMax: queue the new frames and re-run its loader (t.js reads window.admaxads; a fresh script tag per fill is how it works in pages that add ads later) */
-function admaxRun(ids) {
-  const q = window.admaxads = window.admaxads || [];
-  ids.forEach(id => { const j = q.findIndex(x => x.admax_id === id); if (j >= 0) q.splice(j, 1); q.push({ admax_id: id, type: 'banner' }); });
-  document.querySelectorAll('script[data-admax]').forEach(x => x.remove()); window.__admax_tag__ = undefined;
-  const s = document.createElement('script'); s.src = 'https://adm.shinobi.jp/st/t.js'; s.async = true; s.charset = 'utf-8'; s.dataset.admax = '1'; document.body.appendChild(s);
-}
-/* fill the empty ad frames under root once they have a width (hidden sheets have none: retried a few times) */
-function adFill(root, n = 0) {
-  if (!root) return;
-  const els = [...root.querySelectorAll('.admax-ads, ins.adsbygoogle')].filter(i => !i._q && !i.hasAttribute('data-adsbygoogle-status'));
-  if (!els.length) return;
-  const ready = els.filter(i => i.offsetWidth > 0); ready.forEach(i => i._q = 1);
-  if (ready.length) {
-    if (ADS.net === 'admax') admaxRun(ready.map(i => i.dataset.admaxId));
-    else adsLoad().then(() => ready.forEach(() => { try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { } })).catch(() => ready.forEach(i => i._q = 0));
-  }
-  if (ready.length < els.length && n < 6) setTimeout(() => adFill(root, n + 1), 400);
-}
+function adFill() { }   // kept for callers: the frames load themselves
 function adMenu() {
   const b = $('#sideAd'); if (!b || deskOn) return;
   if (!b.firstChild && innerHeight >= 720) b.innerHTML = adHtml('menu');
@@ -12263,7 +12248,7 @@ const RemoteGallery = {
     const { c } = await sb();
     const d = sbOk(await c.from('posts').delete().eq('id', it.id).select('id'));   // its reports go with it (on delete cascade)
     if (!d || !d[0]) throw new Error('not found');
-    if (it.owner) try { await c.storage.from('posts').remove([`${it.owner}/${it.id}-thumb.jpg`, `${it.owner}/${it.id}-full.jpg`]); } catch (e) { }
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(it.owner || '') && /^[\w-]{4,40}$/.test(it.id)) try { await c.storage.from('posts').remove([`${it.owner}/${it.id}-thumb.jpg`, `${it.owner}/${it.id}-full.jpg`]); } catch (e) { }
   }
 };
 const Gallery = {
@@ -13071,7 +13056,8 @@ function galSamples() {
 }
 /* gallery sheet: list (tabs + tag filter + 2-col masonry) and detail */
 const GV = { tab: 'public', tag: null, items: [], cur: null, delArm: false, view: 'list', from: 'list', repCode: '', reported: new Set(), mod: [], modArm: null };
-const safeImg = u => typeof u === 'string' && /^(data:image\/(jpeg|png|webp);base64,|https:\/\/|aiworks\/[a-z0-9-]+\.(webp|jpg)$)/.test(u) ? u : '';   // aiworks/… = the bundled AI作例 files
+const safeImg = u => typeof u === 'string' && (/^(data:image\/(jpeg|png|webp);base64,|aiworks\/[a-z0-9-]+\.(webp|jpg)$)/.test(u)
+  || !!SUPA.url && u.startsWith(SUPA.url + '/storage/v1/object/public/posts/') && /^[\w-]+\/[\w-]+\.(jpe?g|png|webp)(\?[\w=&.-]*)?$/.test(u.slice(SUPA.url.length + 32))) ? u : '';   // aiworks/… = the bundled AI作例 files; https only from our own posts bucket (no outside hosts: viewers' IPs would leak)
 const fmtDate = t => { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
 const galBadges = it => (it.ai ? '<span class="gbadge ai">AI</span>' : it.sample ? '<span class="gbadge sample">サンプル</span>' : '') + (it.hidden ? `<span class="gbadge hid">${it.mine ? '確認中のため非公開' : '非表示中'}</span>` : '') + (it.mine && !it.hidden ? `<span class="gbadge${it.visibility === 'public' ? ' pub' : ''}">${esc(VIS_NAME[it.visibility] || '非公開')}</span>` : '');
 /* ==== likes (ハート) ==== supabase/schema_likes.sql: table likes (post_id, uid; own rows only) + posts.like_count kept by a trigger.
