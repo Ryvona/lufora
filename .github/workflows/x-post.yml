@@ -1,0 +1,42 @@
+# Posts the next due entry of .github/x-posts/queue.json to X (at most one per run),
+# then commits the queue back so nothing is posted twice.
+name: X auto post
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # every hour; the queue decides what is due
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "1 = show what would be posted, don't post"
+        default: "1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: x-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post next due entry
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+        run: |
+          if [ -z "$X_API_KEY" ] && [ "$DRY_RUN" != "1" ]; then echo "X secrets not set; skipping"; exit 0; fi
+          python3 .github/x-posts/post.py
+      - name: Save posted state
+        run: |
+          git diff --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+          git commit -am "X: mark post as sent [skip ci]"
+          git push
